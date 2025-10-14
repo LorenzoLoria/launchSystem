@@ -1,4 +1,4 @@
-function[v, h, h_apogee]= losslesstrajectory(m_s, m, m0, t_b, T, g0)
+function[v, h, h_apogee, mp, c]= losslesstrajectory(m_s, m, m0, t_b, T, g0)
 
 % --- INPUTS:
 % m_s: vector of the structure mass of the different stage;
@@ -28,7 +28,6 @@ h0 = 0; % m
 v = [v0];
 h = [h0];
 m_remaining = m0;
-m_stage = 0;
 for i = 1:n
     mp = [mp, m(i)-m_s(i)];
     m_before = m_remaining;
@@ -38,7 +37,7 @@ for i = 1:n
     MR = m_after / m_before; 
     v(i+1) = v(i) - c(i) * log(MR) - g0 * t_b(i);
     h(i+1) = h(i) + v(i) * t_b(i) + c(i) * t_b(i) / mp(i) * m_before * (MR * log(MR) - MR + 1) - 0.5 * g0 * t_b(i)^2;
-    m_remaining = m_after - m_s(i);
+    m_remaining = m_remaining - m(i); % dopo il primo step: m_remaining = m0 - m1
 end
 h_apogee = h(end) + 0.5 * v(end)^2 / g0;
 
