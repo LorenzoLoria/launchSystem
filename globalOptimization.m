@@ -1,0 +1,92 @@
+%  Use of genetic algorithm. Given a function f(x), it is characterized by
+%  local and global minimum. The objective is to find the global minimum
+%  which allows to obtain the optimal solution
+% 
+% % Define a variable x, then a (scalar or vectorial) objective function f(x)
+% % x is defined between a lower and upper boundary
+% % Two constraints that can be either inequality (< or >) or equality constraints (=)
+% % Non linear constraints g(x)
+% % h(x) = 0;
+
+%% Global Optimization
+clear;
+clc;
+
+% Data
+rocket.Isp = 280; % [s]
+rocket.m0 = 12300; % [kg]
+rocket.T = 450000; % [N]
+rocket.mpay = 800; % [kg]
+
+% initial condition
+rocket.v0 = 0;
+rocket.h0 = 0;
+
+options = optimoptions('ga', 'Display', 'iter', 'MaxGenerations', 10, 'PopulationSize', 400, 'FunctionTolerance',1e-6, 'ConstraintTolerance',1e-6, 'MutationFcn', 'mutationadaptfeasible','CrossoverFcn','crossoverheuristic','MaxStallGenerations',2);
+
+[x,fval,exitFlag,output,population,scores] = ga(@(x) fun_h(x, rocket), 1, [], [], [], [], 0.7, 0.9, @(x) nonlin_h(x, rocket), options);
+
+rocket.mp = x * rocket.m0; % x is th evalue of the optimized eps_p
+h_apogee = -fval / 1000
+
+% Objective function 
+function [obj] = fun_h(var, rocket)
+
+eps_p = var; % propellant mass fraction --> must be optimized to maximize h_apogee
+rocket.mp = eps_p * rocket.m0;
+rocket.tb = rocket.mp * rocket.Isp * 9.81 / rocket.T;
+rocket.c = rocket.Isp * 9.81;
+
+MR = (rocket.m0 - rocket.mp) / (rocket.m0);
+
+v_ct = rocket.v0 - rocket.c * log(MR) - 9.81 * rocket.tb;
+h_ct = rocket.h0 + rocket.c * rocket.m0 / rocket.mp * rocket.tb * (MR * log(MR) - MR + 1) - 0.5 * 9.81 * rocket.tb^2;
+
+h_apogee = h_ct + 1/2 * v_ct^2 / 9.81; % must be maximized
+
+obj = - h_apogee; % we put the minus because ga minimizes
+end
+
+function[c, ceq] = nonlin_h(x, rocket)
+
+eps_p = x;
+rocket.mp = eps_p * rocket.m0;
+rocket.tb = rocket.mp * rocket.Isp * 9.81 / rocket.T;
+rocket.c = rocket.Isp * 9.81;
+
+
+MR = (rocket.m0 - rocket.mp) / (rocket.m0);
+
+v_ct = rocket.v0 - rocket.c * log(MR) - 9.81 * rocket.tb;
+h_ct = rocket.h0 + rocket.c * rocket.m0 / rocket.mp * rocket.tb * (MR * log(MR) - MR + 1) - 0.5 * 9.81 * rocket.tb^2;
+
+h_apogee = h_ct + 1/2 * v_ct^2 / 9.81;
+
+rocket.mi = rocket.m0 - rocket.mp;
+rocket.m_s = rocket.mi - rocket.mpay;
+
+error_m_s = (rocket.m_s - MER_solid(rocket.mp)) / MER_solid(rocket.mp); % error wrt the empirical correlation
+
+c = [-h_apogee, error_m_s^2-0.05^2]; % inequality vector: imposes h_apogee>=0 and error<=0.05
+ceq = [];
+
+end
+
+% Empirical Correlation:
+function [ms] = MER_solid(mp)
+
+pc = 7; % assumption
+
+params_Me = [800.340063456389   0.0970643753730160  ...
+             -162.431518885189  -0.0180992880437423  -8.48759341267327  -6441.47167561289];
+
+Minert = @(params_Me, mp, pc) params_Me(1) + params_Me(2).*mp + params_Me(3).*pc ...
+    + params_Me(4).*(pc + params_Me(5)).*(mp + params_Me(6));
+
+% Calcolo Masse inerte
+if mp > 5000
+    ms = Minert(params_Me, mp, pc);
+else
+    ms = 140.94.*log(mp) - 823.29;
+end
+end
