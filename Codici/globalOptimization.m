@@ -39,7 +39,7 @@ rocket.c = rocket.Isp * 9.81;
 
 MR = (rocket.m0 - rocket.mp) / (rocket.m0);
 
-v_ct = rocket.v0 - rocket.c * log(MR) - 9.81 * rocket.tb;
+v_ct = rocket.v0 - rocket.c * log(MR) - 9.81 * rocket.tb; % cut-off time
 h_ct = rocket.h0 + rocket.c * rocket.m0 / rocket.mp * rocket.tb * (MR * log(MR) - MR + 1) - 0.5 * 9.81 * rocket.tb^2;
 
 h_apogee = h_ct + 1/2 * v_ct^2 / 9.81; % must be maximized
