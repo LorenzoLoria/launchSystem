@@ -1,6 +1,6 @@
 clear;
 clc;
-
+close all
 %% PARETO FRONT
 
 % Sometimes we have to find the optimal payload and the optimal altitude
