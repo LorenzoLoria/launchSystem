@@ -29,6 +29,8 @@ mission.launcher.engines{3}.oxDens = 1143;
 mission.launcher.engines{3}.fuelDens = 71;
 
 mission.capsule.weigth = 8600;
+mission.capsule.Area = 3.7^2*pi;
+mission.capsule.Cd = 1.23;
 
 mission.envirnoment.altRange = (0:100:200000);
 
@@ -39,3 +41,4 @@ for i=1:length(mission.envirnoment.altRange)
 end
 warning('on', 'all');   
 mission.envirnoment.rho = rhoVal;
+mission.envirnoment.rEarth = 6371e3;
