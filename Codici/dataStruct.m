@@ -1,5 +1,5 @@
 % data script
-
+function [mission] = dataStruct
 
 mission = struct();
 
@@ -32,7 +32,7 @@ mission.capsule.weigth = 8600;
 mission.capsule.Area = 3.7^2*pi;
 mission.capsule.Cd = 1.23;
 
-mission.envirnoment.altRange = (0:100:200000);
+mission.envirnoment.altRange = (-1000:100:1000000);
 
 warning('off', 'all'); 
 for i=1:length(mission.envirnoment.altRange)
@@ -42,3 +42,6 @@ end
 warning('on', 'all');   
 mission.envirnoment.rho = rhoVal;
 mission.envirnoment.rEarth = 6371e3;
+mission.envirnoment.g0 = 9.81;
+mission.environment.GM = 398600.4e9;
+end

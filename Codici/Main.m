@@ -3,28 +3,89 @@ clearvars
 clc
 close all
 
-%% Data
-launcher.M0 = 210.4e3;
+[mission] = dataStruct;
+tSpan = [0 3*24*3600];
+x0=[0;0;mission.envirnoment.rEarth+100e3;3000;0;3000];
+[tt,xx] = ballisticTrajectory(x0,mission);
+plot3(xx(1,:),xx(2,:),xx(3,:),"r", "LineWidth",1)
+hold on
 
-launcher.stage1.Mp=150.5e3;
-launcher.stage1.Ms=12e3;
-launcher.stage1.F=
-launcher.stage1.mDot=
+EarthPlot(mission.envirnoment.rEarth)
 
-launcher.stage2.Mp=37.6e3;
-launcher.stage2.Ms=3e3;
-launcher.stage2.F=
-launcher.stage2.mDot=
+function [dxdt] = keplerian_rhs(~, x,mission)
 
-capsule.A=3.7^2*pi;
-capsule.M=8600;
-capsule.cd=1.23; %https://space.stackexchange.com/questions/55071/dragon-re-entry-flight-profile?utm_source=chatgpt.com
+%   KEPLERIAN_RHS  Evaluates the right-hand-side of a 2-body (keplerian) propagator
+%   Evaluates the right-hand-side of a newtonian 2-body propagator.
+%   x is the state
 
-function [dsdt] = capsuledyn(x)
 
-dsdt(1:2)=x(3:4);
-vx = x(3);
-vy = x(4);
+GM = mission.environment.GM;
 
-v = sqrt(vx^2+vy^2);
+rho = interp1(mission.envirnoment.altRange,mission.envirnoment.rho,norm(x(1:3))-mission.envirnoment.rEarth);
 
+v = norm(x(4:6));
+
+D = - 0.5 * rho * v^2 * mission.capsule.Area * mission.capsule.Cd .* x(4:6)./v;
+
+% Initialize right-hand-side
+dxdt = zeros(6,1);
+
+% Extract positions
+rr = x(1:3);
+
+% Compute square distance and distance
+dist2 = dot(rr, rr);
+dist = sqrt(dist2);
+
+% Position detivative is object's velocity
+dxdt(1:3) = x(4:6);   
+
+% Compute the gravitational acceleration using Newton's law + air drag
+dxdt(4:6) = - GM * rr /(dist*dist2) + D./mission.capsule.weigth;
+
+end
+
+
+function [tt,xx] = ballisticTrajectory(x0,mission)
+
+tSpan = [0 3*24*3600];
+
+options = odeset('RelTol',1e-12,'AbsTol',1e-12,'Events',@groundEvent);
+
+solution = ode45(@(t,x) keplerian_rhs(t,x,mission), tSpan, x0,options);
+
+tt = linspace(solution.x(1), solution.x(end), 100);
+
+xx = deval(solution,tt);
+
+end
+
+function [value,isterminal,direction] = groundEvent(t,x)
+    h = norm(x(1:3))-6371e3;             
+    value      = h; 
+    isterminal = 1;       
+    direction  = -1;      
+end
+
+
+function EarthPlot(r)
+    % EarthPlot - plot of the Earth sphere with specific radius and texture
+    % Input:
+    %   r - Earth radius [km]
+
+    textureImage = imread('EarthTexture.jpg');
+
+    % Genera la superficie sferica
+    [theta, phi] = meshgrid(linspace(0, 2*pi, size(textureImage, 2)), linspace(0, pi, size(textureImage, 1)));
+    X = r * sin(phi) .* cos(theta);
+    Y = r * sin(phi) .* sin(theta);
+    Z = r * cos(phi);
+    
+    surface(X, Y, Z, 'FaceColor', 'texturemap', 'EdgeColor', 'none', 'CData', textureImage);
+    axis equal;
+    grid on
+    xlabel('X');
+    ylabel('Y');
+    zlabel('Z');
+   
+end
