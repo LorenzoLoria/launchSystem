@@ -1,37 +1,57 @@
-function [sigmaCritical, maxStress] = unpressurizedTanks(M, r, h, hCM, nx, nz, g0, SF, sigmaAllowable, E)
+function [sigmaCritical, maxStress] = unpressurizedTanks(launcher)
 
-% Function required to size the launcher thickess
+% Function required to size the launcher thickess for unpressurized
+% tanks. This represents a critical condition when the vehicle is still on
+% land
 
 % --- INPUTS
-% M = total mass of the launcher;
-% r = radius of the launcher;
-% h = height of the launcher;
-% hCM = height of the center of mass of the launcher;
+% M = total mass of the launcher [kg];
+% r = radius of the launcher [m];
+% h = height of the launcher [m];
+% hCM = height of the center of mass of the launcher [m];
 % nx = load factor in direction x;
 % nz = load factor in direction z;
-% g0 = gravity acceleration;
+% g0 = gravity acceleration [ms^-2];
 % SF = safety factors;
-% sigmaAllowable = maximum allowable stress;
-% E = stiffness;
+% sigmaAllowable = maximum allowable stress [Pa];
+% E = stiffness [Pa];
+% nStages = number of stages;
 
 % --- OUTPUT
-% t = thickness
+% t = thickness [m]
+% mStruct = mass of the structure [kg]
+
+M              = launcher.M;
+r              = launcher.R;
+h              = launcher.h;
+hCM            = launcher.hCM;
+nx             = launcher.nx;
+nz             = launcher.nz;
+g0             = launcher.g0;
+SF             = launcher.SF;
+sigmaAllowable = launcher.sigmaAllowable;
+E              = launcher.E;
+nStages        = launcher.nStages;
 
 % --- Solution ------------------------------------------------------------
-% Loads
-P = nx * M * g0; % axial load
-Fb = nz * M * g0; % lateral force
-bendingMoment = Fb * hCM; % bending moment
 
-% Minimum Allowable Thickness
-tAxial = ((P / (2 * pi * r)) + (bendingMoment / (pi * r^2))) / sigmaAllowable * SF;
-tShear = Fb / (2 * pi * r * shearAllowable) * SF;
-
-if tAxial > tShear
-    t = tAxial;
-else
-    t = tShear;
+for i = 1:nStages
+    % Loads
+    P = nx * M * g0; % axial load
+    Fb = nz * M * g0; % lateral force
+    bendingMoment = Fb * hCM; % bending moment
+    
+    % Minimum Allowable Thickness
+    tAxial = ((P / (2 * pi * r)) + (bendingMoment / (pi * r^2))) / sigmaAllowable * SF;
+    tShear = Fb / (2 * pi * r * shearAllowable) * SF;
+    
+    if tAxial > tShear
+        t = tAxial;
+    else
+        t = tShear;
+    end
 end
+
 
 
 % Critical Axial Stress Computation (Empirical Correlation) 
