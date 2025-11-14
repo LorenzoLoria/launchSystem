@@ -26,6 +26,9 @@ Fb = nz * M * g0; % lateral force
 bendingMoment = Fb * hCM; % bending moment
 Faxial = pi * r^2 * p; % pressure load
 
+% Shear Stress
+shearAllowable = sigmaAllowable / 2; % typical value
+
 % Minimum Allowable Thickness
 tAxial = abs(- P / (2 * pi * r) - bendingMoment / (pi * r^2) + p * R / 2 + rho * nx * g0 * r / 2) / sigmaAllowable * SF;
 tShear = Fb / (2 * pi * r * shearAllowable) * SF;
@@ -63,19 +66,3 @@ sigmaBending = bendingMoment / I * radius * safeyFactor;
 
 maxStress = abs(sigmaAxial) + abs(sigmaBending);
 
-% --- Data
-% mass = 50000;
-% height = 8;
-% hCM = height / 2;
-% radius = 2.5 / 2;
-% thickness = 1e-3;
-% loadFactorX = 2.5; % depends on the most critical load condition
-% loadFactorZ = 0.2; % depends on the most critical load condition
-% g0 = 9.81;
-% safeyFactor = 1.25; % typically between 1.1 and 1.5
-% sigmaAllowableSteel = 1034e6;
-% sigmaAllowableAl = 448e6;
-% shearAllowableSteel = sigmaAllowableSteel / 2;
-% shearAllowableAl = sigmaAllowableAl / 2;
-% stiffnessSteel = 207e9;
-% stiffnessAl = 69e9;
