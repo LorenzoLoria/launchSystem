@@ -30,18 +30,21 @@ mission.launcher.engines{3}.fuelDens = 71;
 
 mission.capsule.weigth = 8600;
 mission.capsule.Area = 3.7^2*pi;
-mission.capsule.Cd = 1.23;
+mission.capsule.supersonicCD = 1.23;
+mission.capsule.subsonicCD = 0.45;
 
-mission.envirnoment.altRange = (-1000:100:1000000);
+mission.environment.altRange = (-1000:100:1000000);
 
 warning('off', 'all'); 
-for i=1:length(mission.envirnoment.altRange)
-    [T,rho] = atmosnrlmsise00(mission.envirnoment.altRange(i), 45, 120, 2020,50,1300);
+for i=1:length(mission.environment.altRange)
+    [T,rho] = atmosnrlmsise00(mission.environment.altRange(i), 45, 120, 2020,50,1300);
     rhoVal(i) = rho(6);
+    Tval(i) = T(1,2) ; 
 end
 warning('on', 'all');   
-mission.envirnoment.rho = rhoVal;
-mission.envirnoment.rEarth = 6371e3;
-mission.envirnoment.g0 = 9.81;
+mission.environment.rho = rhoVal;
+mission.environment.T = Tval;
+mission.environment.rEarth = 6371e3;
+mission.environment.g0 = 9.81;
 mission.environment.GM = 398600.4e9;
 end
