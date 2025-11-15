@@ -1,4 +1,4 @@
-function [tMax, tMaxPos, mStruct, bucklingMax] = pressurizedTanks(launcher)
+function [tMax, tMaxPos] = pressurizedTanks(launcher)
 
 % Function required to size the launcher thickess when tanks are
 % pressurized during the flight. 
@@ -32,9 +32,9 @@ SF             = launcher.SF;
 sigmaAllowable = launcher.sigmaAllowable;
 E              = launcher.E;
 shearAllowable = sigmaAllowable / 2;
-rhoProp            = launcher.rho;
+rhoProp        = launcher.rhoProp;
 rhoMaterial    = launcher.rhoMaterial;
-
+p              = launcher.tankPressure;
 % --- Solution ------------------------------------------------------------
 
 % Loads
@@ -93,8 +93,8 @@ sigmaBuckling = ((k0 + kp) * E .* t) / r;
 
 % Exctraction of the most critical result
 [tMax, tMaxPos] = max(t);
-volume = pi * h(1) * (r^2 - (r - tMax)^2);
-mStruct = volume * rhoMaterial;
+% volume = pi * h(1) * (r^2 - (r - tMax)^2);
+% mStruct = volume * rhoMaterial;
 [bucklingMax, bucklingMaxPos] = max(sigmaBuckling);
 
 
