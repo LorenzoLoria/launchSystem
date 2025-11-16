@@ -1,5 +1,6 @@
 
 function dsdt = launcherDynamicsECI(t, x,thrustData, mission)
+
 % LAUNCHERDYNAMICS  3D launcher equations of motion.
 %   This function computes the time derivative of the state vector for a 
 %   multistage rocket in a 3D Cartesian coordinate system.
@@ -15,9 +16,10 @@ function dsdt = launcherDynamicsECI(t, x,thrustData, mission)
 %     x(7) = m       [kg]  Instantaneous total mass
 %
 %   thrustData:
-%     .F                     = @(t) Thrust magnitude [N]
-%     .thrustVectoringAngle  = @(t) Pitch angle [rad] (Angle from vertical z-axis or horizon depending on convention. Here: 0 = Vertical/Up)
-%     .psi                   = @(t) Yaw angle   [rad] (Angle in x-y plane, 0 = along x-axis)
+%
+%     ThrustData(:,1) = Tx
+%     ThrustData(:,2) = Ty
+%     ThrustData(:,3) = Tz
 %
 %   mission.capsule:
 %     .Area   = Reference cross-sectional area [m^2]
@@ -37,14 +39,14 @@ function dsdt = launcherDynamicsECI(t, x,thrustData, mission)
     m     = x(7);
 
     A   = mission.capsule.Area;
-    Cd  = mission.capsule.Cd;
+    Cd  = mission.capsule.supersonicCD;
     g0  = mission.environment.g0;
-    Isp = mission.launcher.engines{1}.isp;             % questo ancora non esiste
+    Isp = mission.launcher.engines{1}.isp;  
     GM  = mission.environment.GM;
 
     % Interpolate air density based on current altitude
     h   = norm(r)-mission.environment.rEarth;  
-    rho = interp1(mission.environment.altRange, mission.environment.rhoVal, h, 'linear', 'extrap');
+    rho = interp1(mission.environment.altRange, mission.environment.rho, h, 'linear', 'extrap');
 
     T = thrustData(t); % thrustdata dovrebbe essere una funzione vettoriale con Tx,Ty,Tz
 
@@ -52,7 +54,6 @@ function dsdt = launcherDynamicsECI(t, x,thrustData, mission)
     D = - 0.5 .* rho .* norm(v) .* A .* Cd .* v; 
 
     % Gravity contribution
-    
     G = - GM * r /norm(r)^3;
 
     % mass flow rate
@@ -66,10 +67,11 @@ function dsdt = launcherDynamicsECI(t, x,thrustData, mission)
     dsdt(1:3) = v;
 
     % Acceleration derivatives (Velocity rates)
-    dsdt(4:6) = (T + D + G) / m;  
+    dsdt(4:6) = (T + D ) / m + G;  
 
     
     % Mass derivative
     dsdt(7) = mDot; 
 
+  
 end
