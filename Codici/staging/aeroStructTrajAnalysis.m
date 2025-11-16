@@ -18,6 +18,8 @@ tSample = 0:tStep:tBurn ;
 
 propellantMass = trapz(tSample,thrustProfile(tSample)/g0/engine.isp);
 
+% Dobbiamo probabilmente iterare le seguenti funzioni per diminuire
+% l'errore su epsilon0, che è una guess iniziale
 
 [] = funzioneDiMatiETano()
 
