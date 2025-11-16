@@ -1,0 +1,41 @@
+function [mer] = MER(launcher)
+
+% Computation of the Mass Estimation Relations
+% --- INPUTS
+% launcher = structure containing all the launcher data
+% --- OUTPUTS
+
+% --- SOLUTION ------------------------------------------------------------
+
+% LOX Tank Mass
+mer.tankMassLOX = 12.2 * volumeTankLOX + 255.2;
+
+% LH2 Tank Mass
+mer.tankMassLH2 = 9.08 * volumeTankLH2 + 100.09;
+
+% LOX Cryogenic Insulation Mass 
+mer.cryoInsuLOX = 1.12 * areaTankLOX;
+
+% LH2 Cryogenic Insulation Mass 
+mer.cryoInsuLH2 = 2.88 * areaTankLOX;
+
+% Turbopumps Mass
+A = 1.3; % ranges between 1.3-2.6
+b = 0.6; % ranges between 0.6-0.666
+mer.turbopumps = A * (requiredPower / pumpRotationalSpeed)^b;
+
+% Fairing and Shroud Mass
+mer.fairing = 4.95 * fairingArea^1.15;
+
+% Avionics Mass
+mer.avionics = 10 * (M0)^0.361;
+
+% Wiring Mass
+mer.wiring = 1.058 * sqrt(M0)^0.25;
+
+% Thrust structure
+mer.thrustStructure = 2.55e-4 * thrust;
+
+% Mass of the engine
+mer.Engine = 150 + 0.086 * (thrustVacuum)^0.86; % value in lb
+mer.Engine = mer.Engine * 0.45359237; % value in kg
