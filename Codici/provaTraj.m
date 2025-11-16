@@ -7,7 +7,7 @@ x0 = [0 0 0] ;
 xf = [12 15 8] ;
 target = xf ; 
 
-initialGuess = [linspace(x0(2), xf(2), nOptPoints), linspace(x0(3), xf(3), nOptPoints), linspace(1, 30, nOptPoints)] ;
+initialGuess = [linspace(x0(2), xf(2), nOptPoints), linspace(x0(3), xf(3), nOptPoints), linspace(1, 5, nOptPoints)] ;
 
 xCoord = linspace(x0(1), xf(1), nOptPoints+2) ;
 
@@ -127,7 +127,7 @@ objective = tFinal + yOscillation / 5 + zOscillation / 3 ;
 end
 
 
-function [mDot] = massIntegration(s,m,vModule, dvModule, dPosition)
+function [mDot] = massIntegration(s,m,vSpline, position)
 
 rho = 1.225 ; 
 surface = 1 ; 
@@ -135,14 +135,20 @@ CD = 0.2 ;
 iSp = 300 ; 
 g0 = 9.81 ;
 
+vModule = vSpline.polynomial ; 
+dvModule = vSpline.firstDer ;
+dPosition = position.dPosition ; 
+ddPosition = position.ddPosition ; 
 
-direction = dPosition(s) ./ norm(dPosition(s)) ; 
-thrust = m * direction * dvModule(s) - m * [0 ; 0 ; g0] - 0.5 * rho * (vModule(s)).^2 * surface * CD .* direction ;
+
+
+velocityUnitVector = dPosition(s) ./ norm(dPosition(s)) ; 
+accelerationUnitVector = ddPosition(s) ./ norm(ddPosition(s)) ; 
+
+thrust = m * accelerationUnitVector * dvModule(s) - m * [0 ; 0 ; g0] - 0.5 * rho * (vModule(s)).^2 * surface * CD .* velocityUnitVector ;
 mDot = - 1 / iSp / g0 * (norm(thrust));
 
-if mDot>0
-    keyboard
-end
+
 
 
 
@@ -151,6 +157,7 @@ end
 
 function [distance,isterminal,direction] = targetEvent(s,m,position,target)
 
+position = position.position ; 
 
     distance = norm(position(s) - target') - 1 ;
 
@@ -177,7 +184,7 @@ acceleration = output.acceleration ;
 thrustOld = output.thrust ; 
 position = output.position ; 
 s = output.s ;  
-directionOld = output.direction ;
+velocityUnitVectorOld = output.velocityUnitVector ;
 
 evaluationPoints = linspace(s(1), s(end), 5e2) ; 
 
@@ -185,9 +192,9 @@ thrust(1,:) = interp1(s,thrustOld(1,:),evaluationPoints);
 thrust(2,:) = interp1(s,thrustOld(2,:),evaluationPoints);
 thrust(3,:) = interp1(s,thrustOld(3,:),evaluationPoints);
 
-direction(1,:) = interp1(s,directionOld(1,:),evaluationPoints);
-direction(2,:) = interp1(s,directionOld(2,:),evaluationPoints);
-direction(3,:) = interp1(s,directionOld(3,:),evaluationPoints);
+velocityUnitVector(1,:) = interp1(s,velocityUnitVectorOld(1,:),evaluationPoints);
+velocityUnitVector(2,:) = interp1(s,velocityUnitVectorOld(2,:),evaluationPoints);
+velocityUnitVector(3,:) = interp1(s,velocityUnitVectorOld(3,:),evaluationPoints);
 
 s = interp1(s,s,evaluationPoints) ; 
 
@@ -206,7 +213,7 @@ for ii = 1:length(s)
     pos(:,ii) = position(s(ii));
     distance(ii,1) = sqrt(sum((pos(:,ii) - earthCenter).^2)) ;
     acc(ii,1) = acceleration(s(ii));
-    steeringAngle(ii,1) = acosd(dot(thrust(ii) /norm(thrust(ii)), direction(ii))) ;
+    steeringAngle(ii,1) = acosd(dot(thrust(ii) /norm(thrust(ii)), velocityUnitVector(ii))) ;
 
     
 end
@@ -241,27 +248,33 @@ zPoints = [xCoord ; zCoord]' ;
 vModulePoints = [xCoord ; vModule]' ;
 
 
-[out] = splineGeneration(yPoints) ;
+[ySpline] = splineGeneration(yPoints) ;
 
-y = out.polynomial ; 
-dy = out.firstDer ;
-ddy = out.secondDer ;
+y = ySpline.polynomial ; 
+dy = ySpline.firstDer ;
+ddy = ySpline.secondDer ;
 
-[out] = splineGeneration(zPoints) ;
+[zSpline] = splineGeneration(zPoints) ;
 
-z = out.polynomial ; 
-dz = out.firstDer ;
-ddz = out.secondDer ;
+z = zSpline.polynomial ; 
+dz = zSpline.firstDer ;
+ddz = zSpline.secondDer ;
 
-[out] = splineGeneration(vModulePoints) ;
+[vSpline] = splineGeneration(vModulePoints) ;
 
-vModule = out.polynomial ; 
-dvModule = out.firstDer ;
-ddvModule = out.secondDer ;
+vModule = vSpline.polynomial ; 
+dvModule = vSpline.firstDer ;
+ddvModule = vSpline.secondDer ;
 
 
-position = @(s) [ s ; y(s) ; z(s) ];
+pos = @(s) [ s ; y(s) ; z(s) ];
 dPosition = @(s) [1 ; dy(s) ; dz(s) ];
+ddPosition = @(s) [0 ; ddy(s) ; ddz(s)];
+position.position = pos ;
+position.dPosition = dPosition ; 
+position.ddPosition = ddPosition ; 
+
+
 dPositionModule = @(s) norm(dPosition(s)) ;
 
 
@@ -273,10 +286,11 @@ m0 = 100 ;
 
 opt = odeset('relTol', 1e-12, 'absTol', 1e-12, 'Events' , @(s,m)targetEvent(s,m,position,target), 'MaxStep', 0.1) ;
 
-[s, m]=ode45(@(s,m) massIntegration(s, m, vModule, dvModule, dPosition), sSpan, m0, opt) ; 
+[s, m]=ode45(@(s,m) massIntegration(s, m, vSpline, position), sSpan, m0, opt) ; 
 
 vel = zeros(1,length(s));
-direction = zeros(3,length(s));
+velocityUnitVector = zeros(3,length(s));
+accelerationUnitVector = zeros(3,length(s));
 thrust = zeros(3,length(s));
 
 
@@ -287,8 +301,11 @@ CD = 0.2 ;
 for ii = 1:length(s)
 
     vel(ii) = vModule(s(ii)) ;
-    direction(:,ii) = dPosition(s(ii)) ./ norm(dPosition(s(ii))) ;
-    thrust(:,ii) = m(ii) * direction(:,ii) * dvModule(s(ii)) - m(ii) * [0 ; 0 ; g0] - 0.5 * rho * (vModule(s(ii))).^2 * surface * CD .* direction(:,ii) ;
+    velocityUnitVector(:,ii) = dPosition(s(ii)) ./ norm(dPosition(s(ii))) ; 
+    accelerationUnitVector(:,ii) = ddPosition(s(ii)) ./ norm(ddPosition(s(ii))) ; 
+
+
+    thrust(:,ii) = m(ii) * accelerationUnitVector(:,ii) * dvModule(s(ii)) - m(ii) * [0 ; 0 ; g0] - 0.5 * rho * (vModule(s(ii))).^2 * surface * CD .* velocityUnitVector(:,ii) ;
 
 
 end
@@ -307,10 +324,10 @@ if fitnessFlag
 else
 
     output.acceleration = dvModule ; 
-    output.position = position ; 
+    output.position = position.position ; 
     output.thrust = thrust ; 
     output.s = s ; 
-    output.direction = direction ;
+    output.velocityUnitVector = velocityUnitVector ;
 
 end
 
