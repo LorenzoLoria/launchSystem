@@ -21,12 +21,21 @@ upperBounds = [limit*ones(nOptPoints,1), limit*ones(nOptPoints,1), 100*ones(nOpt
 fminconOptions = optimoptions('fmincon', 'Algorithm', 'sqp', 'Display', 'iter-detailed', ...
         'MaxFunctionEvaluations', 1e5, ...
         'MaxIterations', 1000, ...
-        'ConstraintTolerance', 1e-4, ...    % <-- RILASSATA
+        'ConstraintTolerance', 1e-8, ...  
         'StepTolerance', 1e-6, ...
-        'OptimalityTolerance', 1e-4,...   % <-- RILASSATA
+        'OptimalityTolerance', 1e-7,...   
         'FiniteDifferenceType','forward',...
-        'DiffMinChange', 1e-5);           % Aggiunto per stabilità
+        'DiffMinChange', 1e-5);    
 
+
+% fminconOptions = optimoptions('fmincon', 'Algorithm', 'sqp', 'Display', 'iter-detailed', ...
+%         'MaxFunctionEvaluations', 1e5, ...
+%         'MaxIterations', 1e5, ...
+%         'ConstraintTolerance', 1e-12, ...
+%         'StepTolerance', 1e-9, ...
+%         'OptimalityTolerance', 1e-10,...
+%         'FiniteDifferenceType','forward',...  
+%         'DiffMinChange', 1e-5); 
 
 optTraj = fmincon (@(x) fitnessFun(x, xCoord,target,x0,xf), initialGuess, ...
     [], [], [],[], lowerBounds, upperBounds, @(x) constraintFun(x,xCoord,target,x0,xf), fminconOptions) ;
@@ -34,10 +43,11 @@ optTraj = fmincon (@(x) fitnessFun(x, xCoord,target,x0,xf), initialGuess, ...
 
 %% PLOT
 yCoord = [x0(2) optTraj(1:nOptPoints) xf(2)];
-yPoints = [xCoord ; yCoord]';
 zCoord = [x0(3) optTraj(nOptPoints+1 : nOptPoints*2) xf(3)];
-zPoints = [xCoord ; zCoord]';
 velocity =[0.1 optTraj(2*nOptPoints+1 : end) optTraj(end)];
+
+yPoints = [xCoord ; yCoord]';
+zPoints = [xCoord ; zCoord]';
 velocityPoints = [xCoord ; velocity]';
 
 xQuery = linspace(x0(1), xf(1), 1000)';
@@ -149,7 +159,6 @@ end
 function [distance,isterminal,direction] = targetEvent(s,m,position,target)
 
     position = position.position ; 
-
     distance = norm(position(s) - target') - 0.1 ;
     isterminal = 1;       
     direction  = 0;    
@@ -166,14 +175,14 @@ fitnessFlag = 0 ;
 
 
 earthCenter = [12 ; 9.5 ; 3.4];
-tol = 1;
+tol = 0.25;
 earthRadius = 5 + tol; 
 
 thrust = output.thrust ; 
 position = output.position ; 
 s = output.s ;  
 velocityUnitVector = output.velocityUnitVector ;
-acceleration = output.acceleration ; 
+accelerationMagnitude = output.acceleration ; 
 
 % thrustOld = output.thrust ; 
 % position = output.position ; 
@@ -194,7 +203,6 @@ acceleration = output.acceleration ;
 % acceleration(1,:) = interp1(s,accelerationOld(1,:),evaluationPoints);
 % 
 % s = interp1(s,s,evaluationPoints) ; 
-% 
 
 pos = zeros(3,length(s)) ; 
 distance = zeros(length(s),1) ; 
@@ -206,9 +214,9 @@ for ii = 1:length(s)
     
     pos(:,ii) = position(s(ii));
     distance(ii,1) = sqrt(sum((pos(:,ii) - earthCenter).^2)) ;
-    acc(ii,1) = acceleration(ii)';
-    steeringAngle(ii,1) = acosd(dot(thrust(ii) /norm(thrust(ii)), velocityUnitVector(ii))) ;
-    thrustMagnitude = norm(thrust(:,ii));
+    acc(ii,1) = accelerationMagnitude(ii)';
+    steeringAngle(ii,1) = acosd(dot(thrust(:,ii) /norm(thrust(:,ii)), velocityUnitVector(:,ii))) ;
+    thrustMagnitude(ii,1) = norm(thrust(:,ii));
     
 end
 
@@ -221,10 +229,11 @@ maxThrust = 2500 ;
 
 
 %C = [earthRadius - min(distance) ; max(acc) - maxAcc ; max(steeringAngle) - maxSteeringAngle ; max(norm(thrust)) - maxThrust];
-C = [earthRadius - min(distance) ; acc - maxAcc ; max(thrustMagnitude) - maxThrust ];
+ C = [earthRadius - min(distance) ; max(acc) - maxAcc ; max(thrustMagnitude) - maxThrust; max(steeringAngle) - maxSteeringAngle ];
 
-% maxAngle = max(steeringAngle) ;
-
+if sum(imag(steeringAngle)) ~= 0
+    keyboard
+end
 
 end
 
@@ -279,7 +288,7 @@ sSpan = [xCoord(1), xCoord(end)] ;
 
 m0 = 100 ;
 
-opt = odeset('relTol', 1e-4, 'absTol', 1e-4, 'Events' , @(s,m)targetEvent(s,m,position,target), 'MaxStep', 0.5) ;
+opt = odeset('relTol', 1e-6, 'absTol', 1e-6, 'Events' , @(s,m)targetEvent(s,m,position,target), 'MaxStep', 0.5) ;
 
 [s, m]=ode45(@(s,m) massIntegration(s, m, vSpline, position), sSpan, m0, opt) ; 
 
