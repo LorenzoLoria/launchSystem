@@ -49,7 +49,7 @@ function dsdt = launcherDynamicsECI(t, x,thrustData, mission)
     %rho = interp1(mission.environment.altRange, mission.environment.rho, h, 'linear', 'extrap');
     rho = mission.environment.gridInterp(h);
     T = thrustData(t); % thrustdata dovrebbe essere una funzione vettoriale con Tx,Ty,Tz
-
+    
     % Drag contribution
     D = - 0.5 .* rho .* norm(v) .* A .* Cd .* v; 
 

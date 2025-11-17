@@ -19,12 +19,10 @@ windDirection = windDirection/norm(windDirection);
 [ttC,xxC] = ballisticTrajectory(x0C,mission,windDirection,ttL(end));
 
 Tmax = 845e3*10;
-ceq = [] ;
+ceq = [norm(xxC(1:3,end) - rtarg)] ;
 cin=[];
 for i = 1:size(x,1)
     Ti = norm(x(i,:));
     cin(i) = norm(Ti)-Tmax;
 
 end
-
-cin=[cin,norm(xxC(1:3,end) - rtarg)-20e3];

@@ -13,8 +13,9 @@ mission.launcher.engines{1}.weight = 470;
 mission.launcher.engines{1}.OF = 2.36;
 mission.launcher.engines{1}.oxDens = 1143;
 mission.launcher.engines{1}.fuelDens = 835;   
+
 % Questi valori dovrebbero essere dati da GA:
-mission.launcher.engines{1}.mPropellant=  150e3;
+mission.launcher.engines{1}.mPropellant=  190e3;
 mission.launcher.engines{1}.m0 = 200e3;
 
 mission.launcher.engines{2}.isp = 327;
@@ -44,10 +45,37 @@ for i=1:length(mission.environment.altRange)
     rhoVal(i) = rho(6);
     Tval(i) = T(1,2) ; 
 end
+
+
+
 warning('on', 'all');   
 mission.environment.rho = rhoVal;
 mission.environment.T = Tval;
+
+mission.environment.gridInterp = griddedInterpolant( ...
+    mission.environment.altRange, ...   % grid points
+    mission.environment.rho, ...        % values
+    'linear', ...                       % interpolation method
+    'linear');  
+
+mission.environment.gridInterpTemp = griddedInterpolant( ...
+    mission.environment.altRange, ...   % grid points
+    mission.environment.T, ...        % values
+    'linear', ...                       % interpolation method
+    'linear');  
+
+
 mission.environment.rEarth = 6371e3;
 mission.environment.g0 = 9.81;
 mission.environment.GM = 398600.4e9;
+
+mission.options.fmincon = optimoptions("fmincon","Display","iter","MaxIterations",200,'MaxFunctionEvaluations',10000,'StepTolerance',1e-16,'OptimalityTolerance',1e-8,'FunctionTolerance',1e-19,'ConstraintTolerance',1e-10);
+mission.options.gaOptions = optimoptions('ga', 'PlotFcn',{'gaplotbestf', 'gaplotbestindiv'}, 'display', 'iter','MaxStallGenerations', 10, ...
+        'FunctionTolerance', 1e-6, 'EliteCount',  6,...
+        'MaxGenerations', 100, 'PopulationSize', 40, ...
+        'NonlinearConstraintAlgorithm', 'penalty');
+
+
+
+
 end
