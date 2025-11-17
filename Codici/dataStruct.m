@@ -38,15 +38,15 @@ mission.capsule.supersonicCD = 1.23;
 mission.capsule.subsonicCD = 0.45;
 
 mission.environment.altRange = (-1000:100:1000000);
-
+rhoVal = zeros(length(mission.environment.altRange),1);
+Tval= zeros(length(mission.environment.altRange),1);
 warning('off', 'all'); 
+
 for i=1:length(mission.environment.altRange)
     [T,rho] = atmosnrlmsise00(mission.environment.altRange(i), 45, 120, 2020,50,1300);
     rhoVal(i) = rho(6);
     Tval(i) = T(1,2) ; 
 end
-
-
 
 warning('on', 'all');   
 mission.environment.rho = rhoVal;
@@ -67,15 +67,18 @@ mission.environment.gridInterpTemp = griddedInterpolant( ...
 
 mission.environment.rEarth = 6371e3;
 mission.environment.g0 = 9.81;
-mission.environment.GM = 398600.4e9;
+mission.environment.GM = 398600.433e9;
 
-mission.options.fmincon = optimoptions("fmincon","Display","iter","MaxIterations",200,'MaxFunctionEvaluations',10000,'StepTolerance',1e-16,'OptimalityTolerance',1e-8,'FunctionTolerance',1e-19,'ConstraintTolerance',1e-10);
-mission.options.gaOptions = optimoptions('ga', 'PlotFcn',{'gaplotbestf', 'gaplotbestindiv'}, 'display', 'iter','MaxStallGenerations', 10, ...
-        'FunctionTolerance', 1e-6, 'EliteCount',  6,...
-        'MaxGenerations', 100, 'PopulationSize', 40, ...
+mission.options.fmincon = optimoptions("fmincon","Display","iter",...
+        "MaxIterations",200,'MaxFunctionEvaluations',10000,'StepTolerance',... 
+        1e-16, 'OptimalityTolerance',1e-8,'FunctionTolerance',1e-19,...
+        'ConstraintTolerance',1e-10);
+
+mission.options.gaOptions = optimoptions('ga', 'PlotFcn',...
+        {'gaplotbestf', 'gaplotbestindiv'}, 'display', 'iter',... 
+        'MaxStallGenerations', 10, 'FunctionTolerance', 1e-6, 'EliteCount',...
+        6, 'MaxGenerations', 100, 'PopulationSize', 40,...
         'NonlinearConstraintAlgorithm', 'penalty');
-
-
 
 
 end
