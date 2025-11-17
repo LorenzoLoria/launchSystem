@@ -11,32 +11,48 @@ addpath(genpath("..\..\"))
 mission = dataStruct;
 
 %% Optimisation Code
-
+% TROPPO LENTO
 % Initial fMinCon Guess
-xx0 = [0*ones(6,1) , 4*845e3*0.5*cos(deg2rad(70)) .* ones(6,1), 4*844e3*0.5*sin(deg2rad(70)) .* ones(6,1)];
+T0 = [0*ones(6,1) , 4*845e3*0.5*cos(deg2rad(70)) .* ones(6,1), 4*844e3*0.5*sin(deg2rad(70)) .* ones(6,1)];
+Tvec = T0(:);
 
 % Target Point
-rtarg = [0;mission.environment.rEarth * cos(deg2rad(75.5));mission.environment.rEarth * sin(deg2rad(75.5))];
+rtarg = [0;mission.environment.rEarth * cos(deg2rad(85.5));mission.environment.rEarth * sin(deg2rad(85.5))];
 
+% Initial Guess using GA
+obj_ga = @(x) objFun( reshape(x,size(T0)), mission );
+nonlcon_ga = @(x) nlcon( reshape(x,size(T0)), mission, rtarg );
+
+lbGA = 845e3*ones(length(Tvec),1);
+ubGA = 4*845e3*ones(length(Tvec),1);
+options_ga = optimoptions("ga", ...
+    "Display","iter", ...
+    "MaxGenerations",20, ...
+    "PopulationSize",40, ...
+    "HybridFcn",@fmincon); 
+[x_ga, fval_ga] = ga(obj_ga,length(Tvec),[],[],[],[],lbGA,ubGA,nonlcon_ga,options_ga)
+
+T0 = reshape(x_ga,6,3)
+%%
 % Setting Boundaries
-lb = 0*ones(size(xx0,1));
-ub = 4*845e3*ones(size(xx0,1),size(xx0,2));
+lb = 0*ones(size(T0,1));
+ub = 4*845e3*ones(size(T0,1),size(T0,2));
 
 disp('xx0:');
-disp(xx0);
+disp(T0);
 disp('LB:');
 disp(lb);
 disp('UB:');
 disp(ub);
 
 % Optimisation with fMinCon
-[X,FVAL,EXITFLAG,OUTPUT] = fmincon(@(x) objFun(x,mission),xx0,[],[],[],[],-1*ones(size(xx0,1),size(xx0,2)),4*845e3*ones(size(xx0,1),size(xx0,2)),@(x) nlcon(x,mission,rtarg),mission.options.fmincon)
+[X,FVAL,EXITFLAG,OUTPUT] = fmincon(@(x) objFun(x,mission),T0,[],[],[],[],-1*ones(size(T0,1),size(T0,2)),4*845e3*ones(size(T0,1),size(T0,2)),@(x) nlcon(x,mission,rtarg),mission.options.fmincon)
 
 %% Initial Guess Plot
 
 x0 = [0; 0; mission.environment.rEarth; 0; 0; 0; mission.launcher.engines{1}.m0];
 tSpan = [0 1*24*3600];
-thrustDataVec = xx0;
+thrustDataVec = T0;
 tVec = linspace(tSpan(1),tSpan(end),size(thrustDataVec,1));
 thrustData = @(t) [interp1(tVec,thrustDataVec(:,1),t);interp1(tVec,thrustDataVec(:,2),t);interp1(tVec,thrustDataVec(:,3),t)];
 

@@ -15,21 +15,21 @@ x0 = [0; 0; mission.environment.rEarth; 0; 0; 0; mission.launcher.engines{1}.m0]
 
 [ttL,xxL] = launcherTrajectory(x0,mission, thrustData);
 
-Tmax = 845e3*10;
+Tmax = 845e3*4;
 cin=[];
 for i = 1:length(ttL)
-    r = norm(xxL(1:3,i));
-    h = r - mission.environment.rEarth;
+    r(i) = norm(xxL(1:3,i));
+    h = r(i) - mission.environment.rEarth;
     rho = mission.environment.gridInterp(h);
     v = xxL(4:6,i);
     T(:,i) = thrustData(ttL(i));
     Tnorm(i) = norm(T(:,i));
     D(:,i) = - 0.5 .* rho .* norm(v) .* A .* Cd .* v;
-    G(:,i) = - GM * r /norm(r)^3;
+    G(:,i) = - GM * r(i) /norm(r(i))^3;
     m(i) = xxL(7,i);
     acc(i) = norm((T(:,i) + D(:,i))/m(i) + G(:,i));
 end
-cin = [(max(Tnorm)-Tmax) ; (max(acc) - 10*g0)];
+cin = [(max(Tnorm)-Tmax)/Tmax ; (max(acc) - 10*g0)/g0;(mission.environment.rEarth-min(r))];
 x0C = xxL(1:6,end);
 
 windDirection = -1+2*rand(3,1);
@@ -37,7 +37,7 @@ windDirection = windDirection/norm(windDirection);
 
 [ttC,xxC] = ballisticTrajectory(x0C,mission,windDirection,ttL(end));
 
-ceq = (norm(xxC(1:3,end) - rtarg)) ;
+ceq = (norm(xxC(1:3,end) - rtarg))/10000 ;
 
 
 end
