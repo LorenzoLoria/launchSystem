@@ -13,10 +13,10 @@ mission = dataStruct;
 %% Optimisation Code
 
 % Initial fMinCon Guess
-xx0 = [0*ones(6,1) , 4*845e3*cos(deg2rad(65)) .* ones(6,1), 4*844e3*sin(deg2rad(65)) .* ones(6,1)];
+xx0 = [0*ones(6,1) , 4*845e3*0.5*cos(deg2rad(70)) .* ones(6,1), 4*844e3*0.5*sin(deg2rad(70)) .* ones(6,1)];
 
 % Target Point
-rtarg = [0;mission.environment.rEarth * cos(deg2rad(60.5));mission.environment.rEarth * sin(deg2rad(60.5))];
+rtarg = [0;mission.environment.rEarth * cos(deg2rad(75.5));mission.environment.rEarth * sin(deg2rad(75.5))];
 
 % Setting Boundaries
 lb = 0*ones(size(xx0,1));
@@ -47,7 +47,7 @@ windDirection = windDirection/norm(windDirection);
 [ttC,xxC] = ballisticTrajectory(x0C,mission,windDirection,ttL(end));
 
 figure(1)
-plot3(xxL(1,:)/1000,xxL(2,:)/1000,xxL(3,:)/1000,'r')
+plot3(xxL(1,:)/1000,xxL(2,:)/1000,xxL(3,:)/1000,'r.')
 hold on
 %EarthPlot(6371)
 plot3(xxC(1,:)/1000,xxC(2,:)/1000,xxC(3,:)/1000,'r')
@@ -72,7 +72,7 @@ windDirection = -1+2*rand(3,1);
 windDirection = windDirection/norm(windDirection);
 [ttC,xxC] = ballisticTrajectory(x0C,mission,windDirection,ttL(end));
 
-plot3(xxL(1,:)/1000,xxL(2,:)/1000,xxL(3,:)/1000,'g')
+plot3(xxL(1,:)/1000,xxL(2,:)/1000,xxL(3,:)/1000,'g.')
 plot3(xxC(1,:)/1000,xxC(2,:)/1000,xxC(3,:)/1000,'g')
 hold off
 err = norm(xxC(1:3,end)-rtarg)
