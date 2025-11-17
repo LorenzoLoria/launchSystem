@@ -44,8 +44,17 @@ for i=1:length(mission.environment.altRange)
     rhoVal(i) = rho(6);
     Tval(i) = T(1,2) ; 
 end
+
+
+
 warning('on', 'all');   
 mission.environment.rho = rhoVal;
+
+mission.environment.gridInterp = griddedInterpolant( ...
+    mission.environment.altRange, ...   % grid points
+    mission.environment.rho, ...        % values
+    'linear', ...                       % interpolation method
+    'linear');  
 mission.environment.T = Tval;
 mission.environment.rEarth = 6371e3;
 mission.environment.g0 = 9.81;
