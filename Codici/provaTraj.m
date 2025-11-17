@@ -1,4 +1,3 @@
-
 clear
 clc
 close all
@@ -31,7 +30,7 @@ fminconOptions = optimoptions('fmincon', 'Algorithm', 'sqp', 'Display', 'iter-de
         'MaxIterations', 1000, ...
         'ConstraintTolerance', 1e-8, ...  
         'StepTolerance', 1e-6, ...
-        'OptimalityTolerance', 1e-7,...   
+        'OptimalityTolerance', 1e-3,...   
         'FiniteDifferenceType','forward',...
         'DiffMinChange', 1e-5);    
 
@@ -108,20 +107,6 @@ end
 
 %%
 [C,Ceq] = constraintFun(optTraj,xCoord,target,x0,xf);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -272,22 +257,28 @@ zPoints = [xCoord ; zCoord]' ;
 vModulePoints = [xCoord ; vModule]' ;
 
 
-[ySpline] = splineGeneration(yPoints) ;
 
-y = ySpline.polynomial ; 
-dy = ySpline.firstDer ;
-ddy = ySpline.secondDer ;
+yQueryPoints = linspace(yCoord(1), yCoord(end), 100);
+[ySpline] = splineGeneration(yPoints,yQueryPoints) ;
 
-[zSpline] = splineGeneration(zPoints) ;
 
-z = zSpline.polynomial ; 
-dz = zSpline.firstDer ;
-ddz = zSpline.secondDer ;
 
-[vSpline] = splineGeneration(vModulePoints) ;
+y = griddedInterpolant(ySpline.profile(:,1),ySpline.profile(:,2),"linear","linear");
+dy = griddedInterpolant(ySpline.dProfile(:,1),ySpline.dProfile(:,2),"linear","linear");
+ddy = griddedInterpolant(ySpline.ddProfile(:,1),ySpline.ddProfile(:,2),"linear","linear");
 
-vModule = vSpline.polynomial ; 
-dvModule = vSpline.firstDer ;
+zQueryPoints = linspace(zCoord(1), zCoord(end), 100);
+[zSpline] = splineGeneration(zPoints, zQueryPoints) ;
+
+z = griddedInterpolant(zSpline.profile(:,1),zSpline.profile(:,2),"linear","linear");
+dz = griddedInterpolant(zSpline.dProfile(:,1),zSpline.dProfile(:,2),"linear","linear");
+ddz = griddedInterpolant(zSpline.ddProfile(:,1),zSpline.ddProfile(:,2),"linear","linear");
+
+vQueryPoints = linspace(vModule(1), vModule(end), 100);
+[vSpline] = splineGeneration(vModulePoints, vQueryPoints) ;
+
+vModule = griddedInterpolant(vSpline.profile(:,1),vSpline.profile(:,2),"linear","linear");
+dvModule = griddedInterpolant(vSpline.dProfile(:,1),vSpline.dProfile(:,2),"linear","linear");
 
 
 pos = @(s) [ s ; y(s) ; z(s) ];
@@ -311,7 +302,7 @@ sSpan = [xCoord(1), xCoord(end)] ;
 
 m0 = 90 ;
 
-opt = odeset('relTol', 1e-6, 'absTol', 1e-6, 'Events' , @(s,m)targetEvent(s,m,position,target), 'MaxStep', 0.5) ;
+opt = odeset('relTol', 1e-6, 'absTol', 1e-2, 'Events' , @(s,m)targetEvent(s,m,position,target), 'MaxStep', 0.5) ;
 
 [s, m]=ode45(@(s,m) massIntegration(s, m, vSpline, position), sSpan, m0, opt) ; 
 

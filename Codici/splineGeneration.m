@@ -50,11 +50,13 @@ if flag
 
     % Query points retrieval
     profile(:,1) = queryPoints ;
+    dProfile(:,1)= queryPoints ;
+    ddProfile(:,1) = queryPoints;
 
     for ii = 1:length(queryPoints)
-
         profile(ii,2) = polynomial(queryPoints(ii)) ;
-    
+        dProfile(ii,2) = firstDer(queryPoints(ii)) ;
+        ddProfile(ii,2) = secondDer(queryPoints(ii));
     end
 
 end
@@ -74,6 +76,8 @@ elseif nargin == 2
     out.firstDer =  firstDer;
     out.secondDer =  secondDer;
     out.profile = profile;
+    out.dProfile = dProfile;
+    out.ddProfile = ddProfile;
 
 else 
 
