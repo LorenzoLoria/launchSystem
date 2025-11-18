@@ -9,10 +9,10 @@ nPointsPerComponent = 100;
 % Dati Launcher
 launcher.mass = ones(nComponents,1) * 50e3;
 launcher.drag = ones(nComponents,1) * 50000;
-launcher.acceleration = 4 * 9.81;
 launcher.alpha = deg2rad(45);
 launcher.theta = deg2rad(4);
 launcher.thrust = 4*845e3;
+launcher.acceleration =launcher.thrust / launcher.mass(1);
 launcher.lift= ones(nComponents,1) * 50000;
 launcher.g0 = 9.81;
 
@@ -73,6 +73,8 @@ end
 
 figure(1); 
 plot(x_all, N_all, 'LineWidth', 1.5, 'Color', 'b');
+hold on
+yline(0, 'LineWidth', 1.5)
 grid on;
 xlabel('x [m]');
 ylabel('Axial Load [N]');
@@ -80,6 +82,8 @@ xlim([0,x_all(end)])
 
 figure(2); 
 plot(x_all, T_all, 'LineWidth', 1.5, 'Color', 'b');
+hold on
+yline(0, 'LineWidth', 1.5)
 grid on;
 xlabel('x [m]');
 ylabel('Shear Load [N]');
@@ -87,6 +91,8 @@ xlim([0,x_all(end)])
 
 figure; 
 plot(x_all, M_all, 'LineWidth', 1.5, 'Color', 'b');
+hold on
+yline(0, 'LineWidth', 1)
 grid on;
 xlabel('x [m]');
 ylabel('Bending Moment [Nm]');
