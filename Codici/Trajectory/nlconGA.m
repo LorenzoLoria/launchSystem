@@ -29,7 +29,7 @@ for i = 1:length(ttL)
     m(i) = xxL(7,i);
     acc(i) = norm((T(:,i) + D(:,i))/m(i) + G(:,i));
 end
-cin = [(max(Tnorm)-Tmax)/Tmax ;(mission.environment.rEarth-min(r))];
+cin = [(max(Tnorm)-Tmax)/Tmax ;max(acc)-10*g0;(mission.environment.rEarth-min(r))];
 x0C = xxL(1:6,end);
 
 windDirection = -1+2*rand(3,1);
