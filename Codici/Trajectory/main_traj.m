@@ -13,26 +13,33 @@ mission = dataStruct;
 %% Optimisation Code
 % TROPPO LENTO
 % Initial fMinCon Guess
-T0 = [0*ones(6,1) , 4*845e3*0.5*cos(deg2rad(70)) .* ones(6,1), 4*844e3*0.5*sin(deg2rad(70)) .* ones(6,1)];
+T0 = [0*ones(3,1) , 4*845e3*0.5*cos(deg2rad(70)) .* ones(3,1), 4*844e3*0.5*sin(deg2rad(70)) .* ones(3,1)];
 Tvec = T0(:);
 
+%% thetaGimball varia max da -pi/2 a pi/2 mentre gammaGImball da 0 a pi
+
+
 % Target Point
-rtarg = [0;mission.environment.rEarth * cos(deg2rad(85.5));mission.environment.rEarth * sin(deg2rad(85.5))];
+rtarg = [0;mission.environment.rEarth * cos(deg2rad(75.5));mission.environment.rEarth * sin(deg2rad(75.5))];
 
 % Initial Guess using GA
 obj_ga = @(x) objFunGA( reshape(x,size(T0)), mission, rtarg);
 nonlcon_ga = @(x) nlconGA( reshape(x,size(T0)), mission );
 
-lbGA = 845e3*ones(length(Tvec),1);
-ubGA = 4*845e3*ones(length(Tvec),1);
+%lbGA = 845e3*ones(length(Tvec),1);
+%ubGA = 4*845e3*ones(length(Tvec),1);
+
+lbGA = [0.1*ones(3,1);-45*ones(3,1);-45*ones(3,1)];
+ubGA = [ones(3,1);45*ones(3,1);45*ones(3,1)];
+
 options_ga = optimoptions("ga", ...
     "Display","iter", ...
     "MaxGenerations",20, ...
-    "PopulationSize",100); 
+    "PopulationSize",50); 
 
-[x_ga, fval_ga] = ga(obj_ga,length(Tvec),[],[],[],[],[],[],nonlcon_ga,options_ga)
+[x_ga, fval_ga] = ga(obj_ga,length(Tvec),[],[],[],[],lbGA,ubGA,nonlcon_ga,options_ga)
 
-T0 = reshape(x_ga,6,3)
+T0 = reshape(x_ga,3,3)
 %%
 % Setting Boundaries
 lb = 0*ones(size(T0,1));
@@ -46,7 +53,7 @@ disp('UB:');
 disp(ub);
 
 % Optimisation with fMinCon
-[X,FVAL,EXITFLAG,OUTPUT] = fmincon(@(x) objFun(x,mission),T0,[],[],[],[],-1*ones(size(T0,1),size(T0,2)),4*845e3*ones(size(T0,1),size(T0,2)),@(x) nlcon(x,mission,rtarg),mission.options.fmincon)
+[X,FVAL,EXITFLAG,OUTPUT] = fmincon(@(x) objFun(x,mission),T0,[],[],[],[],reshape(lbGA,3,3),reshape(ubGA,3,3),@(x) nlcon(x,mission,rtarg),mission.options.fmincon)
 
 %% Initial Guess Plot
 
@@ -97,7 +104,11 @@ legend([ "" "Initial Guess Trajectory " "Initial Point" "Final Point" "Optimised
 
 theta = rad2deg(atan(X(:,end)./X(:,2)));
 figure(2)
-plot(theta)
-
+plot(X(:,1))
+figure(3)
+plot(X(:,2))
+hold on
+plot(X(:,3))
+hold off
 
 
