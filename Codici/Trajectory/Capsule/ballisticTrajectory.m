@@ -4,7 +4,7 @@ tSpan = [t0 3*3600];
 
 options = odeset('RelTol',1e-6,'AbsTol',1e-2,'Events',@groundEvent);
 
-solution = ode113(@(t,x) dynCapsule(t,x,mission,windDirection), tSpan, x0,options);
+solution = ode45(@(t,x) dynCapsule(t,x,mission,windDirection), tSpan, x0,options);
 
 tt = linspace(solution.x(1),solution.x(end),100);
 

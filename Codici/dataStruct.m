@@ -15,8 +15,11 @@ mission.launcher.engines{1}.oxDens = 1143;
 mission.launcher.engines{1}.fuelDens = 835;   
 
 % Questi valori dovrebbero essere dati da GA:
-mission.launcher.engines{1}.mPropellant=  190e3;
-mission.launcher.engines{1}.m0 = 200e3;
+mission.launcher.engines{1}.mPropellant1 =  190e3;
+mission.launcher.engines{1}.ms1 = 12e3;
+mission.launcher.engines{1}.mPropellant2 = 37.6e3;
+mission.launcher.engines{1}.ms2 = 3e3;
+mission.launcher.engines{1}.m0 =208e3;% mission.launcher.engines{1}.mPropellant1 + mission.launcher.engines{1}.ms1 + mission.launcher.engines{1}.mPropellant2 + mission.launcher.engines{1}.ms2 + 8600;
 
 mission.launcher.engines{2}.isp = 327;
 mission.launcher.engines{2}.thrust = 2750*1e3;
@@ -70,7 +73,7 @@ mission.environment.g0 = 9.81;
 mission.environment.GM = 398600.433e9;
 
 
-mission.options.fmincon = optimoptions("fmincon","Display","iter","MaxIterations",100,'MaxFunctionEvaluations',10000,'StepTolerance',1e-15,'OptimalityTolerance',1e-8,'FunctionTolerance',1e-19,'ConstraintTolerance',1e-10);
+mission.options.fmincon = optimoptions("fmincon","Display","iter","MaxIterations",200,'MaxFunctionEvaluations',10000,'StepTolerance',1e-15,'OptimalityTolerance',1e-8,'FunctionTolerance',1e-19,'ConstraintTolerance',1e-10,'EnableFeasibilityMode',false);
 mission.options.gaOptions = optimoptions('ga', 'PlotFcn',{'gaplotbestf', 'gaplotbestindiv'}, 'display', 'iter','MaxStallGenerations', 10, ...
         'FunctionTolerance', 1e-6, 'EliteCount',  6,...
         'MaxGenerations', 100, 'PopulationSize', 40, ...

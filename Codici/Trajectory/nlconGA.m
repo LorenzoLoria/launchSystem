@@ -13,23 +13,45 @@ thrustData = @(t) F_thrust(t).';
 
 x0 = [0; 0; mission.environment.rEarth; 0; 0; 0; mission.launcher.engines{1}.m0];
 
-[ttL,xxL] = launcherTrajectory(x0,mission, thrustData);
+[ttL,xxL] = launcherTrajectory(x0,mission, thrustData,0);
 
-Tmax = 845e3*4;
-cin=[];
+Tmax = 4 * mission.launcher.engines{1}.thrust;
+
 for i = 1:length(ttL)
     r(i) = norm(xxL(1:3,i));
     h = r(i) - mission.environment.rEarth;
     rho = mission.environment.gridInterp(h);
     v = xxL(4:6,i);
-    T(:,i) = thrustData(ttL(i));
-    Tnorm(i) = norm(T(:,i));
-    D(:,i) = - 0.5 .* rho .* norm(v) .* A .* Cd .* v;
-    G(:,i) = - GM * r(i) /norm(r(i))^3;
+        optVar = thrustData(ttL(i)); % thrustdata dovrebbe essere una funzione vettoriale con Tx,Ty,Tz
+    
+        theta = atan2( x(3),sqrt(x(1)^2 + x(2)^2) );  
+    phi   = atan2( x(2), x(1) );
+
+    Rz = [ cos(phi)  -sin(phi)  0;
+       sin(phi)   cos(phi)  0;
+       0          0         1 ];
+
+    Ry = [ cos(theta)  0  -sin(theta);
+       0           1  0;
+      sin(theta)  0  cos(theta) ];
+
+    R = Rz * Ry;
+    percVec = optVar(1);
+    thetaGimball = optVar(2);
+    gammaGimball = optVar(3);
+
+    ThrustBRF = percVec * 4 * mission.launcher.engines{1}.thrust*[cos(thetaGimball)*cos(gammaGimball); cos(thetaGimball)*sin(gammaGimball); sin(thetaGimball)];
+
+
+    ThrustIRF = R*ThrustBRF;
+    D = - 0.5 .* rho .* norm(v) .* A .* Cd .* v;
+    G = - GM * r(i) /norm(r(i))^3;
     m(i) = xxL(7,i);
-    acc(i) = norm((T(:,i) + D(:,i))/m(i) + G(:,i));
+    acc(i) = norm((ThrustBRF + D)/m(i) + G);
+    
 end
-cin = [(mission.environment.rEarth-min(r))];
+
+cin = [-min(acc);max(acc)-15*g0];
 x0C = xxL(1:6,end);
 
 windDirection = -1+2*rand(3,1);

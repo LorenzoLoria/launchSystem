@@ -1,6 +1,5 @@
-function [value,isterminal,direction] = propEvent(t,x, mission)
+function [value,isterminal,direction] = propEvent(t,x, mission,mP)
 
-mP = mission.launcher.engines{1}.mPropellant;
 m0 = mission.launcher.engines{1}.m0;
 h = norm(x(1:3)) - mission.environment.rEarth + 2;
 
