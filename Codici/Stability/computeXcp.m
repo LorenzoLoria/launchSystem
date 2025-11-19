@@ -22,7 +22,3 @@ function Xcp = computeXcp(l, d, h, hf, db)
     % --- Convert to dimensional Xcp
     Xcp = Xcp_over_d * d;
 end
-
-
-
-
