@@ -1,4 +1,20 @@
 function [mDot] = massIntegration(s,m,vSpline, position, mission)
+        % MASSINTEGRATION Computes the mass flow rate for trajectory integration.
+    %
+    %   [mDot] = MASSINTEGRATION(s, m, vSpline, position, mission) calculates the 
+    %   instantaneous change in mass (dm/ds) required to follow the specified 
+    %   trajectory kinematics. It solves the inverse dynamics problem to find 
+    %   the required Thrust, and converts this to mass consumption based on Isp.
+    %
+    %   INPUTS:
+    %       s        : scalar, Current independent variable (Theta/Angle in radians)
+    %       m        : scalar, Current mass of the vehicle [kg]
+    %       vSpline  : struct, Contains function handles for velocity profile
+    %       position : struct, Contains function handles for pos, vel, acc vectors
+    %       mission  : struct, Contains environmental and vehicle parameters
+    %
+    %   OUTPUTS:
+    %       mDot     : scalar, Mass flow rate dm/ds [kg/rad]
     
     % Extrapolation of Data 
     vModule    = vSpline.polynomial ; 
@@ -11,15 +27,20 @@ function [mDot] = massIntegration(s,m,vSpline, position, mission)
     CD      = mission.capsule.supersonicCD;
     g0      = mission.environment.g0;
     iSp     = mission.launcher.engines{1}.isp;  
+    GM      = mission.environment.GM;
+    rEarth  = mission.environment.rEarth;
 
-    % Interpolate air density based on current altitude
-    h   = norm(pos(s))-mission.environment.rEarth;  
-    rho = mission.environment.gridInterp(h);
+    % Atmospheric Density (Exponential approximation for better physics)
+    h = norm(pos(s)) - rEarth; 
+    rho = 1.225 * exp(-h/7200); 
     
-    % Gravity contribution
+    % Gravity Vector
     gVector = - GM * pos(s) /norm(pos(s))^3;
     
+    % Velocity Direction
     velocityUnitVector = dPosition(s) ./ norm(dPosition(s)) ; 
+
+    % Acceleration Direction
     accelerationVector = (dvModule(s) * vModule(s) / norm(dPosition(s))) * velocityUnitVector + (vModule(s) * vModule(s) / norm(dPosition(s))) * ( (ddPosition(s) * norm(dPosition(s)) - dPosition(s) * (dot(dPosition(s), ddPosition(s)) / norm(dPosition(s)))) / (norm(dPosition(s))^2) );
     
     % Evaluation of Thrst

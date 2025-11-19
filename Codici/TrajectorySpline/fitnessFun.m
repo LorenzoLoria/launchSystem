@@ -1,14 +1,16 @@
-function [objective] = fitnessFun(x,xCoord,x0,x_target, mission)
+function [objective] = fitnessFun(x,sCoord,x0,x_target, mission)
    
-    % flag for trajectoryGeneration
+    % flag for trajectoryGeneration or trajectoryGenerationSpherical
     fitnessFlag = 1 ;
     
-    [output] = trajectoryGeneration(x,xCoord,x0,x_target,mission,fitnessFlag);
-    
-    vel = output.vel ; 
-    yCoord = output.yCoord ; 
-    zCoord = output.zCoord ; 
-    s = output.s ;
+    %[output] = trajectoryGeneration(x,xCoord,x0,x_target,mission,fitnessFlag);
+    [output] = trajectoryGenerationSpherical(x, sCoord, x_target, x0, x_target, mission, fitnessFlag);
+
+    % Data Estrapolation
+      rCoord   = output.rCoord;
+      phiCoord = output.phiCoord;
+      s        = output.s; 
+      vel      = output.vel ; 
     
     % Evalutation of the total final time
     tFinal = trapz(s,abs(1./vel));
