@@ -1,4 +1,4 @@
-function Xcp = computeXcp(l, d, h, hf, db, S, Sb)
+function Xcp = computeXcp(l, d, h, hf, db)
 % Calculates the center of pressure of the launcher
 % Inputs:
 %   l   : total length of the launcher, [m]
@@ -6,7 +6,6 @@ function Xcp = computeXcp(l, d, h, hf, db, S, Sb)
 %   h   : cone length (head of the launcher), [m]
 %   hf  : flare length (0 if no flare), [m]
 %   db  : flare base diameter, [m]
-%   Sb  : base surface area for volume normalization, [m^2]
 %
 % Output:
 %   Xcp : center of pressure location (from top), [m]
@@ -15,9 +14,7 @@ function Xcp = computeXcp(l, d, h, hf, db, S, Sb)
     Sb = pi*db^2/4; %base surface area for volume normalization [m^2]
   
     % --- Compute nondimensional slender-body volume term v/(Sb*d)
-    volumeTerm = (l/d) ...
-                 - (2/3)*(h/d) ...
-                 + (1/3)*(hf/d)*( 2 - (db^2/d^2) - (db/d) )*(S/Sb);
+    volumeTerm = (l/d) - (2/3)*(h/d) + (1/3)*(hf/d)*( 2 - (db^2/d^2) - (db/d) )*(S/Sb);
 
     % --- Compute nondimensional center of pressure Xcp/d
     Xcp_over_d = l/d - volumeTerm;
