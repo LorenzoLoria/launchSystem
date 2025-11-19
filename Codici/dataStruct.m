@@ -70,11 +70,16 @@ mission.environment.g0 = 9.81;
 mission.environment.GM = 398600.433e9;
 
 
-mission.options.fmincon = optimoptions("fmincon","Display","iter","MaxIterations",200,'MaxFunctionEvaluations',10000,'StepTolerance',1e-15,'OptimalityTolerance',1e-8,'FunctionTolerance',1e-19,'ConstraintTolerance',1e-10);
+mission.options.fmincon = optimoptions("fmincon","Display","iter","MaxIterations",100,'MaxFunctionEvaluations',10000,'StepTolerance',1e-15,'OptimalityTolerance',1e-8,'FunctionTolerance',1e-19,'ConstraintTolerance',1e-10);
 mission.options.gaOptions = optimoptions('ga', 'PlotFcn',{'gaplotbestf', 'gaplotbestindiv'}, 'display', 'iter','MaxStallGenerations', 10, ...
         'FunctionTolerance', 1e-6, 'EliteCount',  6,...
         'MaxGenerations', 100, 'PopulationSize', 40, ...
         'NonlinearConstraintAlgorithm', 'penalty');
 
+
+% Robe di prova con il booster
+
+mission.launcher.booster.mass = 5600; 
+mission.launcher.booster.cp = [0 0 -2]';
 
 end

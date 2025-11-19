@@ -37,7 +37,8 @@ function dsdt = launcherDynamicsECI(t, x,thrustData, mission)
     r     = x(1:3);
     v     = x(4:6);
     m     = x(7);
-
+   
+    
     A   = mission.capsule.Area;
     Cd  = mission.capsule.supersonicCD;
     g0  = mission.environment.g0;
@@ -48,8 +49,33 @@ function dsdt = launcherDynamicsECI(t, x,thrustData, mission)
     h   = norm(r)-mission.environment.rEarth;  
     %rho = interp1(mission.environment.altRange, mission.environment.rho, h, 'linear', 'extrap');
     rho = mission.environment.gridInterp(h);
-    T = thrustData(t); % thrustdata dovrebbe essere una funzione vettoriale con Tx,Ty,Tz
     
+    optVar = thrustData(t); % thrustdata dovrebbe essere una funzione vettoriale con Tx,Ty,Tz
+    
+        theta = atan2( x(3),sqrt(x(1)^2 + x(2)^2) );  
+    phi   = atan2( x(2), x(1) );
+
+    Rz = [ cos(phi)  -sin(phi)  0;
+       sin(phi)   cos(phi)  0;
+       0          0         1 ];
+
+    Ry = [ cos(theta)  0  -sin(theta);
+       0           1  0;
+      sin(theta)  0  cos(theta) ];
+
+    R = Rz * Ry;
+
+
+percVec = optVar(1);
+thetaGimball = deg2rad(optVar(2));
+gammaGimball = deg2rad(optVar(3));
+
+ThrustBRF = percVec * 4 * mission.launcher.engines{1}.thrust*[cos(thetaGimball)*cos(gammaGimball); cos(thetaGimball)*sin(gammaGimball); sin(thetaGimball)];
+
+
+ThrustIRF = R*ThrustBRF;
+
+
     % Drag contribution
     D = - 0.5 .* rho .* norm(v) .* A .* Cd .* v; 
 
@@ -57,7 +83,7 @@ function dsdt = launcherDynamicsECI(t, x,thrustData, mission)
     G = - GM * r /norm(r)^3;
 
     % mass flow rate
-    mDot = - norm(T) / (g0 * Isp); 
+    mDot = - norm(ThrustIRF) / (g0 * Isp); 
 
     % Equation of motion
     dsdt = zeros(7,1);
@@ -67,7 +93,7 @@ function dsdt = launcherDynamicsECI(t, x,thrustData, mission)
     dsdt(1:3) = v;
 
     % Acceleration derivatives (Velocity rates)
-    dsdt(4:6) = (T + D ) / m + G;  
+    dsdt(4:6) = (ThrustIRF + D ) / m + G;  
 
     
     % Mass derivative

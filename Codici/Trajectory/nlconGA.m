@@ -1,4 +1,4 @@
-function[cin, ceq] = nlcon(x,mission,rtarg)
+function[cin, ceq] = nlconGA(x,mission)
 
 thrustDataVec = x;
 GM  = mission.environment.GM;
@@ -37,7 +37,7 @@ windDirection = windDirection/norm(windDirection);
 
 [ttC,xxC] = ballisticTrajectory(x0C,mission,windDirection,ttL(end));
 
-ceq = (norm(xxC(1:3,end) - rtarg)) ;
+ceq = [];
 
 
 end
