@@ -2,7 +2,7 @@ function [tt,xx] = launcherTrajectory(x0,mission,thrustData)
 
 % ThrustDataVec deve essere una matrice n*3
 
-tSpan = [0 3*24*3600];
+tSpan = [0 3*3600];
 
 % Manca la propEvent che deve riferirsi a quando finisce il carburante
 % dello stadio o qualcosa di simile.
