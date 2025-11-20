@@ -7,14 +7,20 @@ nComponents = 4;
 nPointsPerComponent = 100; 
 
 % Dati Launcher
-launcher.mass = ones(nComponents,1) * 50e3;
-launcher.drag = ones(nComponents,1) * 50000;
-launcher.alpha = deg2rad(45);
+m1 = 180e3;
+mi = 1000;
+m2 = 20e3;
+mp = 8e3;
+launcher.mass = [m1, mi, m2, mp];
+launcher.drag = ones(nComponents,1) * 5000;
+launcher.alpha = deg2rad(2);
 launcher.theta = deg2rad(4);
 launcher.thrust = 4*845e3;
-launcher.acceleration =launcher.thrust / launcher.mass(1);
-launcher.lift= ones(nComponents,1) * 50000;
+launcher.accelerationAxial = 1.6 * 9.81;
+launcher.lift= ones(nComponents,1) * 0;
 launcher.g0 = 9.81;
+launcher.accelerationNormal = 0.88 * 9.81;
+
 
 % Dimensioni
 launcher.firstStage  = 30;
@@ -23,13 +29,11 @@ launcher.secondStage = 15;
 launcher.fairing     = 10;
 
 % Costruisci stagesDimensions dinamicamente
-stagesDimensions = [launcher.firstStage, launcher.interStage, launcher.secondStage, launcher.fairing];
+launcher.stagesDimensions = [launcher.firstStage, launcher.interStage, launcher.secondStage, launcher.fairing];
 
 % ========================== SOLUTION =====================================
 
-loads_handle = @(x) loadsFinder(nComponents, x, launcher); 
-loadsResults = loads_handle(stagesDimensions(:)); 
-
+loadsResults =  loadsFinder_freefree(nComponents, launcher);
 
 N = loadsResults(1:3:end);
 T = loadsResults(2:3:end);
@@ -42,7 +46,7 @@ N_all = [];
 T_all = [];
 M_all = [];
 
-x_coordinates = cumsum([0, stagesDimensions]); % defines the coordinates of
+x_coordinates = cumsum([0, launcher.stagesDimensions]); % defines the coordinates of
 % start and finish of each component
 
 % Required for interpolation
