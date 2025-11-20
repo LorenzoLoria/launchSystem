@@ -85,4 +85,5 @@ mission.options.gaOptions = optimoptions('ga', 'PlotFcn',{'gaplotbestf', 'gaplot
 mission.launcher.booster.mass = 5600; 
 mission.launcher.booster.cp = [0 0 -2]';
 
+mission.environment.rhoFun = @(h) 1.29*exp(-h/8433);
 end

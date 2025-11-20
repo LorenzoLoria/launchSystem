@@ -7,7 +7,7 @@ function [dxdt] = dynCapsule(~, x,mission, windDirection)
 
 GM = mission.environment.GM;
 h =norm(x(1:3))-mission.environment.rEarth; 
-rho = mission.environment.gridInterp(h);
+rho = mission.environment.rhoFun(h);
 %Modello vento preso da MIMP
 
 

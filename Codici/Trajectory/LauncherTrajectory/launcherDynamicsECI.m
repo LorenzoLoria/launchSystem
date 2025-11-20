@@ -48,7 +48,7 @@ function dsdt = launcherDynamicsECI(t, x,thrustData, mission)
     % Interpolate air density based on current altitude
     h   = norm(r)-mission.environment.rEarth;  
     %rho = interp1(mission.environment.altRange, mission.environment.rho, h, 'linear', 'extrap');
-    rho = mission.environment.gridInterp(h);
+    rho = mission.environment.rhoFun(h);
     
     optVar = thrustData(t); % thrustdata dovrebbe essere una funzione vettoriale con Tx,Ty,Tz
     
@@ -67,8 +67,8 @@ function dsdt = launcherDynamicsECI(t, x,thrustData, mission)
 
 
 percVec = optVar(1);
-thetaGimball = optVar(2);
-gammaGimball = optVar(3);
+thetaGimball = deg2rad(optVar(2));
+gammaGimball = deg2rad(optVar(3));
 
 ThrustBRF = percVec * 4 * mission.launcher.engines{1}.thrust*[cos(thetaGimball)*cos(gammaGimball); cos(thetaGimball)*sin(gammaGimball); sin(thetaGimball)];
 
