@@ -46,12 +46,12 @@ else
     
     rCoord   = [x0(1) x(1:length(x)/3) xf(1)];
     phiCoord = [x0(3) x(length(x)/3+1 : length(x)/3*2) xf(3) ];
-    vModule  = [0.1 x(length(x)/3*2+1 : end) x(end)];
+    vModule  = [10 x(length(x)/3*2+1 : end) x(end)];
     
     % Prepare data for spline generation
-    rPoints       = [thetaCoord ; rCoord]' ;
-    phiPoints     = [thetaCoord ; phiCoord]' ;
-    vModulePoints = [thetaCoord ; vModule]' ;
+    rPoints       = [thetaCoord ; rCoord] ;
+    phiPoints     = [thetaCoord ; phiCoord] ;
+    vModulePoints = [thetaCoord ; vModule] ;
 
 
 
@@ -100,23 +100,30 @@ else
 
 
     
-discretizationLength = pi/200 ;
-theta = x0(2):discretizationLength:xf(2) ;
+% discretizationLength = pi/200 ;
+nIntervals = length(thetaCoord) - 1 ;
+nPointsPerInterval = 10 ;
 
+theta = zeros(1,nPointsPerInterval + (nPointsPerInterval-1) * (nIntervals - 1)) ;
+theta(1:nPointsPerInterval) = linspace(thetaCoord(1), thetaCoord(2), nPointsPerInterval) ; 
+for ii = 2 : nIntervals
+    thetaInterval = linspace(thetaCoord(ii), thetaCoord(ii+1), nPointsPerInterval) ; 
+    theta(1+nPointsPerInterval+(nPointsPerInterval - 1) * (ii-2) : nPointsPerInterval + (nPointsPerInterval-1)*(ii-1)) = thetaInterval(2:end) ; 
+end
 
-[rSpline] = splineGenerationEfficient(rPoints, discretizationLength) ;
+[rSpline] = splineGenerationEfficient(rPoints, nPointsPerInterval) ;
 r = rSpline.profile(:,2)' ; 
 dr = rSpline.dProfile(:,2)' ; 
 ddr = rSpline.ddProfile(:,2)' ; 
 
 
-[phiSpline] = splineGenerationEfficient(phiPoints, discretizationLength) ;
+[phiSpline] = splineGenerationEfficient(phiPoints, nPointsPerInterval) ;
 phi = phiSpline.profile(:,2)' ; 
 dPhi = phiSpline.dProfile(:,2)' ; 
 ddPhi = phiSpline.ddProfile(:,2)' ; 
 
 
-[vSpline] = splineGenerationEfficient(vModulePoints, discretizationLength) ;
+[vSpline] = splineGenerationEfficient(vModulePoints, nPointsPerInterval) ;
 vModule = vSpline.profile(:,2)' ; 
 dvModule = vSpline.dProfile(:,2)' ; 
 
@@ -142,11 +149,12 @@ ddPosition = [(ddr - r -r .* (dPhi).^2) .* sin(theta) .* cos(phi) + 2 .* dr .* c
 
     %sSpan = [0, 100] ;
     thetaSpan = [thetaCoord(1), thetaCoord(end)] ;
+    forcedStep = theta(2) - theta(1) ; 
     
-    opt = odeset('relTol', 1e-6, 'absTol', 1e-2, 'Events' , @(theta,m)targetEvent(theta,m,position,xf)) ;
+    opt = odeset('relTol', 1e-6, 'absTol', 1e-2, 'Events' , @(theta,m)targetEvent(theta,m,position,vSpline,xf), 'MinStep', forcedStep, 'MaxStep', forcedStep) ;
     
     % Run Integration
-    [theta, m]=ode45(@(theta,m) massIntegration(theta, m, vSpline, position, mission), thetaSpan, m0, opt) ; 
+    [theta, m]=ode45(@(theta,m) massIntegration(theta, m, vSpline, position, mission), theta, m0, opt) ; 
     
     % Pre Allocation of Variables
     vel = zeros(1,length(theta));

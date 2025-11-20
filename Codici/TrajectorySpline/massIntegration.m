@@ -1,4 +1,4 @@
-function [mDot] = massIntegration(theta,m,vSpline, position, mission)
+function [mDot] = massIntegration(theta,m, vSpline, position, mission)
         % MASSINTEGRATION Computes the mass flow rate for trajectory integration.
     %
     %   [mDot] = MASSINTEGRATION(s, m, vSpline, position, mission) calculates the 
@@ -17,10 +17,7 @@ function [mDot] = massIntegration(theta,m,vSpline, position, mission)
     %       mDot     : scalar, Mass flow rate dm/ds [kg/rad]
     
     % Extrapolation of Data 
-    persistent count
-    if isempty(count)
-        count = 1 ;
-    end
+    
 
     vModule    = vSpline.profile ; 
     dvModule   = vSpline.dProfile ;
@@ -35,8 +32,23 @@ function [mDot] = massIntegration(theta,m,vSpline, position, mission)
     GM      = mission.environment.GM;
     rEarth  = mission.environment.rEarth;
 
+    thetaVec = vModule(:,1) ;
+    finalIdx = thetaVec(end)==theta ;
+    idx = sum((thetaVec-theta)<=0) - finalIdx ;
+    thetaInitial = thetaVec(idx) ; 
+    thetaFinal = thetaVec(idx+1) ; 
+    
+    pos = (pos(:,idx+1) - pos(:,idx)) / (thetaFinal - thetaInitial) * (theta-thetaInitial) + pos(:,idx) ;
+    dPosition = (dPosition(:,idx+1) - dPosition(:,idx)) / (thetaFinal - thetaInitial) * (theta-thetaInitial) + dPosition(:,idx) ;
+    ddPosition = (ddPosition(:,idx+1) - ddPosition(:,idx)) / (thetaFinal - thetaInitial) * (theta-thetaInitial) + ddPosition(:,idx) ;
+    vModule = (vModule(idx+1) - vModule(idx)) / (thetaFinal - thetaInitial) * (theta-thetaInitial) + vModule(idx) ;
+    dvModule = (dvModule(idx+1) - dvModule(idx)) / (thetaFinal - thetaInitial) * (theta-thetaInitial) + dvModule(idx) ;
+
+
+
+
     % Atmospheric Density (Exponential approximation for better physics)
-    h = norm(pos(:,count)) - rEarth; 
+    h = norm(pos) - rEarth; 
     rho = 1.225 * exp(-h/7200); 
     
     % % Gravity Vector
@@ -53,24 +65,23 @@ function [mDot] = massIntegration(theta,m,vSpline, position, mission)
 
 
     % Gravity Vector
-    gVector = - GM .* pos(:,count) ./ norm(pos(:,count)).^3 ; 
+    gVector = - GM .* pos ./ norm(pos).^3 ; 
 
 
     % Velocity Direction
-    velocityUnitVector = dPosition(:,count) ./ norm(dPosition(:,count)) ; 
+    velocityUnitVector = dPosition ./ norm(dPosition) ; 
 
     % Acceleration Direction
-    accelerationVector = (dvModule(count) * vModule(count) / norm(dPosition(:,count))) * velocityUnitVector + (vModule(count) * vModule(count) / norm(dPosition(:,count))) * ( (ddPosition(:,count) * norm(dPosition(:,count)) - dPosition(:,count) * (dot(dPosition(:,count), ddPosition(:,count)) / norm(dPosition(:,count)))) / (norm(dPosition(:,count))^2) );
+    accelerationVector = (dvModule * vModule / norm(dPosition)) * velocityUnitVector + (vModule * vModule / norm(dPosition)) * ( (ddPosition * norm(dPosition) - dPosition * (dot(dPosition, ddPosition) / norm(dPosition))) / (norm(dPosition)^2) );
     
     % Evaluation of Thrst
-    thrust = m * accelerationVector - m * gVector + 0.5 * rho * (vModule(count)).^2 * surface * CD .* velocityUnitVector ;
+    thrust = m * accelerationVector - m * gVector + 0.5 * rho * (vModule).^2 * surface * CD .* velocityUnitVector ;
 
     % Mass Flow rate
     mDot = - 1 / iSp / g0 * (norm(thrust));
 
 
 
-    count = count + 1 ;
 end
 
 

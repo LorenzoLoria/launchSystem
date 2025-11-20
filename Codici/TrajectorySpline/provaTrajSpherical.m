@@ -1,6 +1,6 @@
-clear
-clc
+clear all
 close all
+clc
 
 mission = dataStruct ; 
 
@@ -51,3 +51,50 @@ fminconOptions = optimoptions('fmincon', 'Display', 'iter-detailed', ...
 a= 1 ;
 optTraj = fmincon (@(x) fitnessFun(x, thetaCoord,x0, target, mission), initialGuess, ...
     [], [], [],[], lowerBounds, upperBounds, @(x) constraintFun(x,thetaCoord,x0,xf,mission), fminconOptions) ;
+
+
+
+%% PLOT
+rCoord = [x0(1) optTraj(1:nOptPoints) xf(1)];
+phiCoord = [x0(3) optTraj(nOptPoints+1 : nOptPoints*2) xf(3)];
+velocity =[10 optTraj(2*nOptPoints+1 : end) optTraj(end)];
+
+rPoints       = [thetaCoord ; rCoord] ;
+phiPoints     = [thetaCoord ; phiCoord] ;
+vModulePoints = [thetaCoord ; vModule] ;
+
+thetaQuery = linspace(x0(2), xf(2), 1000)';
+nPointsPerInterval = 10 ;
+
+[out] = splineGenerationEfficient(rPoints, nPointsPerInterval) ;
+rQuery = out.profile ;
+
+[out] = splineGenerationEfficient(phiPoints , nPointsPerInterval) ;
+phiQuery = out.profile ;
+
+[out] = splineGenerationEfficient(vModulePoints, nPointsPerInterval) ;
+velocityProfile = out.profile ;
+
+
+
+figure(1)
+plot(thetaCoord, rCoord)
+
+figure(2)
+plot(xCoord,phiCoord)
+
+figure(3)
+plot(xCoord,velocity)
+
+figure(4)
+plot3(xCoord,yCoord,zCoord)
+
+figure(5)
+plot3(xQuery, yQuery(:,2), zQuery(:,2))
+hold on
+plot3(xCoord, [x0(2) initialGuess(1:length(initialGuess)/3) xf(2) ], [x0(3) initialGuess(length(initialGuess)/3 +1 :length(initialGuess)*2/3) xf(3) ])
+[xSphere,ySphere,zSphere] = sphere ;
+radius = 5 ; 
+surf(radius * xSphere + 12 , radius * ySphere + 9.5 ,radius * zSphere + 3.4, 'EdgeAlpha',0.3 )
+axis equal
+

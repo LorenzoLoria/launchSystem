@@ -22,7 +22,7 @@ function [objective] = fitnessFun(x,thetaCoord,x0,xf, mission)
 
     
     %objective = 1/m(end) + tFinal + yOscillation / 15 + zOscillation / 8 ; 
-    objective = tFinal + yOscillation / 5 + zOscillation / 3 + vOscillation / 10 ; 
+    objective = tFinal + rOscillation / 5 + phiOscillation / 3 + vOscillation / 10 ; 
 
 
 end
