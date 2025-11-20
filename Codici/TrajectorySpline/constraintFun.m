@@ -1,4 +1,4 @@
-function [C,Ceq] = constraintFun(x,xCoord,x0,x_target, mission)
+function [C,Ceq] = constraintFun(x,thetaCoord,x0,xf, mission)
     
     % Estrapolation Data from Mission Struct
     g0  = mission.environment.g0;
@@ -10,9 +10,9 @@ function [C,Ceq] = constraintFun(x,xCoord,x0,x_target, mission)
     % Flag for trajectoryGeneration
     fitnessFlag = 0 ; 
     
-    [output] = trajectoryGeneration(x,xCoord, x0,x_target,mission,fitnessFlag);
+    [output] = trajectoryGenerationSpherical(x,thetaCoord, x0,xf,mission,fitnessFlag);
     
-    tol = 0.25;
+    tol = 10 ;
     earthRadius =  earthRadius + tol; 
     earthCenter = [0 ; 0 ; 0];
     
@@ -21,17 +21,17 @@ function [C,Ceq] = constraintFun(x,xCoord,x0,x_target, mission)
     accelerationMagnitude = output.acceleration ; 
     thrust   = output.thrust ; 
     position = output.position ; 
-    s = output.s ;  
+    theta = output.theta ;  
     
-    pos = zeros(3,length(s)) ; 
-    acc = zeros(length(s),1) ;
-    distance = zeros(length(s),1) ;  
-    steeringAngle   = zeros(length(s),1) ; 
-    thrustMagnitude = zeros(length(s),1) ; 
+    pos = zeros(3,length(theta)) ; 
+    acc = zeros(length(theta),1) ;
+    distance = zeros(length(theta),1) ;  
+    steeringAngle   = zeros(length(theta),1) ; 
+    thrustMagnitude = zeros(length(theta),1) ; 
     
     for ii = 1:length(s)
         
-        pos(:,ii) = position(s(ii));
+        pos(:,ii) = position(:,ii);
         distance(ii,1) = sqrt(sum((pos(:,ii) - earthCenter).^2)) ;
         acc(ii,1) = accelerationMagnitude(ii)';
         steeringAngle(ii,1) = acosd(dot(thrust(:,ii) /norm(thrust(:,ii)), velocityUnitVector(:,ii))) ;

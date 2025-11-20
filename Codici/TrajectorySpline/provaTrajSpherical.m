@@ -2,35 +2,42 @@ clear
 clc
 close all
 
+mission = dataStruct ; 
 
-% Initial condition for the simulation ( convention [r, theta, phi]) 
-% --> DA METTERE IN RADINTI
+
+% Initial condition for the simulation ( convention [r, theta, phi]
 nOptPoints = 5 ;
 rEarth = 6371 * 1e3 ;
-x0 = [sqrt(2) * rEarth , 0, -45] ; 
-xf = [sqrt(2) * rEarth , 180, -45] ;
+x0 = [rEarth , 0, -pi/4] ; 
+xf = [rEarth , pi, -pi/4] ;
 target = xf ; 
 
 % Initial Guess definition
 initialGuessR = linspace(x0(1), x0(1) + 100 * 1e3, ceil(nOptPoints/2) + 1) ; 
-initialGuessR = [initialGuessR, linspace( x0(1) + 100 * 1e3, x0(1), floor(nOptPoints/2) + 1) ]; 
-initialGuessR = initialGuessY(2:end-1) ; 
+initialGuessR = [initialGuessR, linspace( x0(1) + 100 * 1e3, xf(1), floor(nOptPoints/2) + 1) ]; 
+initialGuessR = initialGuessR(2:end-1) ; 
 
-initialGuessTheta = linspace(x0(2), xf(2), nOptPoints+2) ; 
-initialGuessTheta = initialGuessTheta(2:end-1) ; 
+initialGuessPhi = linspace(x0(3), pi/2, ceil(nOptPoints/2) + 1) ;
+initialGuessPhi = [initialGuessPhi, linspace( pi/2, xf(3), floor(nOptPoints/2) + 1) ]; 
+initialGuessPhi = initialGuessPhi(2:end-1) ; 
 
 initialGuessV = linspace(1, 1e2, nOptPoints) ; 
-initialGuess = [initialGuessR, initialGuessTheta , initialGuessV] ; 
+
+initialGuess = [initialGuessR, initialGuessPhi , initialGuessV] ; 
+initialGuess(6) = initialGuess(6) + 1e-6 ;
+initialGuess(8) = initialGuess(8) - 1e-6 ;
+initialGuess(9) = initialGuess(9) - 1e-6 ;
+initialGuess(11) = initialGuess(11) + 1e-6 ;
 
 
-phiCoord = linspace(x0(3), 0, ceil(nOptPoints/2) + 1) ;
-phiCoord = [phiCoord, fliplr(linspace( 0, x0(3),floor(nOptPoints/2) + 1) )];
+
+thetaCoord = linspace(x0(2), xf(2), nOptPoints+2) ;
 
 % Limits fro lower and upper boundary condition
 heightLb = rEarth;
 heightUb = rEarth + 200 * 1e3;
-lowerBounds = [heightLb*ones(nOptPoints,1), 0*ones(nOptPoints,1), 1*ones(nOptPoints,1)] ;
-upperBounds = [heightUb*ones(nOptPoints,1), 360*limit*ones(nOptPoints,1), 100*ones(nOptPoints,1)] ;
+lowerBounds = [heightLb*ones(1,nOptPoints), -pi/2*ones(1,nOptPoints), 1*ones(1,nOptPoints)] ;
+upperBounds = [heightUb*ones(1,nOptPoints), pi/2*ones(1,nOptPoints), 3e3*ones(1,nOptPoints)] ;
 
 fminconOptions = optimoptions('fmincon', 'Display', 'iter-detailed', ...
         'MaxFunctionEvaluations', 1e5, ...
@@ -41,5 +48,6 @@ fminconOptions = optimoptions('fmincon', 'Display', 'iter-detailed', ...
         'FiniteDifferenceType','forward',...
         'DiffMinChange', 1e-5);  
 
-optTraj = fmincon (@(x) fitnessFun(x, xCoord,target,x0,xf), initialGuess, ...
-    [], [], [],[], lowerBounds, upperBounds, @(phi) constraintFun(phi,phiCoord,target,x0,xf), fminconOptions) ;
+a= 1 ;
+optTraj = fmincon (@(x) fitnessFun(x, thetaCoord,x0, target, mission), initialGuess, ...
+    [], [], [],[], lowerBounds, upperBounds, @(x) constraintFun(x,thetaCoord,x0,xf,mission), fminconOptions) ;
