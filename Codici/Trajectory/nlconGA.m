@@ -13,7 +13,7 @@ thrustData = @(t) F_thrust(t).';
 
 x0 = [0; 0; mission.environment.rEarth; 0; 0; 0; mission.launcher.engines{1}.m0];
 
-[ttL,xxL] = launcherTrajectory(x0,mission, thrustData,0);
+[ttL,xxL] = launcherTrajectory(x0,mission, thrustData,0,thrustDataVec);
 
 Tmax = 4 * mission.launcher.engines{1}.thrust;
 
@@ -38,7 +38,7 @@ for i = 1:length(ttL)
     R = Rz * Ry;
     percVec = optVar(1);
     thetaGimball = optVar(2);
-    gammaGimball = optVar(3);
+    gammaGimball = 0;
 
     ThrustBRF = percVec * 4 * mission.launcher.engines{1}.thrust*[cos(thetaGimball)*cos(gammaGimball); cos(thetaGimball)*sin(gammaGimball); sin(thetaGimball)];
 
@@ -51,7 +51,7 @@ for i = 1:length(ttL)
     
 end
 
-cin = [-min(acc);max(acc)-15*g0];
+cin =[];% [-min(acc);max(acc)-15*g0];
 x0C = xxL(1:6,end);
 
 windDirection = -1+2*rand(3,1);

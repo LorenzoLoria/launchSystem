@@ -1,4 +1,4 @@
-function[cin, ceq] = nlcon(x,mission,rtarg)
+function[cin, ceq] = nlcon(x,mission)
 
 thrustDataVec = x;
 GM  = mission.environment.GM;
@@ -13,7 +13,9 @@ thrustData = @(t) F_thrust(t).';
 
 x0 = [0; 0; mission.environment.rEarth; 0; 0; 0; mission.launcher.engines{1}.m0];
 
-[ttL,xxL] = launcherTrajectory(x0,mission, thrustData,0);
+
+[ttL,xxL] = launcherTrajectory(x0,mission, thrustData,0,thrustDataVec);
+
 
 for i = 1:length(ttL)
     r(i) = norm(xxL(1:3,i));
@@ -36,7 +38,7 @@ for i = 1:length(ttL)
     R = Rz * Ry;
     percVec = optVar(1);
     thetaGimball = optVar(2);
-    gammaGimball = optVar(3);
+    gammaGimball = 0;
 
     ThrustBRF = percVec * 4 * mission.launcher.engines{1}.thrust*[cos(thetaGimball)*cos(gammaGimball); cos(thetaGimball)*sin(gammaGimball); sin(thetaGimball)];
 
@@ -54,8 +56,8 @@ windDirection = -1+2*rand(3,1);
 windDirection = windDirection/norm(windDirection);
 
 [ttC,xxC] = ballisticTrajectory(x0C,mission,windDirection,ttL(end));
-cin = [-min(acc);max(acc)-10*g0];
-ceq = [norm(xxC(1:3,end) - rtarg)/1000];
+cin = [];%[-min(acc);max(acc)-10*g0];
+ceq = [norm(xxC(1:3,end) - mission.target)/1000];
 
 
 end

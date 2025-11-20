@@ -73,11 +73,11 @@ mission.environment.g0 = 9.81;
 mission.environment.GM = 398600.433e9;
 
 
-mission.options.fmincon = optimoptions("fmincon","Display","iter","MaxIterations",200,'MaxFunctionEvaluations',10000,'StepTolerance',1e-15,'OptimalityTolerance',1e-8,'FunctionTolerance',1e-19,'ConstraintTolerance',1e-10,'EnableFeasibilityMode',false);
+mission.options.fmincon = optimoptions("fmincon","Display","iter","MaxIterations",200,'MaxFunctionEvaluations',10000,'StepTolerance',1e-15,'OptimalityTolerance',1e-8,'FunctionTolerance',1e-19,'ConstraintTolerance',1e-10,'EnableFeasibilityMode',true,"UseParallel",true);
 mission.options.gaOptions = optimoptions('ga', 'PlotFcn',{'gaplotbestf', 'gaplotbestindiv'}, 'display', 'iter','MaxStallGenerations', 10, ...
         'FunctionTolerance', 1e-6, 'EliteCount',  6,...
         'MaxGenerations', 100, 'PopulationSize', 40, ...
-        'NonlinearConstraintAlgorithm', 'penalty');
+        'NonlinearConstraintAlgorithm', 'penalty',"UseParallel",true);
 
 
 % Robe di prova con il booster
@@ -86,4 +86,34 @@ mission.launcher.booster.mass = 5600;
 mission.launcher.booster.cp = [0 0 -2]';
 
 mission.environment.rhoFun = @(h) 1.29*exp(-h/8433);
+
+rtarg = [0;mission.environment.rEarth * cos(deg2rad(75));mission.environment.rEarth * sin(deg2rad(75))];
+mission.initialPoint = [0 0 6371000];
+mission.target = rtarg;
+
+ theta = atan2( mission.initialPoint(3) ,sqrt(mission.initialPoint(1)^2 + mission.initialPoint(2)^2) );  
+    phi   = atan2( mission.initialPoint(2), mission.initialPoint(1) );
+
+    Rz = [ cos(phi)  -sin(phi)  0;
+       sin(phi)   cos(phi)  0;
+       0          0         1 ];
+
+    Ry = [ cos(theta)  0  sin(theta);
+       0           1  0;
+      -sin(theta)  0  cos(theta) ];
+
+    R = Rz * Ry ;
+
+    y1 = R'*[0; 1; 0];
+
+    trajAng = acos(dot(y1, R'*(mission.target-mission.initialPoint') )/ (norm(y1)*norm( R'*(mission.target-mission.initialPoint')) ));
+
+    Rx = [1 0 0 ; 0 cos(trajAng) -sin(trajAng); 0 sin(trajAng) cos(trajAng)]; 
+    
+    mission.Rfinal = R ;
+
+    mission.optimisation.GA.variables = 10;    
+
+
+
 end

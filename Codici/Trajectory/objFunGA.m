@@ -1,4 +1,4 @@
-function[objective] = objFunGA(x,mission,rtarg)
+function[objective] = objFunGA(x,mission)
 
 thrustDataVec = x;
 tSpan = [0 3*24*3600];
@@ -9,7 +9,7 @@ F_thrust = griddedInterpolant(tVec, thrustDataVec, 'linear', 'none');
 thrustData = @(t) F_thrust(t).';  
 
 x0 = [0; 0; mission.environment.rEarth; 0; 0; 0; mission.launcher.engines{1}.m0];
-[ttL,xxL] = launcherTrajectory(x0,mission, thrustData,0);
+[ttL,xxL] = launcherTrajectory(x0,mission, thrustData,0,thrustDataVec);
 
 x0C = xxL(1:6,end);
 
@@ -18,6 +18,6 @@ windDirection = windDirection/norm(windDirection);
 
 [ttC,xxC] = ballisticTrajectory(x0C,mission,windDirection,ttL(end));
 
-objective = norm(xxC(1:3,end) - rtarg)/20000 + ttC(end)/1000;
+objective = abs (norm(xxC(1:3,end) - mission.target)  ) ;
 
 end

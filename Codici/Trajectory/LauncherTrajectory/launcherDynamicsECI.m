@@ -52,28 +52,15 @@ function dsdt = launcherDynamicsECI(t, x,thrustData, mission)
     
     optVar = thrustData(t); % thrustdata dovrebbe essere una funzione vettoriale con Tx,Ty,Tz
     
-        theta = atan2( x(3),sqrt(x(1)^2 + x(2)^2) );  
-    phi   = atan2( x(2), x(1) );
-
-    Rz = [ cos(phi)  -sin(phi)  0;
-       sin(phi)   cos(phi)  0;
-       0          0         1 ];
-
-    Ry = [ cos(theta)  0  -sin(theta);
-       0           1  0;
-      sin(theta)  0  cos(theta) ];
-
-    R = Rz * Ry;
-
-
+   
 percVec = optVar(1);
-thetaGimball = deg2rad(optVar(2));
-gammaGimball = deg2rad(optVar(3));
+thetaGimball =0; 
+gammaGimball =deg2rad(optVar(2));
 
 ThrustBRF = percVec * 4 * mission.launcher.engines{1}.thrust*[cos(thetaGimball)*cos(gammaGimball); cos(thetaGimball)*sin(gammaGimball); sin(thetaGimball)];
 
 
-ThrustIRF = R*ThrustBRF;
+ThrustIRF = mission.Rfinal'*ThrustBRF;
 
 
     % Drag contribution
