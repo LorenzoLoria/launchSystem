@@ -1,26 +1,28 @@
-function [objective] = fitnessFun(x,sCoord,x0,x_target, mission)
+function [objective] = fitnessFun(x,thetaCoord,x0,xf, mission)
    
     % flag for trajectoryGeneration or trajectoryGenerationSpherical
     fitnessFlag = 1 ;
     
     %[output] = trajectoryGeneration(x,xCoord,x0,x_target,mission,fitnessFlag);
-    [output] = trajectoryGenerationSpherical(x, sCoord, x_target, x0, x_target, mission, fitnessFlag);
+    [output] = trajectoryGenerationSpherical(x, thetaCoord, x0, xf, mission, fitnessFlag);
 
     % Data Estrapolation
-      rCoord   = output.rCoord;
-      phiCoord = output.phiCoord;
-      s        = output.s; 
-      vel      = output.vel ; 
+     rCoord   = output.rCoord;
+     phiCoord = output.phiCoord;
+     theta    = output.theta; 
+     vel      = output.vel ; 
     
     % Evalutation of the total final time
-    tFinal = trapz(s,abs(1./vel));
+    tFinal = trapz(theta,abs(1./vel));
    
     % Evalutation of oscillation on y and z axis
-    yOscillation = sqrt(sum(diff(yCoord).^2));
-    zOscillation = sqrt(sum(diff(zCoord).^2));
+    rOscillation = sqrt(sum(diff(rCoord).^2));
+    phiOscillation = sqrt(sum(diff(phiCoord).^2));
+    vOscillation = sqrt(sum(diff(vel).^2));
+
     
     %objective = 1/m(end) + tFinal + yOscillation / 15 + zOscillation / 8 ; 
-    objective = tFinal + yOscillation / 5 + zOscillation / 3 ; 
+    objective = tFinal + yOscillation / 5 + zOscillation / 3 + vOscillation / 10 ; 
 
 
 end

@@ -1,4 +1,4 @@
-function [output] = trajectoryGenerationSpherical(x, sCoord, target, x0, xf, mission, fitnessFlag)
+function [output] = trajectoryGenerationSpherical(x, thetaCoord, x0, xf, mission, fitnessFlag)
     % TRAJECTORYGENERATIONSPHERICAL
     % Generates a trajectory defined in Spherical Coordinates (r, theta, phi)
     % and converts it to Cartesian (x, y, z) for physics integration.
@@ -14,114 +14,201 @@ function [output] = trajectoryGenerationSpherical(x, sCoord, target, x0, xf, mis
     %
     % OUTPUTS:
     %   output      : Struct containing time histories (pos, vel, acc, thrust, etc.)
+
+
+persistent prevSimulation  prevVel prevRCoord prevPhiCoord prevTheta prevAccelerationModule prevPosition prevThrust prevVelocityUnitVector
+
+if isempty(prevSimulation)
+    prevSimulation = zeros(1,length(x)) ; 
+end
+
+if x == prevSimulation
+
+   vel = prevVel ; 
+   rCoord = prevRCoord ; 
+   phiCoord = prevPhiCoord ;  
+   theta = prevTheta ;
+   accelerationModule = prevAccelerationModule ;
+   position = prevPosition ;
+   thrust = prevThrust ;
+   velocityUnitVector = prevVelocityUnitVector ; 
+   
+else
+
+
+
+    surface = mission.capsule.Area;
+    CD      = mission.capsule.supersonicCD; 
+    GM      = mission.environment.GM;
+    m0      = mission.launcher.engines{1}.m0 ; 
+
+
     
     rCoord   = [x0(1) x(1:length(x)/3) xf(1)];
     phiCoord = [x0(3) x(length(x)/3+1 : length(x)/3*2) xf(3) ];
     vModule  = [0.1 x(length(x)/3*2+1 : end) x(end)];
     
     % Prepare data for spline generation
-    rPoints       = [sCoord ; rCoord]' ;
-    phiPoints     = [sCoord ; phiCoord]' ;
-    vModulePoints = [sCoord ; vModule]' ;
+    rPoints       = [thetaCoord ; rCoord]' ;
+    phiPoints     = [thetaCoord ; phiCoord]' ;
+    vModulePoints = [thetaCoord ; vModule]' ;
 
-    rQueryPoints = linspace(rCoord(1), rCoord(end), 100);
-    [rSpline] = splineGeneration(rPoints, rQueryPoints) ;
-    
-    r = griddedInterpolant(rSpline.profile(:,1),rSpline.profile(:,2),"linear","linear");
-    dr = griddedInterpolant(rSpline.dProfile(:,1),rSpline.dProfile(:,2),"linear","linear");
-    ddr = griddedInterpolant(rSpline.ddProfile(:,1),rSpline.ddProfile(:,2),"linear","linear");
-    
-    phiQueryPoints = linspace(phiCoord(1), phiCoord(end), 100);
-    [phiSpline] = splineGeneration(phiPoints, phiQueryPoints) ;
-    
-    phi = griddedInterpolant(phiSpline.profile(:,1),phiSpline.profile(:,2),"linear","linear");
-    dphi = griddedInterpolant(phiSpline.dProfile(:,1),phiSpline.dProfile(:,2),"linear","linear");
-    ddphi = griddedInterpolant(phiSpline.ddProfile(:,1),phiSpline.ddProfile(:,2),"linear","linear");
-    
-    vQueryPoints = linspace(vModule(1), vModule(end), 100);
-    [vSpline] = splineGeneration(vModulePoints, vQueryPoints) ;
-    
-    vModule = griddedInterpolant(vSpline.profile(:,1),vSpline.profile(:,2),"linear","linear");
-    dvModule = griddedInterpolant(vSpline.dProfile(:,1),vSpline.dProfile(:,2),"linear","linear");
-    
+
+
+
+    % Variables passed as functions, transitioning to only vectors
+    %
+    %
+    % discretizationLength = 0.1 ;
+    %
+    % [rSpline] = splineGenerationEfficient(rPoints, discretizationLength) ;
+    %
+    % r = griddedInterpolant(rSpline.profile(:,1),rSpline.profile(:,2),"linear","linear");
+    % dr = griddedInterpolant(rSpline.dProfile(:,1),rSpline.dProfile(:,2),"linear","linear");
+    % ddr = griddedInterpolant(rSpline.ddProfile(:,1),rSpline.ddProfile(:,2),"linear","linear");
+    %
+    % [phiSpline] = splineGenerationEfficient(phiPoints, discretizationLength) ;
+    %
+    % phi = griddedInterpolant(phiSpline.profile(:,1),phiSpline.profile(:,2),"linear","linear");
+    % dPhi = griddedInterpolant(phiSpline.dProfile(:,1),phiSpline.dProfile(:,2),"linear","linear");
+    % ddPhi = griddedInterpolant(phiSpline.ddProfile(:,1),phiSpline.ddProfile(:,2),"linear","linear");
+    %
+    % [vSpline] = splineGenerationEfficient(vModulePoints, discretizationLength) ;
+    %
+    % vModule = griddedInterpolant(vSpline.profile(:,1),vSpline.profile(:,2),"linear","linear");
+    % dvModule = griddedInterpolant(vSpline.dProfile(:,1),vSpline.dProfile(:,2),"linear","linear");
     % Position Vector p(s)
-    pos = @(s) [ r(s) .* sin(s) .* cos(phi(s)); ... % X
-                 r(s) .* sin(s) .* sin(phi(s)); ... % Y
-                 r(s) .* cos(s) ];                  % Z
+    %  pos = @(theta) [ r(theta) .* sin(theta) .* cos(phi(theta)); ... % X
+    %                   r(theta) .* sin(theta) .* sin(phi(theta)); ... % Y
+    %                   r(theta) .* cos(theta) ];                      % Z
+    %
+    %  % First Derivative Position
+    %  dPosition = @(theta) [dr(theta) * sin(theta) * cos(phi(theta)) + r(theta) * cos(theta) * cos(phi(theta)) - r(theta) * sin(theta) * sin(phi(theta)) * dPhi(theta); ... % dX
+    %                    dr(theta) * sin(theta) * sin(phi(theta)) + r(theta) * cos(theta) * sin(phi(theta)) + r(theta) * sin(theta) * cos(phi(theta)) * dPhi(theta); ... % dY
+    %                    dr(theta) * cos(theta) - r(theta) * sin(theta) ];  % dZ
+    %
+    % % Second Derivative Position
+    %  ddPosition = @(theta) [  (ddr(theta)-r(theta)-r(theta)*dPhi(theta)^2)*sin(theta)*cos(phi(theta)) + 2*dr(theta)*cos(theta)*cos(phi(theta)) - 2*dr(theta)*sin(theta)*sin(phi(theta))*dPhi(theta) - 2*r(theta)*cos(theta)*sin(phi(theta))*dPhi(theta) - r(theta)*sin(theta)*sin(phi(theta))*ddPhi(theta); ... % d2X
+    %                      (ddr(theta)-r(theta)-r(theta)*dPhi(theta)^2)*sin(theta)*sin(phi(theta)) + 2*dr(theta)*cos(theta)*sin(phi(theta)) + 2*dr(theta)*sin(theta)*cos(phi(theta))*dPhi(theta) + 2*r(theta)*cos(theta)*cos(phi(theta))*dPhi(theta) + r(theta)*sin(theta)*cos(phi(theta))*ddPhi(theta); ... % d2Y
+    %                      ddr(theta)*cos(theta) - 2*dr(theta)*sin(theta) - r(theta)*cos(theta) ]; %d2Z
+    %
+    %  % Package structure for ODE
+    %  position.position = pos ;
+    %  position.dPosition = dPosition ;
+    %  position.ddPosition = ddPosition ;
+    %
 
-    % First Derivative Position
-    dPosition = @(s) [dr(s) * sin(s) * cos(phi(s)) + r(s) * cos(s) * cos(phi(s)) - r(s) * sin(s) * sin(phi(s)) * dphi(s); ... % dX
-                      dr(s) * sin(s) * sin(phi(s)) + r(s) * cos(s) * sin(phi(s)) + r(s) * sin(s) * cos(phi(s)) * dphi(s); ... % dY
-                      dr(s) * cos(s) - r(s) * sin(s) ];  % dZ 
-   
-   % Second Derivative Position
-    ddPosition = @(s) [  (ddr(s)-r(s)-r(s)*dphi(s)^2)*sin(s)*cos(phi(s)) + 2*dr(s)*cos(s)*cos(phi(s)) - 2*dr(s)*sin(s)*sin(phi(s))*dphi(s) - 2*r(s)*cos(s)*sin(phi(s))*dphi(s) - r(s)*sin(s)*sin(phi(s))*ddphi(s); ... % d2X
-                        (ddr(s)-r(s)-r(s)*dphi(s)^2)*sin(s)*sin(phi(s)) + 2*dr(s)*cos(s)*sin(phi(s)) + 2*dr(s)*sin(s)*cos(phi(s))*dphi(s) + 2*r(s)*cos(s)*cos(phi(s))*dphi(s) + r(s)*sin(s)*cos(phi(s))*ddphi(s); ... % d2Y
-                        ddr(s)*cos(s) - 2*dr(s)*sin(s) - r(s)*cos(s) ]; %d2Z
+
     
-    % Package structure for ODE
-    position.position = pos ;
-    position.dPosition = dPosition ; 
-    position.ddPosition = ddPosition ; 
+discretizationLength = pi/200 ;
+theta = x0(2):discretizationLength:xf(2) ;
+
+
+[rSpline] = splineGenerationEfficient(rPoints, discretizationLength) ;
+r = rSpline.profile(:,2)' ; 
+dr = rSpline.dProfile(:,2)' ; 
+ddr = rSpline.ddProfile(:,2)' ; 
+
+
+[phiSpline] = splineGenerationEfficient(phiPoints, discretizationLength) ;
+phi = phiSpline.profile(:,2)' ; 
+dPhi = phiSpline.dProfile(:,2)' ; 
+ddPhi = phiSpline.ddProfile(:,2)' ; 
+
+
+[vSpline] = splineGenerationEfficient(vModulePoints, discretizationLength) ;
+vModule = vSpline.profile(:,2)' ; 
+dvModule = vSpline.dProfile(:,2)' ; 
+
+
+pos = [ r .* sin(theta) .* cos(phi) ;   %X
+        r .* sin(theta) .* sin(phi) ;   %Y
+        r .* cos(theta)];               %Z
+
+dPosition = [dr .* sin(theta) .* cos(phi) + r .* cos(theta) .* cos(phi) - r .* sin(theta) .* sin(phi) .*dPhi ; 
+             dr .* sin(theta) .* sin(phi) + r .* cos(theta) .* sin(phi) + r .* sin(theta) .* cos(phi) .* dPhi ;
+             dr .* cos(theta) - r .* sin(theta)];
+
+ddPosition = [(ddr - r -r .* (dPhi).^2) .* sin(theta) .* cos(phi) + 2 .* dr .* cos(theta) .* cos(phi) - 2 .* dr .* sin(theta) .* sin(phi) .* dPhi - 2 .* r .* cos(theta) .* sin(phi) .* dPhi - r .* sin(theta) .* sin(phi) .*ddPhi ;
+              (ddr - r - r .* (dPhi).^2) .* sin(theta) .* sin(phi) + 2 .* dr .* cos(theta) .* sin(phi) + 2 .* dr .* sin(theta) .* cos(phi) .* dPhi + 2 .* r .* cos(theta) .* cos(phi) .* dPhi + r .* sin(theta) .* cos(phi) .* ddPhi ; 
+              ddr .* cos(theta) - 2 .* dr .* sin(theta) - r .* cos(theta)];
+
+     % Package structure for ODE
+     position.position = pos ;
+     position.dPosition = dPosition ;
+     position.ddPosition = ddPosition ;
+
     
-    iSp = 300 ;
-    surface = 1 ;
-    CD = 0.2 ; 
-    
+
     %sSpan = [0, 100] ;
-    sSpan = [sCoord(1), sCoord(end)] ;
+    thetaSpan = [thetaCoord(1), thetaCoord(end)] ;
     
-    m0 = 90 ;
-    
-    opt = odeset('relTol', 1e-6, 'absTol', 1e-2, 'Events' , @(s,m)targetEvent(s,m,position,target), 'MaxStep', 0.5) ;
+    opt = odeset('relTol', 1e-6, 'absTol', 1e-2, 'Events' , @(theta,m)targetEvent(theta,m,position,xf)) ;
     
     % Run Integration
-    [s, m]=ode45(@(s,m) massIntegration(s, m, vSpline, position, mission), sSpan, m0, opt) ; 
+    [theta, m]=ode45(@(theta,m) massIntegration(theta, m, vSpline, position, mission), thetaSpan, m0, opt) ; 
     
     % Pre Allocation of Variables
-    vel = zeros(1,length(s));
-    velocityUnitVector = zeros(3,length(s));
-    accelerationVector = zeros(3,length(s));
-    accelerationModule = zeros(1, length(s));
-    thrust = zeros(3,length(s));
+    vel = zeros(1,length(theta));
+    velocityUnitVector = zeros(3,length(theta));
+    accelerationVector = zeros(3,length(theta));
+    accelerationModule = zeros(1, length(theta));
+    thrust = zeros(3,length(theta));
     
     
-    for ii = 1:length(s)
+    for ii = 1:length(theta)
 
         % Atmospheric Density (Exponential approximation for better physics)
-        h = norm(pos(s(ii))) - 6371000; 
+        h = norm(pos(:,ii)) - 6371000; 
         rho = 1.225 * exp(-h/7200); 
 
         % Velocity Module
-        vel(ii) = vModule(s(ii)) ;
+        vel(ii) = vModule(ii) ;
 
         % Velocity Direction
-        velocityUnitVector(:,ii) = dPosition(s(ii)) ./ norm(dPosition(s(ii))) ; 
+        velocityUnitVector(:,ii) = dPosition(:,ii) ./ norm(dPosition(:,ii)) ; 
 
         % Acceleration Direction
-        accelerationVector(:,ii) = (dvModule(s(ii)) * vModule(s(ii)) / norm(dPosition(s(ii)))) * velocityUnitVector(:,ii) + (vModule(s(ii)) * vModule(s(ii)) / norm(dPosition(s(ii)))) * ( (ddPosition(s(ii)) * norm(dPosition(s(ii))) - dPosition(s(ii)) * (dot(dPosition(s(ii)), ddPosition(s(ii))) / norm(dPosition(s(ii))))) / (norm(dPosition(s(ii)))^2));
+        accelerationVector(:,ii) = dvModule(ii) * vModule(ii) / norm(dPosition(:,ii)) * velocityUnitVector(:,ii) + vModule(ii) * vModule(ii) / norm(dPosition(:,ii)) * ( (ddPosition(:,ii) * norm(dPosition(:,ii)) - dPosition(:,ii) * dot(dPosition(:,ii), ddPosition(:,ii)) / norm(dPosition(:,ii))) /norm(dPosition(:,ii))^2);
 
         % Acceleration Module
         accelerationModule(:,ii) = norm( accelerationVector(:,ii) ) ;
 
         % Gravity Vector
-        gVector = - GM * pos(s(ii)) /norm(pos(s(ii)))^3;
+        gVector = - GM * pos(:,ii) /norm(pos(:,ii))^3;
 
         % Thrust Evaluation
-        thrust(:,ii) = m(ii) * accelerationVector(:,ii) - m(ii) * gVector + 0.5 * rho * (vModule(s(ii))).^2 * surface * CD .* velocityUnitVector(:,ii) ;
+        thrust(:,ii) = m(ii) * accelerationVector(:,ii) - m(ii) * gVector + 0.5 * rho * vModule(ii).^2 * surface * CD .* velocityUnitVector(:,ii) ;
     end   
+
+    prevSimulation = x ;
+    prevVel = vel ; 
+    prevRCoord = rCoord ; 
+    prevPhiCoord = phiCoord ; 
+    prevTheta = theta ;
+    prevAccelerationModule = accelerationModule ; 
+    prevPosition = position ;
+    prevThrust = thrust ; 
+    prevVelocityUnitVector = velocityUnitVector ;
+
+
     
+end
+
+
     if fitnessFlag 
+
         output.vel      = vel ;
         output.rCoord   = rCoord ;
         output.phiCoord = phiCoord ;
-        output.s        = s ; 
+        output.theta    = theta ; 
     
     else
+
         output.acceleration       = accelerationModule; 
         output.position           = position.position ; 
         output.thrust             = thrust ; 
-        output.s                  = s ; 
+        output.theta              = theta ; 
         output.velocityUnitVector = velocityUnitVector ;
     
     end
