@@ -29,7 +29,7 @@ function [C,Ceq] = constraintFun(x,thetaCoord,x0,xf, mission)
     steeringAngle   = zeros(length(theta),1) ; 
     thrustMagnitude = zeros(length(theta),1) ; 
     
-    for ii = 1:length(s)
+    for ii = 1:length(theta)
         
         pos(:,ii) = position(:,ii);
         distance(ii,1) = sqrt(sum((pos(:,ii) - earthCenter).^2)) ;
@@ -41,13 +41,20 @@ function [C,Ceq] = constraintFun(x,thetaCoord,x0,xf, mission)
   
     maxAcc = 5 * g0 ; 
     maxSteeringAngle = 45 ; 
-    maxThrust = 2500 ; 
+    maxThrust = mission.launcher.engines{1}.thrust * 4 ; 
     
     % Inequality Constrains
+    % C = [(earthRadius - min(distance))/earthRadius ;...
+    %     (max(acc) - maxAcc)/g0 ;...
+    %     (max(thrustMagnitude) - maxThrust)/maxThrust;...
+    %     (max(steeringAngle) - maxSteeringAngle)/maxSteeringAngle ];
+
+
     C = [(earthRadius - min(distance))/earthRadius ;...
         (max(acc) - maxAcc)/g0 ;...
-        (max(thrustMagnitude) - maxThrust)/maxThrust;...
-        (max(steeringAngle) - maxSteeringAngle)/maxSteeringAngle ];
+        (max(thrustMagnitude) - maxThrust)/maxThrust];
+
+
     
 
 end

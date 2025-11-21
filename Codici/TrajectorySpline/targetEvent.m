@@ -1,18 +1,20 @@
 
-function [distance,isterminal,direction] = targetEvent(theta,~,position,target)
+function [distance,isterminal,direction] = targetEvent(theta,~,position,vSpline, target)
 
-    persistent countTargetEvent
-    if isempty(countTargetEvent)
-        countTargetEvent = 1 ;
-    end
+    
+    thetaVec = vSpline.profile(:,1);
+    finalIdx = thetaVec(end)==theta ;
+    idx = sum((thetaVec-theta)<=0) - finalIdx;
+    thetaInitial = thetaVec(idx) ; 
+    thetaFinal = thetaVec(idx+1) ; 
+
+    pos = position.position ; 
+    pos = (pos(:,idx+1) - pos(:,idx)) / (thetaFinal - thetaInitial) * (theta-thetaInitial) + pos(:,idx) ;
 
 
-    position = position.position ; 
-    distance = norm(position(:,countTargetEvent) - target') - 5e3 ;
+    distance = norm(pos - target') - 5e3 ;
     isterminal = 1;       
     direction  = 0;    
 
-
-    countTargetEvent = countTargetEvent + 1 ;
 
 end
