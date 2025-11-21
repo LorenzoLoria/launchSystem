@@ -11,7 +11,7 @@ m1 = 180e3;
 mi = 1000;
 m2 = 20e3;
 mp = 8e3;
-launcher.mass = [m1, mi, m2, mp];
+launcher.mass = [mp, m2, mi, m1];
 launcher.drag = ones(nComponents,1) * 5000;
 launcher.alpha = deg2rad(2);
 launcher.theta = deg2rad(4);
@@ -29,11 +29,11 @@ launcher.secondStage = 15;
 launcher.fairing     = 10;
 
 % Costruisci stagesDimensions dinamicamente
-launcher.stagesDimensions = [launcher.firstStage, launcher.interStage, launcher.secondStage, launcher.fairing];
+launcher.stagesDimensions = [launcher.fairing, launcher.secondStage, launcher.interStage, launcher.firstStage];
 
 % ========================== SOLUTION =====================================
 
-loadsResults =  loadsFinder_freefree(nComponents, launcher);
+loadsResults =  loadsFinder(nComponents, launcher);
 
 N = loadsResults(1:3:end);
 T = loadsResults(2:3:end);
