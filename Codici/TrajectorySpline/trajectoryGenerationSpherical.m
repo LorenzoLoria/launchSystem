@@ -16,7 +16,7 @@ function [output] = trajectoryGenerationSpherical(x, thetaCoord, x0, xf, mission
     %   output      : Struct containing time histories (pos, vel, acc, thrust, etc.)
 
 
-persistent prevSimulation  prevVel prevRCoord prevPhiCoord prevTheta prevAccelerationModule prevPosition prevThrust prevVelocityUnitVector
+persistent prevSimulation  prevVel prevRCoord prevPhiCoord prevTheta prevAccelerationModule prevPosition prevThrust prevVelocityUnitVector prevTrajectoryLength
 
 if isempty(prevSimulation)
     prevSimulation = zeros(1,length(x)) ; 
@@ -32,6 +32,7 @@ if x == prevSimulation
    position = prevPosition ;
    thrust = prevThrust ;
    velocityUnitVector = prevVelocityUnitVector ; 
+   trajectoryLength = prevTrajectoryLength ;
    
 else
 
@@ -102,10 +103,11 @@ else
     
 % discretizationLength = pi/200 ;
 nIntervals = length(thetaCoord) - 1 ;
-nPointsPerInterval = 30 ;
+nPointsPerInterval = 200 ;
 
 theta = zeros(1,nPointsPerInterval + (nPointsPerInterval-1) * (nIntervals - 1)) ;
-theta(1:nPointsPerInterval) = linspace(thetaCoord(1), thetaCoord(2), nPointsPerInterval) ; 
+theta(1:nPointsPerInterval) = linspace(thetaCoord(1), thetaCoord(2), nPointsPerInterval) ;
+
 for ii = 2 : nIntervals
     thetaInterval = linspace(thetaCoord(ii), thetaCoord(ii+1), nPointsPerInterval) ; 
     theta(1+nPointsPerInterval+(nPointsPerInterval - 1) * (ii-2) : nPointsPerInterval + (nPointsPerInterval-1)*(ii-1)) = thetaInterval(2:end) ; 
@@ -146,14 +148,26 @@ ddPosition = [(ddr - r  - r .* (dPhi).^2) .* sin(phi) .* cos(theta) + 2 .* dr .*
      position.ddPosition = ddPosition ;
 
     
+    trajectoryLength = zeros(1, length(pos(:,1))) ; 
+
+    for ii = 1:length(pos(1,:))-1
+    
+        trajectoryLength(ii) = sqrt((pos(1,ii) - pos(1,ii+1)).^2 + (pos(2,ii) - pos(2,ii+1)).^2 + (pos(3,ii) - pos(3,ii+1)).^2) ; 
+        
+    end
+
+    totalSLength = sum(trajectoryLength) ;
+    sVec = cumsum(trajectoryLength) ;
 
     %sSpan = [0, 100] ;
-    thetaSpan = [thetaCoord(1), thetaCoord(end)] ;
+    %thetaSpan = [thetaCoord(1), thetaCoord(end)] ;
     
-    opt = odeset('relTol', 1e-6, 'absTol', 1e-2, 'Events' , @(theta,m)targetEvent(theta,m,position,vSpline,xf)) ;
+    opt = odeset('relTol', 1e-6, 'absTol', 1e-2, 'Events' , @(s,m)arrestingEvents(s,m,position,sVec,xf)) ;
     
+
     % Run Integration
-    [theta, m]=ode45(@(theta,m) massIntegration(theta, m, vSpline, position, mission), theta, m0, opt) ; 
+    % [theta, m]=ode45(@(theta,m) massIntegration(theta, m, vSpline, position, mission), theta, m0, opt) ; 
+    [sVec, m]=ode45(@(s,m) massIntegration(s, m, vSpline, position, sVec, mission), sVec, m0, opt) ; 
     
     % Pre Allocation of Variables
     vel = zeros(1,length(theta));
@@ -197,6 +211,7 @@ ddPosition = [(ddr - r  - r .* (dPhi).^2) .* sin(phi) .* cos(theta) + 2 .* dr .*
     prevPosition = position ;
     prevThrust = thrust ; 
     prevVelocityUnitVector = velocityUnitVector ;
+    prevTrajectoryLength = trajectoryLength ; 
 
 
     
@@ -209,6 +224,8 @@ end
         output.rCoord   = rCoord ;
         output.phiCoord = phiCoord ;
         output.theta    = theta ; 
+        output.position           = position.position ; 
+        output.trajectoryLength = trajectoryLength ;
     
     else
 
@@ -217,6 +234,7 @@ end
         output.thrust             = thrust ; 
         output.theta              = theta ; 
         output.velocityUnitVector = velocityUnitVector ;
+        output.vel                = vel ;
     
     end
 
