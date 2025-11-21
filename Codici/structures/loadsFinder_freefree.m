@@ -1,4 +1,4 @@
-function [b,loads] = loadsFinder_freefree(nComponents, launcher)
+function loads = loadsFinder_freefree(nComponents, x, launcher)
 % Free-free beam launcher internal loads solver
 % Each node has [N, T, M]; total 3*(nComponents+1) unknowns.
 % We set N1=T1=M1=0 and Nn+1=Tn+1=Mn+1=0 (free ends).
@@ -11,7 +11,6 @@ theta   = launcher.theta;
 thrust  = launcher.thrust;
 lift    = launcher.lift(:);
 g0      = launcher.g0;
-x       = launcher.stagesDimensions;
 
 % -------------------- Matrix sizes --------------------
 nNodes = nComponents + 1;
