@@ -15,7 +15,7 @@ mission.launcher.engines{1}.oxDens = 1143;
 mission.launcher.engines{1}.fuelDens = 835;   
 
 % Questi valori dovrebbero essere dati da GA:
-mission.launcher.engines{1}.mPropellant1 =  190e3;
+mission.launcher.engines{1}.mPropellant1 =  200e3;
 mission.launcher.engines{1}.ms1 = 12e3;
 mission.launcher.engines{1}.mPropellant2 = 37.6e3;
 mission.launcher.engines{1}.ms2 = 3e3;
@@ -87,32 +87,26 @@ mission.launcher.booster.cp = [0 0 -2]';
 
 mission.environment.rhoFun = @(h) 1.29*exp(-h/8433);
 
-rtarg = [0;mission.environment.rEarth * cos(deg2rad(75));mission.environment.rEarth * sin(deg2rad(75))];
-mission.initialPoint = [0 0 6371000];
+rtarg = [mission.environment.rEarth * cos(deg2rad(100));mission.environment.rEarth * sin(deg2rad(100));0];
+lat = deg2rad(-35);
+lon =deg2rad(100);
+mission.initialPoint = 6371000*[cos(lat)*cos(lon); cos(lat)*sin(lon); sin(lat) ]';
 mission.target = rtarg;
 
- theta = atan2( mission.initialPoint(3) ,sqrt(mission.initialPoint(1)^2 + mission.initialPoint(2)^2) );  
-    phi   = atan2( mission.initialPoint(2), mission.initialPoint(1) );
+n = cross(mission.initialPoint,mission.target)/(norm(cross(mission.initialPoint,mission.target)));
 
-    Rz = [ cos(phi)  -sin(phi)  0;
-       sin(phi)   cos(phi)  0;
-       0          0         1 ];
 
-    Ry = [ cos(theta)  0  sin(theta);
-       0           1  0;
-      -sin(theta)  0  cos(theta) ];
+ex = mission.initialPoint' / norm(mission.initialPoint);
+ez = n' / norm(n) ;
+ey = cross(ez,ex)/norm(cross(ez,ex));
 
-    R = Rz * Ry ;
+rot = [ex,ey,ez]';
 
-    y1 = R'*[0; 1; 0];
 
-    trajAng = acos(dot(y1, R'*(mission.target-mission.initialPoint') )/ (norm(y1)*norm( R'*(mission.target-mission.initialPoint')) ));
-
-    Rx = [1 0 0 ; 0 cos(trajAng) -sin(trajAng); 0 sin(trajAng) cos(trajAng)]; 
     
-    mission.Rfinal = R ;
+    mission.Rfinal = rot ;
 
-    mission.optimisation.GA.variables = 10;    
+    mission.optimisation.GA.variables = 5;    
 
 
 

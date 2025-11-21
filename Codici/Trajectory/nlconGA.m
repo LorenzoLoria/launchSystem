@@ -11,7 +11,7 @@ tVec = linspace(tSpan(1),tSpan(end),size(thrustDataVec,1));
 F_thrust = griddedInterpolant(tVec, thrustDataVec, 'linear', 'none');  
 thrustData = @(t) F_thrust(t).';  
 
-x0 = [0; 0; mission.environment.rEarth; 0; 0; 0; mission.launcher.engines{1}.m0];
+x0 = [mission.initialPoint'; 0; 0; 0; mission.launcher.engines{1}.m0];
 
 [ttL,xxL] = launcherTrajectory(x0,mission, thrustData,0,thrustDataVec);
 
@@ -51,7 +51,7 @@ for i = 1:length(ttL)
     
 end
 
-cin =[];% [-min(acc);max(acc)-15*g0];
+
 x0C = xxL(1:6,end);
 
 windDirection = -1+2*rand(3,1);
@@ -59,7 +59,7 @@ windDirection = windDirection/norm(windDirection);
 
 [ttC,xxC] = ballisticTrajectory(x0C,mission,windDirection,ttL(end));
 
-ceq = [];
+cin = [(norm(xxC(1:3,end) - mission.target))-0.6];
 
-
+ceq =[];% [-min(acc);max(acc)-15*g0];
 end

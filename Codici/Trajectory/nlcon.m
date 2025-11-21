@@ -11,7 +11,7 @@ tVec = linspace(tSpan(1),tSpan(end),size(thrustDataVec,1));
 F_thrust = griddedInterpolant(tVec, thrustDataVec, 'linear', 'none');  
 thrustData = @(t) F_thrust(t).';  
 
-x0 = [0; 0; mission.environment.rEarth; 0; 0; 0; mission.launcher.engines{1}.m0];
+x0 = [mission.initialPoint'; 0; 0; 0; mission.launcher.engines{1}.m0];
 
 
 [ttL,xxL] = launcherTrajectory(x0,mission, thrustData,0,thrustDataVec);
@@ -20,7 +20,7 @@ x0 = [0; 0; mission.environment.rEarth; 0; 0; 0; mission.launcher.engines{1}.m0]
 for i = 1:length(ttL)
     r(i) = norm(xxL(1:3,i));
     h = r(i) - mission.environment.rEarth;
-    rho = mission.environment.gridInterp(h);
+    rho = mission.environment.rhoFun(h);
     v = xxL(4:6,i);
         optVar = thrustData(ttL(i)); % thrustdata dovrebbe essere una funzione vettoriale con Tx,Ty,Tz
     

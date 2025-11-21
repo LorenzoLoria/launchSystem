@@ -11,19 +11,6 @@ addpath(genpath("..\..\"))
 mission = dataStruct;
 
 %% Optimisation Code
-%delete(gcp('nocreate'));
-% Prendo il profilo di cluster chiamato "Processes"
-% c = parcluster('Processes');
-% % Controllo il valore attuale
-% c.NumWorkers;
-% % Provo ad aumentarlo (es. 12)
-% c.NumWorkers = 6;
-% % Salvo il profilo aggiornato
-% saveProfile(c);
-% % Ora posso aprire il pool con 12 worker
-% 
-% %parpool('Processes', 6);
-
 
 %% thetaGimball varia max da -pi/2 a pi/2 mentre gammaGImball da 0 a pi
 
@@ -37,9 +24,9 @@ ubGA = [ones(mission.optimisation.GA.variables,1);90*ones(mission.optimisation.G
 
 options_ga = optimoptions("ga", ...
     "Display","iter", ...
-    "MaxGenerations",4, ...
-    "PopulationSize",20,...
-    "UseParallel",true); 
+    "MaxGenerations",20, ...
+    "PopulationSize",100,...
+    "UseParallel",true,"HybridFcn","fmincon"); 
 
 [x_ga, fval_ga] = ga(obj_ga,2*mission.optimisation.GA.variables,[],[],[],[],lbGA,ubGA,nonlcon_ga,options_ga);
 %% FminCon final
@@ -54,23 +41,9 @@ T0 = reshape(x_ga,mission.optimisation.GA.variables,2);
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 %% Initial Guess Plot
 
-x0 = [0; 0; mission.environment.rEarth; 0; 0; 0; mission.launcher.engines{1}.m0];
+x0 = [mission.initialPoint'; 0; 0; 0; mission.launcher.engines{1}.m0];
 tSpan = [0 1*24*3600];
 thrustDataVec = reshape(x_ga,mission.optimisation.GA.variables,2);
 %T0 = [0.9*ones(5,1),(-20)*ones(5,1)];
@@ -87,7 +60,7 @@ windDirection = windDirection/norm(windDirection);
 figure(1)
 plot3(xxL(1,:)/1000,xxL(2,:)/1000,xxL(3,:)/1000,'r.')
 hold on
-%EarthPlot(mission.environment.rEarth/1000)
+EarthPlot(mission.environment.rEarth/1000)
 plot3(xxC(1,:)/1000,xxC(2,:)/1000,xxC(3,:)/1000,'r')
 plot3(x0(1)/1000,x0(2)/1000,x0(3)/1000,'bo')
 plot3(mission.target(1)/1000,mission.target(2)/1000,mission.target(3)/1000,'ro')
@@ -99,7 +72,7 @@ axis equal
 %% Optimised Solution Plot
 
 
-x0 = [0; 0; mission.environment.rEarth; 0; 0; 0; mission.launcher.engines{1}.m0];
+x0 = [mission.initialPoint'; 0; 0; 0; mission.launcher.engines{1}.m0];
 tSpan = [0 3*24*3600];
 thrustDataVec = X;
 tVec = linspace(tSpan(1),tSpan(end),size(thrustDataVec,1));
