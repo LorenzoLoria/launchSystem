@@ -102,7 +102,7 @@ else
     
 % discretizationLength = pi/200 ;
 nIntervals = length(thetaCoord) - 1 ;
-nPointsPerInterval = 10 ;
+nPointsPerInterval = 30 ;
 
 theta = zeros(1,nPointsPerInterval + (nPointsPerInterval-1) * (nIntervals - 1)) ;
 theta(1:nPointsPerInterval) = linspace(thetaCoord(1), thetaCoord(2), nPointsPerInterval) ; 
@@ -128,17 +128,17 @@ vModule = vSpline.profile(:,2)' ;
 dvModule = vSpline.dProfile(:,2)' ; 
 
 
-pos = [ r .* sin(theta) .* cos(phi) ;   %X
-        r .* sin(theta) .* sin(phi) ;   %Y
-        r .* cos(theta)];               %Z
+pos = [ r .* sin(phi) .* cos(theta) ;   %X
+        r .* sin(phi) .* sin(theta) ;   %Y
+        r .* cos(phi)];               %Z
 
-dPosition = [dr .* sin(theta) .* cos(phi) + r .* cos(theta) .* cos(phi) - r .* sin(theta) .* sin(phi) .*dPhi ; 
+dPosition = [dr .* sin(phi) .* cos(theta) + r .* cos(theta) .* cos(phi) .*dPhi - r .* sin(theta) .* sin(phi) ; 
              dr .* sin(theta) .* sin(phi) + r .* cos(theta) .* sin(phi) + r .* sin(theta) .* cos(phi) .* dPhi ;
-             dr .* cos(theta) - r .* sin(theta)];
+             dr .* cos(phi) - r .* sin(phi).* dPhi];
 
-ddPosition = [(ddr - r -r .* (dPhi).^2) .* sin(theta) .* cos(phi) + 2 .* dr .* cos(theta) .* cos(phi) - 2 .* dr .* sin(theta) .* sin(phi) .* dPhi - 2 .* r .* cos(theta) .* sin(phi) .* dPhi - r .* sin(theta) .* sin(phi) .*ddPhi ;
+ddPosition = [(ddr - r  - r .* (dPhi).^2) .* sin(phi) .* cos(theta) + 2 .* dr .* cos(theta) .* cos(phi) .* dPhi - 2 .* dr .* sin(theta) .* sin(phi) - 2 .* r .* cos(phi) .* sin(theta) .* dPhi + r .* cos(theta) .* cos(phi) .*ddPhi ;
               (ddr - r - r .* (dPhi).^2) .* sin(theta) .* sin(phi) + 2 .* dr .* cos(theta) .* sin(phi) + 2 .* dr .* sin(theta) .* cos(phi) .* dPhi + 2 .* r .* cos(theta) .* cos(phi) .* dPhi + r .* sin(theta) .* cos(phi) .* ddPhi ; 
-              ddr .* cos(theta) - 2 .* dr .* sin(theta) - r .* cos(theta)];
+              ddr .* cos(phi) - 2 .* dr .* sin(phi).*dPhi - r .* cos(phi) .*dPhi.^2 - r.*sin(phi).*ddPhi];
 
      % Package structure for ODE
      position.position = pos ;
@@ -149,9 +149,8 @@ ddPosition = [(ddr - r -r .* (dPhi).^2) .* sin(theta) .* cos(phi) + 2 .* dr .* c
 
     %sSpan = [0, 100] ;
     thetaSpan = [thetaCoord(1), thetaCoord(end)] ;
-    forcedStep = theta(2) - theta(1) ; 
     
-    opt = odeset('relTol', 1e-6, 'absTol', 1e-2, 'Events' , @(theta,m)targetEvent(theta,m,position,vSpline,xf), 'MinStep', forcedStep, 'MaxStep', forcedStep) ;
+    opt = odeset('relTol', 1e-6, 'absTol', 1e-2, 'Events' , @(theta,m)targetEvent(theta,m,position,vSpline,xf)) ;
     
     % Run Integration
     [theta, m]=ode45(@(theta,m) massIntegration(theta, m, vSpline, position, mission), theta, m0, opt) ; 
