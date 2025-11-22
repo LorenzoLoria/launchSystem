@@ -1,20 +1,19 @@
 
-function [distance,isterminal,direction] = targetEvent(theta,~,position,vSpline, target)
+function [value,isterminal,direction] = arrestingEvents(s,m,position,sVec, target)
 
     
-    thetaVec = vSpline.profile(:,1);
-    finalIdx = thetaVec(end)==theta ;
-    idx = sum((thetaVec-theta)<=0) - finalIdx;
-    thetaInitial = thetaVec(idx) ; 
-    thetaFinal = thetaVec(idx+1) ; 
+    finalIdx = sVec(end)==s ;
+    idx = sum((sVec-s)<=0) - finalIdx ;
+    sInitial = sVec(idx) ;
+    sFinal = sVec(idx+1) ;  
 
     pos = position.position ; 
-    pos = (pos(:,idx+1) - pos(:,idx)) / (thetaFinal - thetaInitial) * (theta-thetaInitial) + pos(:,idx) ;
+    pos = (pos(:,idx+1) - pos(:,idx)) / (sFinal - sInitial) * (s-sInitial) + pos(:,idx) ;
 
 
-    distance = norm(pos - target') - 5e3 ;
-    isterminal = 1;       
-    direction  = 0;    
+    value = [norm(pos - target') - 5e3 ; m ];
+    isterminal = [1 ; 1];       
+    direction  = [0 ; 0];    
 
 
 end
