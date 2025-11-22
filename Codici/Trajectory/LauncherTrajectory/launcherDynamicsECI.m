@@ -52,7 +52,7 @@ warning('off','all');
     
     optVar = thrustData(t); % thrustdata dovrebbe essere una funzione vettoriale con Tx,Ty,Tz
     
-   [soundspeed] = soundspeedAlt(h);
+  
 percVec = optVar(1);
 thetaGimball =0; 
 gammaGimball =deg2rad(optVar(2));
