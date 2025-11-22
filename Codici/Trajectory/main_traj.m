@@ -25,7 +25,7 @@ ubGA = [ones(mission.optimisation.GA.variables,1);90*ones(mission.optimisation.G
 options_ga = optimoptions("ga", ...
     "Display","iter", ...
     "MaxGenerations",5, ...
-    "PopulationSize",20,...
+    "PopulationSize",40,...
     "UseParallel",true); 
 
 [x_ga, fval_ga] = ga(obj_ga,2*mission.optimisation.GA.variables,[],[],[],[],lbGA,ubGA,nonlcon_ga,options_ga);
@@ -44,7 +44,7 @@ T0 = reshape(x_ga,mission.optimisation.GA.variables,2);
 %% Initial Guess Plot
 
 x0 = [mission.initialPoint'; 0; 0; 0; mission.launcher.engines{1}.m0];
-tSpan = [0 1*24*3600];
+tSpan = [0 mission.launcher.engines{1}.isp];
 thrustDataVec = reshape(x_ga,mission.optimisation.GA.variables,2);
 %T0 = [0.9*ones(5,1),(-20)*ones(5,1)];
 %thrustDataVec = T0;
@@ -73,7 +73,7 @@ axis equal
 
 
 x0 = [mission.initialPoint'; 0; 0; 0; mission.launcher.engines{1}.m0];
-tSpan = [0 3*24*3600];
+tSpan = [0 mission.launcher.engines{1}.isp];
 thrustDataVec = X;
 tVec = linspace(tSpan(1),tSpan(end),size(thrustDataVec,1));
 thrustData = @(t) [interp1(tVec,thrustDataVec(:,1),t);interp1(tVec,thrustDataVec(:,2),t)];
@@ -85,7 +85,7 @@ windDirection = windDirection/norm(windDirection);
 [ttC,xxC] = ballisticTrajectory(x0C,mission,windDirection,ttL(end));
 
 plot3(xxL(1,:)/1000,xxL(2,:)/1000,xxL(3,:)/1000,'g.')
-plot3(xxC(1,:)/1000,xxC(2,:)/1000,xxC(3,:)/1000,'g')
+%plot3(xxC(1,:)/1000,xxC(2,:)/1000,xxC(3,:)/1000,'g')
 
 hold off
 err = norm(xxC(1:3,end)-mission.target)

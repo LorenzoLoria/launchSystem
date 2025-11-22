@@ -1,7 +1,7 @@
 function[objective] = objFunGA(x,mission)
 
 thrustDataVec = x;
-tSpan = [0 3*24*3600];
+tSpan = [0 mission.launcher.engines{1}.isp];
 tVec = linspace(tSpan(1),tSpan(end),size(thrustDataVec,1));
 %thrustData = @(t) [interp1(tVec,thrustDataVec(:,1),t);interp1(tVec,thrustDataVec(:,2),t);interp1(tVec,thrustDataVec(:,3),t)];
 

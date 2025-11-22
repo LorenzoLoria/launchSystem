@@ -15,7 +15,7 @@ mission.launcher.engines{1}.oxDens = 1143;
 mission.launcher.engines{1}.fuelDens = 835;   
 
 % Questi valori dovrebbero essere dati da GA:
-mission.launcher.engines{1}.mPropellant1 =  200e3;
+mission.launcher.engines{1}.mPropellant1 =  180e3;
 mission.launcher.engines{1}.ms1 = 12e3;
 mission.launcher.engines{1}.mPropellant2 = 37.6e3;
 mission.launcher.engines{1}.ms2 = 3e3;

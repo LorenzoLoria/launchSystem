@@ -13,7 +13,7 @@ else
 
 % ThrustDataVec deve essere una matrice n*3
 
-tSpan = [t0 3*24*3600];
+tSpan = [t0 mission.launcher.engines{1}.isp];
 
 % Manca la propEvent che deve riferirsi a quando finisce il carburante
 % dello stadio o qualcosa di simile.
