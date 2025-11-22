@@ -57,7 +57,7 @@ percVec = optVar(1);
 thetaGimball =0; 
 gammaGimball =deg2rad(optVar(2));
 
-ThrustBRF = percVec * 4 * mission.launcher.engines{1}.thrust*[cos(thetaGimball)*cos(gammaGimball); cos(thetaGimball)*sin(gammaGimball); sin(thetaGimball)];
+ThrustBRF = percVec * 5*mission.launcher.engines{1}.thrust*[cos(thetaGimball)*cos(gammaGimball); cos(thetaGimball)*sin(gammaGimball); sin(thetaGimball)];
 
 
 ThrustIRF = mission.Rfinal'*ThrustBRF;

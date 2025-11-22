@@ -8,7 +8,7 @@ addpath(genpath("..\..\"))
 
 %% Upload Mission Struct
 
-mission = dataStruct;
+[mission,opt] = dataStruct;
 
 %% Optimisation Code
 

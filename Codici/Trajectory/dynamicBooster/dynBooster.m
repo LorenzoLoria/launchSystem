@@ -38,7 +38,7 @@ function dxdt = dynBooster(~, x, mission, windDirection)
     else
         aeroForceI = [0;0;0];
     end
-
+    %aeroForceI = [0; 0; 0];
     % ------------ First cardinal equation ------------
     m = mission.capsule.weigth;  
 
@@ -52,11 +52,19 @@ function dxdt = dynBooster(~, x, mission, windDirection)
     % ------------ Quaternion Rotation Matrix ------------
     q0 = q(1); q1 = q(2); q2 = q(3); q3 = q(4);
 
-    % Rbi: body -> inertial
+    % ------------ quaternion evolution via kinematic ------------
+    wx = wB(1); wy = wB(2); wz = wB(3);
+    Omega = [  0   wz  -wy  wx;
+               -wz    0   wx  wy;
+               wy  -wx    0   wz;
+               -wx   -wy  -wz    0 ];
 
-    Rbi = [ 1-2*(q2^2+q3^2),   2*(q1*q2 - q0*q3), 2*(q1*q3 + q0*q2);
-            2*(q1*q2 + q0*q3), 1-2*(q1^2+q3^2),   2*(q2*q3 - q0*q1);
-            2*(q1*q3 - q0*q2), 2*(q2*q3 + q0*q1), 1-2*(q1^2+q2^2) ];
+    qdot = 0.5 * Omega * q;
+    
+    % Rbi: body -> inertial
+    Rbi = [q0^2-q1^2-q2^2+q3^2,  2*(q0*q1+q3*q2),  2*(q0*q2-q1*q3);...
+           2*(q0*q1-q3*q2),  -q0^2+q1^2-q2^2+q3^2,  2*(q1*q2+q0*q3);...
+           2*(q0*q2+q1*q3),  2 * (q1*q2-q0*q3), -q0^2-q1^2+q2^2+q3^2]';
 
     % Rib: inerziale -> body
     Rib = Rbi.';
@@ -66,31 +74,29 @@ function dxdt = dynBooster(~, x, mission, windDirection)
 
     % ------------ aerodynamic torque wrt center of mass (2ª cardinale) ------------
     % cp e cg defined in body frame (euler equations)
-    
-    cpB = [0; 0; -2];   
+    vBody = Rib * windVelocityI;
+    alpha = acos(dot([1;0;0], vBody)/norm(vBody) );
+    xCgTop = 20; 
+    cpB = [( 0.5* 25 *sin(alpha)^2 ).*(alpha<=pi/2) + (25-25/2*sin(alpha)^2).*(alpha>pi/2) - xCgTop;0; 0];   
+    %scatter(t,alpha)
+    %hold on
     cgB = [0; 0; 0];
+    % scatter(cgB,0)
+    % hold on
+    % scatter(cpB,0)
 
-    rCpCgB = cpB - cgB;   % torque arm
-    torque = cross(rCpCgB, aeroForceB);   % M = r x F  (nel body)
+    rCpCgB = cpB-cgB;   % torque arm
+    torque = -cross(rCpCgB, aeroForceB);   % M = r x F  (nel body)
 
     % Matrice di inerzia nel body (3x3)
-    Ix = 10000;
-    Iy = 10000;
-    Iz = 1000;
+    Ix = 1000;
+    Iy = 5000;
+    Iz = 5000;
     J = diag([Ix,Iy Iz]);
 
     % 2ª cardinal: J * wdot + w x (J*w) = M
     Jw   = J * wB;
     wdot = J \ (torque - cross(wB, Jw));
-
-    % ------------ quaternion evolution via kinematic ------------
-    wx = wB(1); wy = wB(2); wz = wB(3);
-    Omega = [  0   -wx  -wy  -wz;
-               wx    0   wz  -wy;
-               wy  -wz    0   wx;
-               wz   wy  -wx    0 ];
-
-    qdot = 0.5 * Omega * q;
 
     % ------------ build dxdt ------------
     dxdt         = zeros(13,1);

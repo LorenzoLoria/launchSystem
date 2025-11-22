@@ -13,7 +13,7 @@ v0  = [5000; 0; 0];      % velocità iniziale
 q0 = [1; 0; 0; 0];
 
 % Velocità angolare iniziale (ad es. spin attorno all'asse y del corpo)
-w0 = [0; 0 ; 0];        % rad/s
+w0 = [0.01; 0.01 ; 0.01];        % rad/s
 
 % Stato iniziale completo
 y0 = [r0; v0; q0; w0];
@@ -48,9 +48,9 @@ ex_I = zeros(N,3); ey_I = zeros(N,3); ez_I = zeros(N,3);
 for k = 1:N
     q = q_hist(k,:).'; q = q / norm(q);
     q0 = q(1); q1 = q(2); q2 = q(3); q3 = q(4);
-    Rbi = [ 1-2*(q2^2+q3^2),   2*(q1*q2 - q0*q3), 2*(q1*q3 + q0*q2);
-            2*(q1*q2 + q0*q3), 1-2*(q1^2+q3^2),   2*(q2*q3 - q0*q1);
-            2*(q1*q3 - q0*q2), 2*(q2*q3 + q0*q1), 1-2*(q1^2+q2^2) ];
+  Rbi = [q0^2-q1^2-q2^2+q3^2,  2*(q0*q1+q3*q2),  2*(q0*q2-q1*q3);...
+           2*(q0*q1-q3*q2),  -q0^2+q1^2-q2^2+q3^2,  2*(q1*q2+q0*q3);...
+           2*(q0*q2+q1*q3),  2 * (q1*q2-q0*q3), -q0^2-q1^2+q2^2+q3^2]';
     ex_I(k,:) = Rbi(:,1).'; ey_I(k,:) = Rbi(:,2).'; ez_I(k,:) = Rbi(:,3).';
 end
 
@@ -77,9 +77,9 @@ Zc_base = Zc_base - h_cyl/2;
 
 % IMPORTANTE: Ruoto i punti "base" per allineare il cilindro all'asse X (Roll axis)
 % Se vuoi che il cilindro segua l'asse Z (blu), commenta queste 3 righe e usa X=Xc, Y=Yc, Z=Zc
-Xc_body = Xc_base;  % La lunghezza ora è su X
+Xc_body = Zc_base;  % La lunghezza ora è su X
 Yc_body = Yc_base;
-Zc_body = Zc_base;  % Il raggio è su Y e Z
+Zc_body = Xc_base;  % Il raggio è su Y e Z
 
 % Creiamo l'oggetto grafico 'mesh' iniziale (vuoto o all'origine)
 % Usiamo 'EdgeColor' definito e 'FaceColor' none come richiesto (outline)
@@ -87,7 +87,7 @@ hCylMesh = mesh(Xc_body, Yc_body, Zc_body, 'FaceColor', 'none', 'EdgeColor', 'y'
 
 % --- SETUP ASSI E TRAIETTORIA ---
 plot3(r_hist(:,1)/1000, r_hist(:,2)/1000, r_hist(:,3)/1000, 'r-', 'LineWidth', 1.0);
-L = 10; % Lunghezza frecce assi (scalata per visibilità)
+L = 100; % Lunghezza frecce assi (scalata per visibilità)
 hX = quiver3(0,0,0, 0,0,0, 'r', 'LineWidth', 2); 
 hY = quiver3(0,0,0, 0,0,0, 'g', 'LineWidth', 2); 
 hZ = quiver3(0,0,0, 0,0,0, 'b', 'LineWidth', 2); 
@@ -95,16 +95,17 @@ hZ = quiver3(0,0,0, 0,0,0, 'b', 'LineWidth', 2);
 
 
 % --- 2. LOOP DI ANIMAZIONE ---
-step = max(1, floor(N/2000)); % Step per circa 500 frames
+step = 1; %max(1, floor(N/2000)); % Step per circa 500 frames
 for k = 1:step:N
     p = r_hist(k,:)/1000; % Posizione attuale in km
 
     % Ricalcolo Rbi locale (o lo prendi da un array salvato)
     q = q_hist(k,:).'; q = q / norm(q);
     q0 = q(1); q1 = q(2); q2 = q(3); q3 = q(4);
-    Rbi = [ 1-2*(q2^2+q3^2),   2*(q1*q2 - q0*q3), 2*(q1*q3 + q0*q2);
-            2*(q1*q2 + q0*q3), 1-2*(q1^2+q3^2),   2*(q2*q3 - q0*q1);
-            2*(q1*q3 - q0*q2), 2*(q2*q3 + q0*q1), 1-2*(q1^2+q2^2) ];
+    
+      Rbi = [q0^2-q1^2-q2^2+q3^2,  2*(q0*q1+q3*q2),  2*(q0*q2-q1*q3);...
+           2*(q0*q1-q3*q2),  -q0^2+q1^2-q2^2+q3^2,  2*(q1*q2+q0*q3);...
+           2*(q0*q2+q1*q3),  2 * (q1*q2-q0*q3), -q0^2-q1^2+q2^2+q3^2]';
 
     % --- AGGIORNAMENTO CILINDRO ---
     % Per ruotare la mesh, dobbiamo operare su tutti i punti come vettori

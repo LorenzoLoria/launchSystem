@@ -1,4 +1,4 @@
-function [tt,xx] = ballisticTrajectory(x0,mission,windDirection,t0)
+function [tt,xx] = ballisticTrajectory(x0,mission,windDirection,t0,nDeval)
 
 persistent x0Copy copyttCaps copyxxCaps
 
@@ -17,7 +17,7 @@ options = odeset('RelTol',1e-6,'AbsTol',1e-2,'Events',@groundEvent);
 
 solution = ode113(@(t,x) dynCapsule(t,x,mission,windDirection), tSpan, x0,options);
 
-tt = linspace(solution.x(1),solution.x(end),100);
+tt = linspace(solution.x(1),solution.x(end),nDeval);
 
 xx = deval(solution,tt);
 

@@ -1,5 +1,5 @@
 % data script
-function [mission] = dataStruct
+function [mission,optimisation] = dataStruct
 
 mission = struct();
 
@@ -91,6 +91,8 @@ rtarg = [mission.environment.rEarth * cos(deg2rad(100));mission.environment.rEar
 lat = deg2rad(-35);
 lon =deg2rad(100);
 mission.initialPoint = 6371000*[cos(lat)*cos(lon); cos(lat)*sin(lon); sin(lat) ]';
+mission.initialPoint = [0 0 6371000];
+
 mission.target = rtarg;
 
 n = cross(mission.initialPoint,mission.target)/(norm(cross(mission.initialPoint,mission.target)));
@@ -107,6 +109,39 @@ rot = [ex,ey,ez]';
     mission.Rfinal = rot ;
 
     mission.optimisation.GA.variables = 5;    
+
+
+%% differentStages Simulation 
+optimisation = struct();
+optimisation.nStages = 2;
+optimisation.stage{1}.engine = mission.launcher.engines{1};
+optimisation.stage{2}.engine = mission.launcher.engines{2};
+
+mProp1 = 5*optimisation.stage{1}.engine.thrust/9.81*0.5;
+epsS1 = 0.05;
+
+mProp2 = optimisation.stage{2}.engine.thrust/9.81*0.5;
+epsS2 = 0.06;
+
+mS1 = epsS1/(1-epsS1)*mProp1;
+mS2 = epsS2/(1-epsS2)*(mProp1+mS1+mProp2);
+
+mStage1 = mProp1+mS1;
+mStage2 = mProp2+mS2;
+
+mTot = mStage1+mStage2+mission.capsule.weigth;
+
+optimisation.stage{1}.mStage = mStage1;
+optimisation.stage{1}.mProp = mProp1;
+
+optimisation.stage{2}.mStage = mStage2;
+optimisation.stage{2}.mProp = mProp2;
+
+
+
+
+
+
 
 
 
