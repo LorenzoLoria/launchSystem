@@ -1,4 +1,4 @@
-function [mDot] = massIntegration(theta,m, vSpline, position, mission)
+function [mDot] = massIntegration(s,m, vSpline, position, sVec, mission)
         % MASSINTEGRATION Computes the mass flow rate for trajectory integration.
     %
     %   [mDot] = MASSINTEGRATION(s, m, vSpline, position, mission) calculates the 
@@ -19,8 +19,8 @@ function [mDot] = massIntegration(theta,m, vSpline, position, mission)
     % Extrapolation of Data 
     
 
-    vModule    = vSpline.profile ; 
-    dvModule   = vSpline.dProfile ;
+    vModule    = vSpline.profile(:,2) ; 
+    dvModule   = vSpline.dProfile(:,2) ;
     pos        = position.position;
     dPosition  = position.dPosition; 
     ddPosition = position.ddPosition ; 
@@ -32,17 +32,25 @@ function [mDot] = massIntegration(theta,m, vSpline, position, mission)
     GM      = mission.environment.GM;
     rEarth  = mission.environment.rEarth;
 
-    thetaVec = vModule(:,1) ;
-    finalIdx = thetaVec(end)==theta ;
-    idx = sum((thetaVec-theta)<=0) - finalIdx ;
-    thetaInitial = thetaVec(idx) ; 
-    thetaFinal = thetaVec(idx+1) ; 
+    % thetaVec = vModule(:,1) ;
+    % finalIdx = thetaVec(end)==theta ;
+    % idx = sum((thetaVec-theta)<=0) - finalIdx ;
+    % thetaInitial = thetaVec(idx) ; 
+    % thetaFinal = thetaVec(idx+1) ; 
+
+    finalIdx = sVec(end)==s ;
+    idx = sum((sVec-s)<=0) - finalIdx ;
+    sInitial = sVec(idx) ;
+    sFinal = sVec(idx+1) ; 
+
+
+
     
-    pos = (pos(:,idx+1) - pos(:,idx)) / (thetaFinal - thetaInitial) * (theta-thetaInitial) + pos(:,idx) ;
-    dPosition = (dPosition(:,idx+1) - dPosition(:,idx)) / (thetaFinal - thetaInitial) * (theta-thetaInitial) + dPosition(:,idx) ;
-    ddPosition = (ddPosition(:,idx+1) - ddPosition(:,idx)) / (thetaFinal - thetaInitial) * (theta-thetaInitial) + ddPosition(:,idx) ;
-    vModule = (vModule(idx+1) - vModule(idx)) / (thetaFinal - thetaInitial) * (theta-thetaInitial) + vModule(idx) ;
-    dvModule = (dvModule(idx+1) - dvModule(idx)) / (thetaFinal - thetaInitial) * (theta-thetaInitial) + dvModule(idx) ;
+    pos = (pos(:,idx+1) - pos(:,idx)) / (sFinal - sInitial) * (s-sInitial) + pos(:,idx) ;
+    dPosition = (dPosition(:,idx+1) - dPosition(:,idx)) / (sFinal - sInitial) * (s-sInitial) + dPosition(:,idx) ;
+    ddPosition = (ddPosition(:,idx+1) - ddPosition(:,idx)) / (sFinal - sInitial) * (s-sInitial) + ddPosition(:,idx) ;
+    vModule = (vModule(idx+1) - vModule(idx)) / (sFinal - sInitial) * (s-sInitial) + vModule(idx) ;
+    dvModule = (dvModule(idx+1) - dvModule(idx)) / (sFinal - sInitial) * (s-sInitial) + dvModule(idx) ;
 
 
 
@@ -78,7 +86,7 @@ function [mDot] = massIntegration(theta,m, vSpline, position, mission)
     thrust = m * accelerationVector - m * gVector + 0.5 * rho * (vModule).^2 * surface * CD .* velocityUnitVector ;
 
     % Mass Flow rate
-    mDot = - 1 / iSp / g0 * (norm(thrust));
+    mDot = - 1 / iSp / g0 * (norm(thrust)) / vModule;
 
 
 

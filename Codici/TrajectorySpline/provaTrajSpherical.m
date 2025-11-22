@@ -9,7 +9,7 @@ mission = dataStruct ;
 nOptPoints = 5 ;
 rEarth = 6371 * 1e3 ;
 x0 = [rEarth , 0, pi/4] ; 
-xf = [rEarth , pi, pi/4] ;
+xf = [rEarth + 100e3 , pi/200, pi/4] ;
 target = xf ; 
 
 % Initial Guess definition
@@ -21,7 +21,7 @@ initialGuessPhi = linspace(x0(3), pi/2, ceil(nOptPoints/2) + 1) ;
 initialGuessPhi = [initialGuessPhi, linspace( pi/2, xf(3), floor(nOptPoints/2) + 1) ]; 
 initialGuessPhi = initialGuessPhi(2:end-1) ; 
 
-initialGuessV = linspace(1, 1e2, nOptPoints) ; 
+initialGuessV = linspace(1e2, 3e2, nOptPoints) ; 
 
 initialGuess = [initialGuessR, initialGuessPhi , initialGuessV] ; 
 
@@ -65,7 +65,7 @@ plot3(pts(1,:), pts(2,:), pts(3,:), 'ob', 'LineWidth',3)
 % Limits fro lower and upper boundary condition
 heightLb = rEarth;
 heightUb = rEarth + 200 * 1e3;
-lowerBounds = [heightLb*ones(1,nOptPoints), 0*ones(1,nOptPoints), 1*ones(1,nOptPoints)] ;
+lowerBounds = [heightLb*ones(1,nOptPoints), 0*ones(1,nOptPoints), 300*ones(1,nOptPoints)] ;
 upperBounds = [heightUb*ones(1,nOptPoints), pi*ones(1,nOptPoints), 3e3*ones(1,nOptPoints)] ;
 
 fminconOptions = optimoptions('fmincon', 'Display', 'iter-detailed', ...
@@ -88,21 +88,21 @@ rCoord = [x0(1) optTraj(1:nOptPoints) xf(1)];
 phiCoord = [x0(3) optTraj(nOptPoints+1 : nOptPoints*2) xf(3)];
 velocity =[10 optTraj(2*nOptPoints+1 : end) optTraj(end)];
 
-% rPoints       = [thetaCoord ; rCoord] ;
-% phiPoints     = [thetaCoord ; phiCoord] ;
-% vModulePoints = [thetaCoord ; velocity] ;
-% 
-% thetaQuery = linspace(x0(2), xf(2), 1000)';
-% nPointsPerInterval = 100 ;
-% 
-% [out] = splineGenerationEfficient(rPoints, nPointsPerInterval) ;
-% rQuery = out.profile' ;
-% 
-% [out] = splineGenerationEfficient(phiPoints , nPointsPerInterval) ;
-% phiQuery = out.profile' ;
-% 
-% [out] = splineGenerationEfficient(vModulePoints, nPointsPerInterval) ;
-% velocityProfile = out.profile' ;
+rPoints       = [thetaCoord ; rCoord] ;
+phiPoints     = [thetaCoord ; phiCoord] ;
+vModulePoints = [thetaCoord ; velocity] ;
+
+thetaQuery = linspace(x0(2), xf(2), 1000)';
+nPointsPerInterval = 100 ;
+
+[out] = splineGenerationEfficient(rPoints, nPointsPerInterval) ;
+rQuery = out.profile' ;
+
+[out] = splineGenerationEfficient(phiPoints , nPointsPerInterval) ;
+phiQuery = out.profile' ;
+
+[out] = splineGenerationEfficient(vModulePoints, nPointsPerInterval) ;
+velocityProfile = out.profile' ;
 
 %%
 
@@ -112,13 +112,17 @@ velocity =[10 optTraj(2*nOptPoints+1 : end) optTraj(end)];
 [output2] = trajectoryGenerationSpherical(optTraj, thetaCoord, x0, xf, mission, 0) ;
 
 
-velocity = figure(5)
+velocityPlot = figure(5) ;
 plot(output1.theta, output1.vel)
+title("Velocity spline")
 
-acceleration = figure(6)
+
+accelerationPlot = figure(6) ;
 plot(output1.theta, output2.acceleration)
+title("Acceleration spline")
 
-thrust = figure(7)
+
+thrustPlot = figure(7) ;
 for ii = 1:length(output2.thrust(1,:))
 
 thrustNorm(ii) =  sqrt(sum(output2.thrust(:,ii).^2)) ;
@@ -126,18 +130,25 @@ thrustNorm(ii) =  sqrt(sum(output2.thrust(:,ii).^2)) ;
 end
 
 plot(output2.theta, thrustNorm)
+title("Thrust")
 
 
 
 %%
 figure(2)
 plot(thetaCoord, rCoord)
+title("Radius")
+
 
 figure(3)
 plot(thetaCoord,phiCoord)
+title("Phi")
+
 
 figure(4)
 plot(thetaCoord,velocity)
+title("Velocity")
+
 
 % figure(5)
 % plot3(thetaCoord,yCoord,zCoord)
