@@ -1,6 +1,6 @@
 
 function dsdt = launcherDynamicsECI(t, x,thrustData, mission)
-
+warning('off','all');
 % LAUNCHERDYNAMICS  3D launcher equations of motion.
 %   This function computes the time derivative of the state vector for a 
 %   multistage rocket in a 3D Cartesian coordinate system.
@@ -52,7 +52,7 @@ function dsdt = launcherDynamicsECI(t, x,thrustData, mission)
     
     optVar = thrustData(t); % thrustdata dovrebbe essere una funzione vettoriale con Tx,Ty,Tz
     
-   
+   [soundspeed] = soundspeedAlt(h);
 percVec = optVar(1);
 thetaGimball =0; 
 gammaGimball =deg2rad(optVar(2));
