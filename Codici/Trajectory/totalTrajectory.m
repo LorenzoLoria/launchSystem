@@ -1,14 +1,14 @@
-function [timeCollocation, stateCollocation] = totalTrajectory(mission,opt,thrustData,thrustDataVec)
+function [timeCollocation, stateCollocation] = totalTrajectory(mission,opt,thrustData)
 
 nStages = opt.nStages;
-
-m0Tot = opt.stage{1}.mStage +opt.stage{2}.mStage + mission.capsule.weigth; 
+m0Tot = opt.m0Tot;
+ 
 nDeval = 100;
 stateCollocation = zeros(7,nDeval,nStages+1);
 timeCollocation = zeros(nDeval,nStages+1);
 
 for i = 1:nStages
-    
+
 if i == 1
     m0 = m0Tot;
     x0 = [mission.initialPoint'; 0 ;0 ; 0;  m0];
@@ -19,7 +19,9 @@ else
     t0 = timeCollocation(end,i-1);
 end
 
-[tt,xx] = launcherTrajectory(x0,mission,thrustData,t0,thrustDataVec,nDeval);
+opt.m0Tot = m0;
+
+[tt,xx] = launcherTrajectory(x0,mission,thrustData,t0,nDeval,opt.stage{i},opt);
 
 stateCollocation(:,:,i) = xx;
 timeCollocation(:,i) = tt;

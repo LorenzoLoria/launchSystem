@@ -1,5 +1,5 @@
 
-function dsdt = launcherDynamicsECI(t, x,thrustData, mission)
+function dsdt = launcherDynamicsECI(t, x,thrustData, mission,Isp)
 
 % LAUNCHERDYNAMICS  3D launcher equations of motion.
 %   This function computes the time derivative of the state vector for a 
@@ -41,8 +41,7 @@ function dsdt = launcherDynamicsECI(t, x,thrustData, mission)
     
     A   = mission.capsule.Area;
     Cd  = mission.capsule.supersonicCD;
-    g0  = mission.environment.g0;
-    Isp = mission.launcher.engines{1}.isp;  
+    g0  = mission.environment.g0; 
     GM  = mission.environment.GM;
 
     % Interpolate air density based on current altitude

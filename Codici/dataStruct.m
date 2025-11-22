@@ -115,12 +115,12 @@ rot = [ex,ey,ez]';
 optimisation = struct();
 optimisation.nStages = 2;
 optimisation.stage{1}.engine = mission.launcher.engines{1};
-optimisation.stage{2}.engine = mission.launcher.engines{2};
+optimisation.stage{2}.engine = mission.launcher.engines{1};
 
 mProp1 = 5*optimisation.stage{1}.engine.thrust/9.81*0.5;
 epsS1 = 0.05;
 
-mProp2 = optimisation.stage{2}.engine.thrust/9.81*0.5;
+mProp2 = 2*optimisation.stage{2}.engine.thrust/9.81*0.5;
 epsS2 = 0.06;
 
 mS1 = epsS1/(1-epsS1)*mProp1;
@@ -129,13 +129,16 @@ mS2 = epsS2/(1-epsS2)*(mProp1+mS1+mProp2);
 mStage1 = mProp1+mS1;
 mStage2 = mProp2+mS2;
 
-mTot = mStage1+mStage2+mission.capsule.weigth;
+
+optimisation.m0Tot = mStage1 + mStage2 + mission.capsule.weigth;
 
 optimisation.stage{1}.mStage = mStage1;
 optimisation.stage{1}.mProp = mProp1;
+optimisation.stage{1}.Isp = 283;
 
 optimisation.stage{2}.mStage = mStage2;
 optimisation.stage{2}.mProp = mProp2;
+optimisation.stage{2}.Isp = 327;
 
 
 
