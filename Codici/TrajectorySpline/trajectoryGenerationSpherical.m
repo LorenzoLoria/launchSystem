@@ -16,7 +16,7 @@ function [output] = trajectoryGenerationSpherical(x, thetaCoord, x0, xf, mission
     %   output      : Struct containing time histories (pos, vel, acc, thrust, etc.)
 
 
-persistent prevSimulation  prevVel prevRCoord prevPhiCoord prevTheta prevAccelerationModule prevPosition prevThrust prevVelocityUnitVector prevTrajectoryLength
+persistent prevSimulation  prevVel prevRCoord prevPhiCoord prevTheta prevAccelerationModule prevPosition prevThrust prevVelocityUnitVector prevTrajectoryLength prevSVec
 
 if isempty(prevSimulation)
     prevSimulation = zeros(1,length(x)) ; 
@@ -33,6 +33,7 @@ if x == prevSimulation
    thrust = prevThrust ;
    velocityUnitVector = prevVelocityUnitVector ; 
    trajectoryLength = prevTrajectoryLength ;
+   sVec = prevSVec;
    
 else
 
@@ -162,7 +163,7 @@ ddPosition = [(ddr - r  - r .* (dPhi).^2) .* sin(phi) .* cos(theta) + 2 .* dr .*
     %sSpan = [0, 100] ;
     %thetaSpan = [thetaCoord(1), thetaCoord(end)] ;
     
-    opt = odeset('relTol', 1e-6, 'absTol', 1e-2, 'Events' , @(s,m)arrestingEvents(s,m,position,sVec,xf)) ;
+    opt = odeset('relTol', 1e-6, 'absTol', 1e-6, 'Events' , @(s,m)arrestingEvents(s,m,position,sVec,xf)) ;
     
 
     % Run Integration
@@ -170,14 +171,14 @@ ddPosition = [(ddr - r  - r .* (dPhi).^2) .* sin(phi) .* cos(theta) + 2 .* dr .*
     [sVec, m]=ode45(@(s,m) massIntegration(s, m, vSpline, position, sVec, mission), sVec, m0, opt) ; 
     
     % Pre Allocation of Variables
-    vel = zeros(1,length(theta));
-    velocityUnitVector = zeros(3,length(theta));
-    accelerationVector = zeros(3,length(theta));
-    accelerationModule = zeros(1, length(theta));
-    thrust = zeros(3,length(theta));
+    vel = zeros(1,length(sVec));
+    velocityUnitVector = zeros(3,length(sVec));
+    accelerationVector = zeros(3,length(sVec));
+    accelerationModule = zeros(1, length(sVec));
+    thrust = zeros(3,length(sVec));
     
     
-    for ii = 1:length(theta)
+    for ii = 1:length(sVec)
 
         % Atmospheric Density (Exponential approximation for better physics)
         h = norm(pos(:,ii)) - 6371000; 
@@ -212,6 +213,7 @@ ddPosition = [(ddr - r  - r .* (dPhi).^2) .* sin(phi) .* cos(theta) + 2 .* dr .*
     prevThrust = thrust ; 
     prevVelocityUnitVector = velocityUnitVector ;
     prevTrajectoryLength = trajectoryLength ; 
+    prevSVec = sVec ;
 
 
     
@@ -224,7 +226,8 @@ end
         output.rCoord   = rCoord ;
         output.phiCoord = phiCoord ;
         output.theta    = theta ; 
-        output.position           = position.position ; 
+        output.sVec             = sVec ; 
+        output.position         = position.position ; 
         output.trajectoryLength = trajectoryLength ;
     
     else
@@ -232,7 +235,7 @@ end
         output.acceleration       = accelerationModule; 
         output.position           = position.position ; 
         output.thrust             = thrust ; 
-        output.theta              = theta ; 
+        output.sVec               = sVec ; 
         output.velocityUnitVector = velocityUnitVector ;
         output.vel                = vel ;
     

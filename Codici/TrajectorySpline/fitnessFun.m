@@ -13,11 +13,11 @@ function [objective] = fitnessFun(x,thetaCoord,x0,xf, mission)
      vel                = output.vel ; 
      pos                = output.position' ; 
      trajectoryLength   = output.trajectoryLength ;
-    
+     sVec = output.sVec ;
 
    % meanVel = (vel(1:end-1) + vel(2:end))./2 ;
     % Evalutation of the total final time
-    tFinal = trapz(trajectoryLength,1./(vel));
+    tFinal = trapz(sVec,1./(vel));
    
     % Evalutation of oscillation on y and z axis
     rOscillation = sqrt(sum(diff(rCoord).^2));
