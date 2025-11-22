@@ -1,4 +1,4 @@
-function [mDot] = massIntegration(s,m, vSpline, position, sVec, mission)
+function [mDot] = massIntegration(s,m, vSpline, dvModule, position, sVec, mission)
         % MASSINTEGRATION Computes the mass flow rate for trajectory integration.
     %
     %   [mDot] = MASSINTEGRATION(s, m, vSpline, position, mission) calculates the 
@@ -20,7 +20,7 @@ function [mDot] = massIntegration(s,m, vSpline, position, sVec, mission)
     
 
     vModule    = vSpline.profile(:,2) ; 
-    dvModule   = vSpline.dProfile(:,2) ;
+    % dvModule   = vSpline.dProfile(:,2) ;
     pos        = position.position;
     dPosition  = position.dPosition; 
     ddPosition = position.ddPosition ; 
@@ -68,7 +68,7 @@ function [mDot] = massIntegration(s,m, vSpline, position, sVec, mission)
     thrust = m * accelerationVector - m * gVector + 0.5 * rho * (vModule).^2 * surface * CD .* velocityUnitVector ;
 
     % Mass Flow rate in s
-    mDot = - 1 / iSp / g0 * (norm(thrust)) / norm(dPosition) ;
+    mDot = - 1 / iSp / g0 * (norm(thrust)) / vModule ;
     % mDot = - 1 / iSp / g0 * (norm(thrust)) / ( vModule / norm(dPosition)) ;
 
 

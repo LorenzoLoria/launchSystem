@@ -2,6 +2,7 @@ clear all
 close all
 clc
 
+addpath(genpath("..\..\"))
 mission = dataStruct ; 
 
 
@@ -9,24 +10,23 @@ mission = dataStruct ;
 nOptPoints = 5 ;
 rEarth = 6371 * 1e3 ;
 x0 = [rEarth , 0, pi/4] ; 
-xf = [rEarth + 100e3 , pi, pi/4] ;
-target = xf ; 
+target = [rEarth , pi/20, pi/4] ;
 
 % Initial Guess definition
-initialGuessR = linspace(x0(1), x0(1) + 100 * 1e3, ceil(nOptPoints/2) + 1) ; 
-initialGuessR = [initialGuessR, linspace( x0(1) + 100 * 1e3, xf(1), floor(nOptPoints/2) + 1) ]; 
-initialGuessR = initialGuessR(2:end-1) ; 
 
-initialGuessPhi = linspace(x0(3), pi/2, ceil(nOptPoints/2) + 1) ;
-initialGuessPhi = [initialGuessPhi, linspace( pi/2, xf(3), floor(nOptPoints/2) + 1) ]; 
-initialGuessPhi = initialGuessPhi(2:end-1) ; 
+initialGuessR = linspace(x0(1), x0(1) + 100 * 1e3,nOptPoints + 1) ; 
+initialGuessR = initialGuessR(2:end) ; 
+
+initialGuessPhi = x0(3) * ones(1, nOptPoints) ; 
 
 initialGuessV = linspace(1e2, 3e2, nOptPoints) ; 
 
-initialGuess = [initialGuessR, initialGuessPhi , initialGuessV] ; 
+initialGuessThetaFinal = pi/10 ; 
 
+initialGuess = [initialGuessR, initialGuessPhi , initialGuessV, initialGuessThetaFinal] ; 
 
-thetaCoord = linspace(x0(2), xf(2), nOptPoints+2) ;
+initialGuessThetaCoord = linspace(x0(2), initialGuessThetaFinal, nOptPoints+1) ;
+initialGuessThetaCoord = initialGuessThetaCoord(2:end) ;
 
 
 figure(1)
@@ -34,9 +34,9 @@ figure(1)
 x0Plot = [ x0(1) .* sin(x0(3)) .* cos(x0(2)) ;   %X
         x0(1) .* sin(x0(3)) .* sin(x0(2)) ;   %Y
         x0(1) .* cos(x0(3))];  
-xfPlot = [ xf(1) .* sin(xf(3)) .* cos(xf(2)) ;   %X
-        xf(1) .* sin(xf(3)) .* sin(xf(2)) ;   %Y
-        xf(1) .* cos(xf(3))];  
+xfPlot = [ target(1) .* sin(target(3)) .* cos(target(2)) ;   %X
+        target(1) .* sin(target(3)) .* sin(target(2)) ;   %Y
+        target(1) .* cos(target(3))];  
 
 plot3(x0Plot(1),x0Plot(2),x0Plot(3), 'xr', 'LineWidth',3)
 hold on
@@ -46,7 +46,7 @@ plot3(xfPlot(1),xfPlot(2),xfPlot(3), 'xr','LineWidth',3)
 radius = rEarth ; 
 surf(radius * xSphere  , radius * ySphere ,radius * zSphere , 'EdgeAlpha',0.3 )
 
-inGuess = [initialGuessR ; thetaCoord(2:end-1) ; initialGuessPhi] ;
+inGuess = [initialGuessR ; initialGuessThetaCoord ; initialGuessPhi] ;
 for ii = 1:length(initialGuessR)
     pts(:,ii) = [ inGuess(1,ii) .* sin(inGuess(3,ii)) .* cos(inGuess(2,ii)) ;   %X
         inGuess(1,ii) .* sin(inGuess(3,ii)) .* sin(inGuess(2,ii)) ;   %Y
@@ -65,8 +65,8 @@ plot3(pts(1,:), pts(2,:), pts(3,:), 'ob', 'LineWidth',3)
 % Limits fro lower and upper boundary condition
 heightLb = rEarth;
 heightUb = rEarth + 200 * 1e3;
-lowerBounds = [heightLb*ones(1,nOptPoints), 0*ones(1,nOptPoints), 300*ones(1,nOptPoints)] ;
-upperBounds = [heightUb*ones(1,nOptPoints), pi*ones(1,nOptPoints), 3e3*ones(1,nOptPoints)] ;
+lowerBounds = [heightLb*ones(1,nOptPoints), 0*ones(1,nOptPoints), 300*ones(1,nOptPoints), x0(2) + 0.001] ;
+upperBounds = [heightUb*ones(1,nOptPoints), pi*ones(1,nOptPoints), 3e3*ones(1,nOptPoints), target(2)] ;
 
 fminconOptions = optimoptions('fmincon', 'Display', 'iter-detailed', ...
         'MaxFunctionEvaluations', 1e5, ...
@@ -77,9 +77,8 @@ fminconOptions = optimoptions('fmincon', 'Display', 'iter-detailed', ...
         'FiniteDifferenceType','forward',...
         'DiffMinChange', 1e-5);  
 
-a= 1 ;
-optTraj = fmincon (@(x) fitnessFun(x, thetaCoord,x0, target, mission), initialGuess, ...
-    [], [], [],[], lowerBounds, upperBounds, @(x) constraintFun(x,thetaCoord,x0,xf,mission), fminconOptions) ;
+optTraj = fmincon (@(x) fitnessFun(x,x0, target, mission), initialGuess, ...
+    [], [], [],[], lowerBounds, upperBounds, @(x) constraintFun(x,x0,target,mission), fminconOptions) ;
 
 
 

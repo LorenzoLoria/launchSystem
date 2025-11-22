@@ -1,5 +1,8 @@
-function [C,Ceq] = constraintFun(x,thetaCoord,x0,xf, mission)
+function [C,Ceq] = constraintFun(x,x0,target, mission)
     
+    nOptPoints = (length(x)-1)/3 ;
+    thetaCoord = linspace(x0(2), x(end), nOptPoints+1) ;
+
     % Estrapolation Data from Mission Struct
     g0  = mission.environment.g0;
     earthRadius = mission.environment.rEarth;
@@ -10,8 +13,13 @@ function [C,Ceq] = constraintFun(x,thetaCoord,x0,xf, mission)
     % Flag for trajectoryGeneration
     fitnessFlag = 0 ; 
     
-    [output] = trajectoryGenerationSpherical(x,thetaCoord, x0,xf,mission,fitnessFlag);
+    [output] = trajectoryGenerationSpherical(x,thetaCoord, x0,target,mission,fitnessFlag);
     
+    if output.unpheasibleFlag
+        C = output.value ;
+        return
+    end
+
     tol = 10 ;
     earthRadius =  earthRadius + tol; 
     earthCenter = [0 ; 0 ; 0];

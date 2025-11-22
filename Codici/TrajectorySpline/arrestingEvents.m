@@ -1,19 +1,19 @@
 
-function [value,isterminal,direction] = arrestingEvents(s,m,position,sVec, target)
+function [value,isterminal,direction] = arrestingEvents(s,m)
 
     
-    finalIdx = sVec(end)==s ;
-    idx = sum((sVec-s)<=0) - finalIdx ;
-    sInitial = sVec(idx) ;
-    sFinal = sVec(idx+1) ;  
+    % finalIdx = sVec(end)==s ;
+    % idx = sum((sVec-s)<=0) - finalIdx ;
+    % sInitial = sVec(idx) ;
+    % sFinal = sVec(idx+1) ;  
+    % 
+    % pos = position.position ; 
+    % pos = (pos(:,idx+1) - pos(:,idx)) / (sFinal - sInitial) * (s-sInitial) + pos(:,idx) ;
 
-    pos = position.position ; 
-    pos = (pos(:,idx+1) - pos(:,idx)) / (sFinal - sInitial) * (s-sInitial) + pos(:,idx) ;
 
-
-    value = [norm(pos - target') - 5e3 ; m ];
-    isterminal = [1 ; 1];       
-    direction  = [0 ; 0];    
+    value = [ m ];
+    isterminal = [1];       
+    direction  = [0];    
 
 
 end

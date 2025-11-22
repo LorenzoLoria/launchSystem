@@ -1,19 +1,28 @@
-function [objective] = fitnessFun(x,thetaCoord,x0,xf, mission)
+function [objective] = fitnessFun(x,x0,target, mission)
    
+
+    nOptPoints = (length(x)-1)/3 ;
+    thetaCoord = linspace(x0(2), x(end), nOptPoints+1) ;
+
+
     % flag for trajectoryGeneration or trajectoryGenerationSpherical
     fitnessFlag = 1 ;
     
     %[output] = trajectoryGeneration(x,xCoord,x0,x_target,mission,fitnessFlag);
-    [output] = trajectoryGenerationSpherical(x, thetaCoord, x0, xf, mission, fitnessFlag);
+    [output] = trajectoryGenerationSpherical(x, thetaCoord, x0, target, mission, fitnessFlag);
+
+    if output.unpheasibleFlag
+        objective = output.value ;
+        return
+    end
+
+
 
     % Data Estrapolation
      rCoord             = output.rCoord;
      phiCoord           = output.phiCoord;
-     theta              = output.theta; 
      vel                = output.vel ; 
-     pos                = output.position' ; 
-     trajectoryLength   = output.trajectoryLength ;
-     sVec = output.sVec ;
+     sVec               = output.sVec ;
 
    % meanVel = (vel(1:end-1) + vel(2:end))./2 ;
     % Evalutation of the total final time
