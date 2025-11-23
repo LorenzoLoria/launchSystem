@@ -1,10 +1,12 @@
 function [epsS] = StructuralMassIndex(nStage,propellantMass)
 
 % Function to compute the structural mass index (SFORZA book for values, pp 255)
+
 % INPUTS:
 % nStage : stage being considered
 % propellantMass : mass of the propellant
-
+% OUTPUT:
+% epsS : structural mass index
 
 if nStage == 1
     PropPoints = [37800 39200 96120 101000 112700 117800 155000 156260 158000 174000 177800 226000 284089 419400 71800 2145700];
