@@ -24,18 +24,30 @@ thrustData(:,:,2) =thrustDataVec2;
 
 %%
 
-
-
-
 % Initial Guess using GA
-obj_ga = @(x) objFunGA( reshape(x,mission.optimisation.GA.variables,2), mission);
-nonlcon_ga = @(x) nlconGA( reshape(x,mission.optimisation.GA.variables,2), mission );
+obj_ga = @(x) objFunMultiStages( reshape(x,mission.optimisation.GA.variables,2,2), mission,opt);
+nonlcon_ga = @(x) nlconMultiStagesGA( reshape(x,mission.optimisation.GA.variables,2,2), mission,opt );
 
-lbGA = [0.1*ones(mission.optimisation.GA.variables,1);0*ones(mission.optimisation.GA.variables,1)];
-ubGA = [ones(mission.optimisation.GA.variables,1);90*ones(mission.optimisation.GA.variables,1)];
+lbGA(:,:,1) = [0.1*ones(mission.optimisation.GA.variables,1);0*ones(mission.optimisation.GA.variables,1)];
+ubGA(:,:,1) = [ones(mission.optimisation.GA.variables,1);90*ones(mission.optimisation.GA.variables,1)];
+
+lbGA(:,:,2) = [0.1*ones(mission.optimisation.GA.variables,1);0*ones(mission.optimisation.GA.variables,1)];
+ubGA(:,:,2) = [ones(mission.optimisation.GA.variables,1);150*ones(mission.optimisation.GA.variables,1)];
 
 
+lbGA = lbGA(:);
+ubGA = ubGA(:);
 
+
+%% GA initialisation
+
+options_ga = optimoptions("ga", ...
+    "Display","iter", ...
+    "MaxGenerations",20, ...
+    "PopulationSize",100,...
+    "UseParallel",true,"HybridFcn","fmincon"); 
+
+[x_ga, fval_ga] = ga(obj_ga,2*2*mission.optimisation.GA.variables,[],[],[],[],lbGA,ubGA,nonlcon_ga,options_ga);
 
 
 

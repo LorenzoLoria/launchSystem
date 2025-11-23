@@ -9,7 +9,7 @@ cD = mission.capsule.supersonicCD;
 
 for i = 1:opt.nStages
     time      = linspace(timeCollocation(1,i),timeCollocation(end,i),length(timeCollocation)-1);
-    mdot      = diff(stateCollocation(end,:))./time;
+    mdot      = diff(stateCollocation(end,:,i))./time;
     Thrust    = mdot .* opt.stage{i}.Isp .* misssion.environment.g0;
     Thrust    = [Thrust , Thrust(end)];
     r         = stateCollocation(1:3,:,i);

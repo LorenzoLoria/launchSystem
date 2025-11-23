@@ -23,17 +23,6 @@ ubGA = [ones(mission.optimisation.GA.variables,1);90*ones(mission.optimisation.G
 
 
 
-
-
-
-
-
-
-
-
-
-
-
 %% GA initialisation
 
 options_ga = optimoptions("ga", ...
