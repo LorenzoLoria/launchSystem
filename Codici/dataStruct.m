@@ -45,27 +45,27 @@ rhoVal = zeros(length(mission.environment.altRange),1);
 Tval= zeros(length(mission.environment.altRange),1);
 warning('off', 'all'); 
 
-for i=1:length(mission.environment.altRange)
-    [T,rho] = atmosnrlmsise00(mission.environment.altRange(i), 45, 120, 2020,50,1300);
-    rhoVal(i) = rho(6);
-    Tval(i) = T(1,2) ; 
-end
+%for i=1:length(mission.environment.altRange)
+%    [T,rho] = atmosnrlmsise00(mission.environment.altRange(i), 45, 120, 2020,50,1300);
+%    rhoVal(i) = rho(6);
+%    Tval(i) = T(1,2) ; 
+%end
 
-warning('on', 'all');   
-mission.environment.rho = rhoVal;
-mission.environment.T = Tval;
+%warning('on', 'all');   
+%mission.environment.rho = rhoVal;
+%mission.environment.T = Tval;
 
-mission.environment.gridInterp = griddedInterpolant( ...
-    mission.environment.altRange, ...   % grid points
-    mission.environment.rho, ...        % values
-    'linear', ...                       % interpolation method
-    'linear');  
+%mission.environment.gridInterp = griddedInterpolant( ...
+%    mission.environment.altRange, ...   % grid points
+%    mission.environment.rho, ...        % values
+%    'linear', ...                       % interpolation method
+%    'linear');  
 
-mission.environment.gridInterpTemp = griddedInterpolant( ...
-    mission.environment.altRange, ...   % grid points
-    mission.environment.T, ...        % values
-    'linear', ...                       % interpolation method
-    'linear');  
+%mission.environment.gridInterpTemp = griddedInterpolant( ...
+%    mission.environment.altRange, ...   % grid points
+%    mission.environment.T, ...        % values
+%    'linear', ...                       % interpolation method
+%    'linear');  
 
 
 mission.environment.rEarth = 6371e3;
@@ -117,10 +117,13 @@ optimisation.nStages = 2;
 optimisation.stage{1}.engine = mission.launcher.engines{1};
 optimisation.stage{2}.engine = mission.launcher.engines{1};
 
-mProp1 = 5*optimisation.stage{1}.engine.thrust/9.81*0.5;
+optimisation.stage{1}.nEngines = 6;
+optimisation.stage{2}.nEngines = 2;
+
+mProp1 = 6*optimisation.stage{1}.engine.thrust/9.81*0.5;
 epsS1 = 0.05;
 
-mProp2 = 2*optimisation.stage{2}.engine.thrust/9.81*0.6;
+mProp2 = 2*optimisation.stage{2}.engine.thrust/9.81*0.4;
 epsS2 = 0.06;
 
 mS1 = epsS1/(1-epsS1)*mProp1;
@@ -134,11 +137,11 @@ optimisation.m0Tot = mStage1 + mStage2 + mission.capsule.weigth;
 
 optimisation.stage{1}.mStage = mStage1;
 optimisation.stage{1}.mProp = mProp1;
-optimisation.stage{1}.Isp = 283;
+optimisation.stage{1}.Isp = mission.launcher.engines{1}.isp;
 
 optimisation.stage{2}.mStage = mStage2;
 optimisation.stage{2}.mProp = mProp2;
-optimisation.stage{2}.Isp = 327;
+optimisation.stage{2}.Isp = mission.launcher.engines{3}.isp;
 
 
 

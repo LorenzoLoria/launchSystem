@@ -20,6 +20,20 @@ nonlcon_ga = @(x) nlconGA( reshape(x,mission.optimisation.GA.variables,2), missi
 
 lbGA = [0.1*ones(mission.optimisation.GA.variables,1);0*ones(mission.optimisation.GA.variables,1)];
 ubGA = [ones(mission.optimisation.GA.variables,1);90*ones(mission.optimisation.GA.variables,1)];
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 %% GA initialisation
 
 options_ga = optimoptions("ga", ...
