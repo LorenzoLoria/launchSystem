@@ -1,5 +1,5 @@
 
-function dsdt = launcherDynamicsECI(t, x,thrustData, mission,Isp)
+function dsdt = launcherDynamicsECI(t, x,thrustData, mission,stageNumber,opt)
 
 % LAUNCHERDYNAMICS  3D launcher equations of motion.
 %   This function computes the time derivative of the state vector for a 
@@ -56,7 +56,7 @@ percVec = optVar(1);
 thetaGimball =0; 
 gammaGimball =deg2rad(optVar(2));
 
-ThrustBRF = percVec * 5*mission.launcher.engines{1}.thrust*[cos(thetaGimball)*cos(gammaGimball); cos(thetaGimball)*sin(gammaGimball); sin(thetaGimball)];
+ThrustBRF = percVec * opt.stage{stageNumber}.nEngines *opt.stage{stageNumber}.engine.thrust* [cos(thetaGimball)*cos(gammaGimball); cos(thetaGimball)*sin(gammaGimball); sin(thetaGimball)];
 
 
 ThrustIRF = mission.Rfinal'*ThrustBRF;
@@ -69,7 +69,7 @@ ThrustIRF = mission.Rfinal'*ThrustBRF;
     G = - GM * r /norm(r)^3;
 
     % mass flow rate
-    mDot = - norm(ThrustIRF) / (g0 * Isp); 
+    mDot = - norm(ThrustIRF) / (g0 * opt.stage{stageNumber}.engine.isp); 
 
     % Equation of motion
     dsdt = zeros(7,1);

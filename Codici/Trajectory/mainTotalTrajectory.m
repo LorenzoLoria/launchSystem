@@ -15,7 +15,7 @@ tSpan = [0 500];
 % Generate optimisation variables for general stages
 
 thrustDataVec1 = [[1; 1 ;1; 1; 1] , [0; 0; 0; 0; 0] ];
-thrustDataVec2 = [[1; 0.5 ; 0.4; 0.3; 0.2] , [30; 50; 60; 70; 90] ];
+thrustDataVec2 = [[1; 1 ; 1; 1; 1] , [0; 20; 30; 50; 70] ];
 
 thrustData(:,:,1) =thrustDataVec1;
 thrustData(:,:,2) =thrustDataVec2;

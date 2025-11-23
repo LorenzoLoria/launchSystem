@@ -27,7 +27,7 @@ for i = 1:nStages
 
     opt.m0Tot = m0;
     
-    [tt,xx] = launcherTrajectory(x0,mission,thrustData,t0,nDeval,opt.stage{i},opt);
+    [tt,xx] = launcherTrajectory(x0,mission,thrustData,t0,nDeval,i,opt);
     
     stateCollocation(:,:,i) = xx;
     timeCollocation(:,i) = tt;
