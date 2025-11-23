@@ -87,7 +87,7 @@ mission.launcher.booster.cp = [0 0 -2]';
 
 mission.environment.rhoFun = @(h) 1.29*exp(-h/8433);
 
-rtarg = [mission.environment.rEarth * cos(deg2rad(100));mission.environment.rEarth * sin(deg2rad(100));0];
+rtarg = [0;0;-mission.environment.rEarth];
 lat = deg2rad(-35);
 lon =deg2rad(100);
 mission.initialPoint = 6371000*[cos(lat)*cos(lon); cos(lat)*sin(lon); sin(lat) ]';
@@ -95,7 +95,7 @@ mission.initialPoint = [0 0 6371000];
 
 mission.target = rtarg;
 
-n = cross(mission.initialPoint,mission.target)/(norm(cross(mission.initialPoint,mission.target)));
+n = cross(mission.initialPoint,[1,0,0])/(norm(cross(mission.initialPoint,[1,0,0])));
 
 
 ex = mission.initialPoint' / norm(mission.initialPoint);
@@ -115,10 +115,10 @@ rot = [ex,ey,ez]';
 optimisation = struct();
 optimisation.nStages = 2;
 optimisation.stage{1}.engine = mission.launcher.engines{1};
-optimisation.stage{2}.engine = mission.launcher.engines{3};
+optimisation.stage{2}.engine = mission.launcher.engines{1};
 
 optimisation.stage{1}.nEngines = 6;
-optimisation.stage{2}.nEngines = 1;
+optimisation.stage{2}.nEngines = 2;
 
 mProp1 = 6*optimisation.stage{1}.engine.thrust/9.81*0.5;
 epsS1 = 0.05;

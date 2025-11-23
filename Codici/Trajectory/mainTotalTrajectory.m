@@ -43,15 +43,15 @@ ubGA = ubFmincon(:);
 
 options_ga = optimoptions("ga", ...
     "Display","iter", ...
-    "MaxGenerations",10, ...
-    "PopulationSize",40,...
+    "MaxGenerations",20, ...
+    "PopulationSize",100,...
     "UseParallel",true); 
 
 [x_ga, fval_ga] = ga(obj_ga,2*2*mission.optimisation.GA.variables,[],[],[],[],lbGA,ubGA,nonlcon_ga,options_ga);
 %%
 T0 = reshape(x_ga,mission.optimisation.GA.variables,2,2);
 % Optimisation with fMinCon
-[X,FVAL,EXITFLAG,OUTPUT] = fmincon(@(x) objFunMultiStages(x,mission,opt),T0,[],[],[],[],lbGA,ubGA,@(x) nlconMultiStages(x,mission,opt),mission.options.fmincon);
+[X,FVAL,EXITFLAG,OUTPUT] = fmincon(@(x) objFunMultiStages(x,mission,opt),T0,[],[],[],[],lbFmincon-eps,ubFmincon+eps,@(x) nlconMultiStages(x,mission,opt),mission.options.fmincon);
 
 
 %%
@@ -66,6 +66,7 @@ hold on
 plot3(stateCollocation(1,:,1),stateCollocation(2,:,1),stateCollocation(3,:,1))
 plot3(stateCollocation(1,:,2),stateCollocation(2,:,2),stateCollocation(3,:,2))
 plot3(stateCollocation(1,:,3),stateCollocation(2,:,3),stateCollocation(3,:,3))
+plot3(mission.target(1),mission.target(2),mission.target(3),'bo')
 hold off
 
 
