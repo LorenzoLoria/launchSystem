@@ -120,7 +120,7 @@ optimisation.stage{2}.engine = mission.launcher.engines{1};
 mProp1 = 5*optimisation.stage{1}.engine.thrust/9.81*0.5;
 epsS1 = 0.05;
 
-mProp2 = 2*optimisation.stage{2}.engine.thrust/9.81*0.5;
+mProp2 = 2*optimisation.stage{2}.engine.thrust/9.81*0.6;
 epsS2 = 0.06;
 
 mS1 = epsS1/(1-epsS1)*mProp1;

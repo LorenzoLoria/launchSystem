@@ -1,4 +1,4 @@
-function [timeCollocation, stateCollocation] = totalTrajectory(mission,opt,thrustData)
+function [timeCollocation, stateCollocation] = totalTrajectory(mission,opt,thrustDataVec)
 
 nStages = opt.nStages;
 m0Tot = opt.m0Tot;
@@ -9,22 +9,28 @@ timeCollocation = zeros(nDeval,nStages+1);
 
 for i = 1:nStages
 
-if i == 1
-    m0 = m0Tot;
-    x0 = [mission.initialPoint'; 0 ;0 ; 0;  m0];
-    t0 = 0;
-else
-    m0 = m0-opt.stage{i-1}.mStage;
-    x0 = [stateCollocation(1:3,end,i-1); stateCollocation(4:6,end,i-1); m0];
-    t0 = timeCollocation(end,i-1);
-end
+        if i == 1
+            m0 = m0Tot;
+            x0 = [mission.initialPoint'; 0 ;0 ; 0;  m0];
+            t0 = 0;
+        else
+            m0 = m0-opt.stage{i-1}.mStage;
+            x0 = [stateCollocation(1:3,end,i-1); stateCollocation(4:6,end,i-1); m0];
+            t0 = timeCollocation(end,i-1);
+        end
 
-opt.m0Tot = m0;
+   tSpan = [t0 t0+500]; %da rivedere nel caso i tempi non vadano bene
+    
+    tVec = linspace(tSpan(1),tSpan(end),size(thrustDataVec,1));    
+    fThrust = griddedInterpolant(tVec, thrustDataVec(:,:,i), 'linear', 'none'); 
+    thrustData= @(t) fThrust(t).';
 
-[tt,xx] = launcherTrajectory(x0,mission,thrustData,t0,nDeval,opt.stage{i},opt);
-
-stateCollocation(:,:,i) = xx;
-timeCollocation(:,i) = tt;
+    opt.m0Tot = m0;
+    
+    [tt,xx] = launcherTrajectory(x0,mission,thrustData,t0,nDeval,opt.stage{i},opt);
+    
+    stateCollocation(:,:,i) = xx;
+    timeCollocation(:,i) = tt;
 end
 
 x0Capsule = [stateCollocation(1:3,end,nStages); stateCollocation(4:6,end,nStages)];
