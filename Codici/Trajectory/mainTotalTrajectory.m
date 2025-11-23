@@ -25,33 +25,40 @@ thrustData(:,:,2) =thrustDataVec2;
 %%
 
 % Initial Guess using GA
-obj_ga = @(x) objFunMultiStages( reshape(x,mission.optimisation.GA.variables,2,2), mission,opt);
+obj_ga = @(x) objFunMultiStagesGA( reshape(x,mission.optimisation.GA.variables,2,2), mission,opt);
 nonlcon_ga = @(x) nlconMultiStagesGA( reshape(x,mission.optimisation.GA.variables,2,2), mission,opt );
 
-lbGA(:,:,1) = [0.1*ones(mission.optimisation.GA.variables,1);0*ones(mission.optimisation.GA.variables,1)];
-ubGA(:,:,1) = [ones(mission.optimisation.GA.variables,1);90*ones(mission.optimisation.GA.variables,1)];
+lbFmincon(:,:,1) = [0.3*ones(mission.optimisation.GA.variables,1);0*ones(mission.optimisation.GA.variables,1)];
+ubFmincon(:,:,1) = [ones(mission.optimisation.GA.variables,1);150*ones(mission.optimisation.GA.variables,1)];
 
-lbGA(:,:,2) = [0.1*ones(mission.optimisation.GA.variables,1);0*ones(mission.optimisation.GA.variables,1)];
-ubGA(:,:,2) = [ones(mission.optimisation.GA.variables,1);150*ones(mission.optimisation.GA.variables,1)];
+lbFmincon(:,:,2) = [0.3*ones(mission.optimisation.GA.variables,1);0*ones(mission.optimisation.GA.variables,1)];
+ubFmincon(:,:,2) = [ones(mission.optimisation.GA.variables,1);150*ones(mission.optimisation.GA.variables,1)];
 
 
-lbGA = lbGA(:);
-ubGA = ubGA(:);
+lbGA = lbFmincon(:);
+ubGA = ubFmincon(:);
 
 
 %% GA initialisation
 
 options_ga = optimoptions("ga", ...
     "Display","iter", ...
-    "MaxGenerations",20, ...
-    "PopulationSize",100,...
-    "UseParallel",true,"HybridFcn","fmincon"); 
+    "MaxGenerations",10, ...
+    "PopulationSize",40,...
+    "UseParallel",true); 
 
 [x_ga, fval_ga] = ga(obj_ga,2*2*mission.optimisation.GA.variables,[],[],[],[],lbGA,ubGA,nonlcon_ga,options_ga);
-
+%%
+T0 = reshape(x_ga,mission.optimisation.GA.variables,2,2);
+% Optimisation with fMinCon
+[X,FVAL,EXITFLAG,OUTPUT] = fmincon(@(x) objFunMultiStages(x,mission,opt),T0,[],[],[],[],lbGA,ubGA,@(x) nlconMultiStages(x,mission,opt),mission.options.fmincon);
 
 
 %%
+
+thrustData = X;
+
+[timeCollocation, stateCollocation] = totalTrajectory(mission,opt,thrustData);
 figure(1)
 
 EarthPlot(mission.environment.rEarth)

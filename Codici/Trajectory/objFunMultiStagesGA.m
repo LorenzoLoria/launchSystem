@@ -1,4 +1,4 @@
-function[objective] = objFunMultiStages(x,mission,opt)
+function[objective] = objFunMultiStagesGA(x,mission,opt)
 
 thrustDataVec = x;
 %thrustDataVec is the variable containing informations about the
@@ -9,6 +9,6 @@ thrustDataVec = x;
 
 [timeCollocation,stateCollocation] = totalTrajectory(mission,opt,thrustDataVec);
 
-objective = timeCollocation(end,end); 
+objective = norm(stateCollocation(1:3,end,end) - mission.target) ;
 
 end

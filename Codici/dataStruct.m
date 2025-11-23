@@ -115,10 +115,10 @@ rot = [ex,ey,ez]';
 optimisation = struct();
 optimisation.nStages = 2;
 optimisation.stage{1}.engine = mission.launcher.engines{1};
-optimisation.stage{2}.engine = mission.launcher.engines{1};
+optimisation.stage{2}.engine = mission.launcher.engines{3};
 
 optimisation.stage{1}.nEngines = 6;
-optimisation.stage{2}.nEngines = 2;
+optimisation.stage{2}.nEngines = 1;
 
 mProp1 = 6*optimisation.stage{1}.engine.thrust/9.81*0.5;
 epsS1 = 0.05;
