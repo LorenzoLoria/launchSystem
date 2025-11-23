@@ -15,23 +15,27 @@ tSpan = [0 500];
 % Generate optimisation variables for general stages
 
 thrustDataVec1 = [[1; 1 ;1; 1; 1] , [0; 0; 0; 0; 0] ];
-thrustDataVec2 = [[1; 1 ; 1; 1; 1] , [0; 20; 30; 50; 70] ];
+thrustDataVec2 = [[1; 1 ; 1; 1; 1] , [0; 60; 70; 80; 90] ];
 
 thrustData(:,:,1) =thrustDataVec1;
 thrustData(:,:,2) =thrustDataVec2;
 
-%tVec = linspace(tSpan(1),tSpan(end),size(thrustDataVec1,1));
-%F_thrust1 = griddedInterpolant(tVec, thrustDataVec1, 'linear', 'none');  
-%thrustDataFun1 = @(t) F_thrust1(t);  
-
-%tVec = linspace(tSpan(1),tSpan(end),size(thrustDataVec1,1));
-%F_thrust2 = griddedInterpolant(tVec, thrustDataVec2, 'linear', 'none');  
-%thrustDataFun2 = @(t) F_thrust2(t);  
-
-
-%thrustData{1} = thrustDataFun1;
-%thrustData{2} = thrustDataFun2;
 [timeCollocation, stateCollocation] = totalTrajectory(mission,opt,thrustData);
+
+%%
+
+
+
+
+% Initial Guess using GA
+obj_ga = @(x) objFunGA( reshape(x,mission.optimisation.GA.variables,2), mission);
+nonlcon_ga = @(x) nlconGA( reshape(x,mission.optimisation.GA.variables,2), mission );
+
+lbGA = [0.1*ones(mission.optimisation.GA.variables,1);0*ones(mission.optimisation.GA.variables,1)];
+ubGA = [ones(mission.optimisation.GA.variables,1);90*ones(mission.optimisation.GA.variables,1)];
+
+
+
 
 
 
@@ -52,5 +56,3 @@ plot(timeCollocation(:),[stateCollocation(7,:,1),stateCollocation(7,:,2) ,stateC
 
 figure
 plot(diff([stateCollocation(7,:,1),stateCollocation(7,:,2) ,stateCollocation(7,:,3)]))
-%%
-%stateCollocation(4:6,end,2)
