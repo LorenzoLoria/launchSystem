@@ -4,7 +4,7 @@ function EarthPlot(r)
     % Input:
     %   r - Earth radius [km]
 
-    textureImage = imread('EarthTexture.jpg');
+    textureImage = imread('Earth_NASA.jpg');
 
     % Genera la superficie sferica
     [theta, phi] = meshgrid(linspace(0, 2*pi, size(textureImage, 2)), linspace(0, pi, size(textureImage, 1)));
