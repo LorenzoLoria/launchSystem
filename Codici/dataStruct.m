@@ -43,7 +43,7 @@ mission.capsule.subsonicCD = 0.45;
 mission.environment.altRange = (-1000:100:1000000);
 rhoVal = zeros(length(mission.environment.altRange),1);
 Tval= zeros(length(mission.environment.altRange),1);
-warning('off', 'all'); 
+%warning('off', 'all'); 
 
 %for i=1:length(mission.environment.altRange)
 %    [T,rho] = atmosnrlmsise00(mission.environment.altRange(i), 45, 120, 2020,50,1300);
@@ -87,13 +87,16 @@ mission.launcher.booster.cp = [0 0 -2]';
 
 mission.environment.rhoFun = @(h) 1.29*exp(-h/8433);
 
-rtarg = [0;0;-mission.environment.rEarth];
-lat = deg2rad(-35);
-lon =deg2rad(100);
-mission.initialPoint = 6371000*[cos(lat)*cos(lon); cos(lat)*sin(lon); sin(lat) ]';
-mission.initialPoint = [0 0 6371000];
 
-mission.target = rtarg;
+lat = deg2rad(-39.261515237910196);
+lon =deg2rad(+177.86521705520965-180);
+mission.initialPoint = 6371000*[cos(lat)*cos(lon); cos(lat)*sin(lon); sin(lat)]';
+
+%mission.initialPoint = [0 0 6371000];
+
+latFinal = deg2rad(+39.261515237910196);
+lonFinal =deg2rad(+177.86521705520965);
+mission.target = 6371000*[cos(latFinal)*cos(lonFinal); cos(latFinal)*sin(lonFinal); sin(latFinal) ];
 
 n = cross(mission.initialPoint,[1,0,0])/(norm(cross(mission.initialPoint,[1,0,0])));
 
@@ -104,8 +107,13 @@ ey = cross(ez,ex)/norm(cross(ez,ex));
 
 rot = [ex,ey,ez]';
 
+%EarthPlot(mission.environment.rEarth)
+%hold on
+%plot3(mission.target(1),mission.target(2),mission.target(3),'ro')
+%plot3(mission.initialPoint(1),mission.initialPoint(2),mission.initialPoint(3),'bo')
+%hold off
 
-    
+
     mission.Rfinal = rot ;
 
     mission.optimisation.GA.variables = 5;    
@@ -115,19 +123,19 @@ rot = [ex,ey,ez]';
 optimisation = struct();
 optimisation.nStages = 2;
 optimisation.stage{1}.engine = mission.launcher.engines{1};
-optimisation.stage{2}.engine = mission.launcher.engines{1};
+optimisation.stage{2}.engine = mission.launcher.engines{3};
 
-optimisation.stage{1}.nEngines = 6;
-optimisation.stage{2}.nEngines = 2;
+optimisation.stage{1}.nEngines = 5;
+optimisation.stage{2}.nEngines = 1;
 
-mProp1 = 6*optimisation.stage{1}.engine.thrust/9.81*0.5;
+mProp1 = optimisation.stage{1}.nEngines*optimisation.stage{1}.engine.thrust/9.81*0.6;
 epsS1 = 0.05;
 
-mProp2 = 2*optimisation.stage{2}.engine.thrust/9.81*0.4;
+mProp2 = optimisation.stage{2}.nEngines*optimisation.stage{2}.engine.thrust/9.81*0.4;
 epsS2 = 0.06;
 
 mS1 = epsS1/(1-epsS1)*mProp1;
-mS2 = epsS2/(1-epsS2)*(mProp1+mS1+mProp2);
+mS2 = epsS2/(1-epsS2)*(mProp2);
 
 mStage1 = mProp1+mS1;
 mStage2 = mProp2+mS2;

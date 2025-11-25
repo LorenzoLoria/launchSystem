@@ -28,7 +28,7 @@ thrustData(:,:,2) =thrustDataVec2;
 obj_ga = @(x) objFunMultiStagesGA( reshape(x,mission.optimisation.GA.variables,2,2), mission,opt);
 nonlcon_ga = @(x) nlconMultiStagesGA( reshape(x,mission.optimisation.GA.variables,2,2), mission,opt );
 
-lbFmincon(:,:,1) = [0.3*ones(mission.optimisation.GA.variables,1);0*ones(mission.optimisation.GA.variables,1)];
+lbFmincon(:,:,1) = [0.9*ones(mission.optimisation.GA.variables,1);0*ones(mission.optimisation.GA.variables,1)];
 ubFmincon(:,:,1) = [ones(mission.optimisation.GA.variables,1);150*ones(mission.optimisation.GA.variables,1)];
 
 lbFmincon(:,:,2) = [0.3*ones(mission.optimisation.GA.variables,1);0*ones(mission.optimisation.GA.variables,1)];
@@ -76,3 +76,4 @@ plot(timeCollocation(:),[stateCollocation(7,:,1),stateCollocation(7,:,2) ,stateC
 
 figure
 plot(diff([stateCollocation(7,:,1),stateCollocation(7,:,2) ,stateCollocation(7,:,3)]))
+
