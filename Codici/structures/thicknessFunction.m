@@ -1,39 +1,41 @@
-function [t, tMax, stressMatrix, mStruct] = thicknessFunction(mission, nComponents)
+function [mStruct, t, tMax, stressMatrix] = thicknessFunction(mission, nComponents)
 
-% Function required to size the launcher thickess when tanks are
-% pressurized during the flight. Evaluation must be done in the most
+% Function required to size the launcher thickess of all the different 
+% components of the LV. Evaluation must be done in the most
 % critical conditions: q, q-alpha, MECO 
 
 % --- INPUTS
-% mission = struct containing LV data
+% mission       = struct containing LV data
+% nComponents   = number of components in which the LV is divided
 
-% --- OUTPUT
-% t = vector containing thickness of each component [m]
-% tMax = maximum thickness of the launcher [m]
-% stressMatrix = (6 x nComponents) matrix. Each column represents a
-% component of the LV (e.g. Thrust structure, 1st stage etc.), each row
-% represents a different kind of stress
-% mStruct = vector containing mass of each structure [kg]
+% --- OUTPUTS
+% mStruct       = vector containing mass of each structure [kg]
+% t             = vector containing thickness of each component [m]
+% tMax          = maximum thickness of the launcher [m]
+% stressMatrix  = (6 x nComponents) matrix. Each column represents a
+%                component of the LV (e.g. Thrust structure, 1st stage etc.), 
+%                each row represents a different kind of stress [MPa]
+
 
 % ============================== DATA =====================================
-% M              = mission.launcher.mass; % total mass of the element considered [kg]
+% M            = mission.launcher.mass; % total mass of the element considered [kg]
 r              = mission.launcher.diameter / 2; % radius of cylindrical section [m] (VECTOR)
 h              = mission.launcher.length; % length of the cylinder [m] (VECTOR)
-% hCM            = mission.launcher.hCM; % position of the center of mass [m] 
-nx             = launcher.nx; % longitudinal load factor 
-% nz             = launcher.nz; % lateral load factor
+% hCM          = mission.launcher.hCM; % position of the center of mass [m] 
+nx             = mission.launcher.nx; % longitudinal load factor 
+% nz           = launcher.nz; % lateral load factor
 g0             = mission.environment.g0; 
 SF             = mission.launcher.structures.SF; % safety factor
-ultimateStress = mission.launcher.structures{ii}.ultimate; % ultimate stress for chosen material [Pa]
-E              = mission.launcher.structures{ii}.E; % Young Modulus for chosen material [Pa]
+ultimateStress = mission.launcher.structures.ultimate; % ultimate stress for chosen material [Pa]
+E              = mission.launcher.structures.E; % Young Modulus for chosen material [Pa]
 shearAllowable = ultimateStress / 2; % ultimate shear stress for chosen material [Pa]
-rhoOX          = mission.launcher.engines{ii}.oxDens; % density of the oxidizer [kg/m^3]
-% rhoFu          = mission.launcher.engines{ii}.fuDens; % density of the fuel [kg/m^3]
-rhoMaterial    = mission.launcher.structures{ii}.rho; % density of the chosen material [kg/m^3] (VECTOR)
-p              = mission.launcher.tankPressure; % pressure of component [kg/m^3] (VECTOR)
-N = mission.launcher.structures.N; % Axial Load [N] (from loadFinder) (VECTOR)
-T    = mission.launcher.structures.T; % Shear Load [N] (from loadFinder) (VECTOR)
-Mb  = mission.launcher.structures.Mb; % Bending Moment [Nm] (from loadFinder) (VECTOR)
+rhoOX          = mission.launcher.engines.oxDens; % density of the oxidizer [kg/m^3]
+% rhoFu        = mission.launcher.engines{ii}.fuDens; % density of the fuel [kg/m^3]
+rhoMaterial    = mission.launcher.structures.rho; % density of the chosen material [kg/m^3] (VECTOR)
+p              = mission.launcher.tankPressure; % pressure of component [Pa] (VECTOR)
+N              = mission.launcher.structures.N; % Axial Load [N] (from loadFinder) (VECTOR)
+T              = mission.launcher.structures.T; % Shear Load [N] (from loadFinder) (VECTOR)
+Mb             = mission.launcher.structures.Mb; % Bending Moment [Nm] (from loadFinder) (VECTOR)
 
 % ============================ Solution ===================================
 
@@ -57,6 +59,9 @@ for i = 1 : nComponents
         else
             t(i) = tShear;
         end
+
+        % Hydrostatic pressure
+        pHydro = rhoOX .* nx .* g0 .* h;
 
         % Area of the cylinder
         A = pi * (r(i)^2 - (r(i)-t(i)).^2);
@@ -129,8 +134,10 @@ for i = 1 : nComponents
     end
 end
 
-tMax = max(t);
-
+% Conversions
+t = t * 1e3; % from m to mm
+tMax = max(t); 
+stressMatrix = stressMatrix * 1e-6; % from Pa to MPa
 end
 
 % --- Data
