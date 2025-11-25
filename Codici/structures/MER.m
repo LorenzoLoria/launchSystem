@@ -14,9 +14,8 @@ areaTankLOX = mission.launcher.areaTankOx; % area of the LOX tank [m^2]
 areaTankFu = mission.launcher.areaTankFu; % area of the fu tank [m^2]
 A = 1.3; % ranges between 1.3-2.6 ---> for turbopump mass
 b = 0.6; % ranges between 0.6-0.666 ---> for turbopump mass
-pumpRotationalSpeed = 36000 * 2 * pi / 60; % [rad/s]. This value is for Merlin1D
-requiredPower = 7.5e6; % [W]. This value is for Merlin1D. 
-% Source: https://www.wevolver.com/specs/merlin-engine-merlin-1d-falcon-9-falcon-heavy?utm_source
+pumpRotationalSpeed = mission.launcher.engines{1}.pumpRotationalSpeed; 
+requiredPower = mission.launcher.engines{1}.requiredPower;  
 
 volumeTankLOX = mp * OF / (OF + 1) / rhoOx * 1.055; % volume occupied by the ox [m^3] w/ margin
 volumeTankFu = mp / (OF + 1) / rhoFu * 1.055; % volume occupied by the fuel [m^3] w/ margin 
