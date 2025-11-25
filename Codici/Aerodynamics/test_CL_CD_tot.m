@@ -136,8 +136,8 @@ grid on;
 xlabel('\alpha [deg]');
 ylabel('C_L^{tot}');
 title('Total lift coefficient vs \alpha (body + fins)');
-legend(sprintf('M = %.1f', M_vec_CD(1)), ...
-       sprintf('M = %.1f', M_vec_CD(2)), 'Location', 'northwest');
+legend(sprintf('M = %.1f', M_vec_CL(1)), ...
+       sprintf('M = %.1f', M_vec_CL(2)), 'Location', 'northwest');
 
 %% 8) PLOT: CD_tot(M) per alpha fisso
 figure;

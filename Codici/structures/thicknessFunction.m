@@ -34,6 +34,7 @@ p              = mission.launcher.tankPressure; % pressure of tanks [kg/m^3]
 longitudinalLoad = mission.launcher.structures.N; % Axial Load [N] (from loadFinder)
 lateralLoad    = mission.launcher.structures.T; % Shear Load [N] (from loadFinder)
 bendingMoment  = mission.launcher.structures.Mb; % Bending Moment [Nm] (from loadFinder)
+
 % ============================ Solution ===================================
 
 for i = 1 : nComponents
