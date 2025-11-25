@@ -76,7 +76,7 @@ for j = 1:numel(M_vec)
         % Mach normale alla fin (approx con sweep bordo d'attacco)
         M_ale = M * cosd(delta_le);
 
-        [CN_fin_single, CD0_fric_single, CD0_wave_single] = AerodynCoefFins(alpha, vlauncher, vsound, be, Se, q, Sref, cmac, delta_le, lambda_le, b, tmac);
+        [CN_fin_single, CD0_fric_single, CD0_wave_single] = AerodynCoefFins_new(alpha, vlauncher, vsound, be, Se, q, Sref, cmac, delta_le, lambda_le, b, tmac);
 
         CN_fins_tot = Nfins * CN_fin_single;
         CD0_fins_tot = Nfins * (CD0_fric_single + CD0_wave_single);
@@ -114,7 +114,7 @@ for k = 1:numel(M_vec)
     % --- Fins
     M_ale = M * cosd(delta_le);
 
-    [CN_fin_single, CD0_fric_single, CD0_wave_single] = AerodynCoefFins(alpha_CD_rad, vlauncher, vsound, be, Se, q, Sref, cmac, delta_le, lambda_le, b, tmac);
+    [CN_fin_single, CD0_fric_single, CD0_wave_single] = AerodynCoefFins_new(alpha_CD_rad, vlauncher, vsound, be, Se, q, Sref, cmac, delta_le, lambda_le, b, tmac);
 
     CN_fins_tot = Nfins * CN_fin_single;
     CD0_fins_tot = Nfins * (CD0_fric_single + CD0_wave_single);
