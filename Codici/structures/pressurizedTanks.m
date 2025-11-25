@@ -1,55 +1,48 @@
-function [tMax, tMaxPos, mStruct] = pressurizedTanks(launcher)
+function [t, tMax, stressMatrix, mStruct] = pressurizedTanks(mission, nComponents)
 
 % Function required to size the launcher thickess when tanks are
 % pressurized during the flight. 
 
 % --- INPUTS
-% M = mass of the stack [kg];
-% r = radius of the launcher [m];
-% h = height of the launcher [m];
-% hCM = height of the center of mass of the launcher [m];
-% nx = load factor in direction x;
-% nz = load factor in direction z;
-% g0 = gravity acceleration [ms^-2];
-% SF = safety factors;
-% sigmaAllowable = yielding stress [Pa];
-% E = stiffness [Pa];
-% nStages = number of stages;
-% time = vector of time instants [s];
+% mission = struct containing LV data
+% nComponents = number of components in which the LV is discretized
 
 % --- OUTPUT
-% t = thickness [m]
-% mStruct = mass of the structure [kg]
+% t = vector containing thickness of each component [m]
+% tMax = maximum thickness of the launcher [m]
+% stressMatrix = (6 x nComponents) matrix. Each column represents a
+% component of the LV (e.g. Thrust structure, 1st stage etc.), each row
+% represents a different kind of stress
+% mStruct = vector containing mass of each structure [kg]
 
-M              = launcher.M;
-r              = launcher.R;
-h              = launcher.h;
-hCM            = launcher.hCM;
-nx             = launcher.nx;
-nz             = launcher.nz;
-g0             = 9.81;
-SF             = launcher.SF;
-sigmaAllowable = launcher.sigmaAllowable;
-E              = launcher.E;
-shearAllowable = sigmaAllowable / 2;
-rhoProp        = launcher.rhoProp;
-rhoMaterial    = launcher.rhoMaterial;
-p              = launcher.tankPressure;
-% --- Solution ------------------------------------------------------------
+% ============================== DATA =====================================
+M              = mission.launcher.mass; % total mass of the element considered [kg]
+r              = mission.launcher.diameter / 2; % radius of cylindrical section [m]
+h              = mission.launcher.length; % length of the cylinder [m]
+hCM            = mission.launcher.hCM; % position of the center of mass [m]
+nx             = launcher.nx; % longitudinal load factor
+nz             = launcher.nz; % lateral load factor
+g0             = mission.environment.g0; 
+SF             = mission.launcher.structures.SF; % safety factor
+ultimateStress = mission.launcher.structures{ii}.ultimate; % ultimate stress for chosen material [Pa]
+E              = mission.launcher.structures{ii}.E; % Young Modulus for chosen material [Pa]
+shearAllowable = ultimateStress / 2; % ultimate shear stress for chosen material [Pa]
+rhoOX          = mission.launcher.engines{ii}.oxDens; % density of the oxidizer [kg/m^3]
+rhoFu          = mission.launcher.engines{ii}.fuDens; % density of the fuel [kg/m^3]
+rhoMaterial    = mission.launcher.structures{ii}.rho; % density of the chosen material [kg/m^3] 
+p              = mission.launcher.tankPressure; % pressure of tanks [kg/m^3]
+longitudinalLoad = mission.launcher.structures.N; % Axial Load [N] (from loadFinder)
+lateralLoad    = mission.launcher.structures.T; % Shear Load [N] (from loadFinder)
+bendingMoment  = mission.launcher.structures.Mb; % Bending Moment [Nm] (from loadFinder)
+% ============================ Solution ===================================
 
-% Loads
-longitudinalLoad = nx .* M * g0; % longitudinal load vector
-lateralLoad = nz .* M .* g0; % lateral force vector
-bendingMoment = lateralLoad .* hCM; % bending moment vector
-% pressureLoad = pi * r^2 * p; % pressure load vector
-
-% Area A and Inertia I are initially computed using the following
-% approximation:
-% A = 2 * pi * r * t;
-% I = pi * r^3 * t;
+% % Loads
+% longitudinalLoad = nx .* M * g0; % longitudinal load vector
+% lateralLoad = nz .* M .* g0; % lateral force vector
+% bendingMoment = lateralLoad .* hCM; % bending moment vector
 
 % Minimum Allowable Thicknesses
-tAxial = abs(- longitudinalLoad / (2 * pi * r) - bendingMoment / (pi * r^2) + p * r / 2 + rhoProp * nx * g0 * r / 2) / sigmaAllowable * SF;
+tAxial = abs(- longitudinalLoad / (2 * pi * r) - bendingMoment / (pi * r^2) + p * r / 2 + rhoOX * nx * g0 * r / 2) / ultimateStress * SF;
 tShear = lateralLoad / (2 * pi * r * shearAllowable) * SF;
 
 for ii = 1:length(tAxial)
@@ -61,21 +54,18 @@ for ii = 1:length(tAxial)
 end
 
 % Hydrostatic pressure
-pHydro = rhoProp .* nx .* g0 .* h;
+pHydro = rhoOX .* nx .* g0 .* h;
 
 % Area 
 A = pi * (r^2 - (r-t).^2);
 
-% Inertia
+% Inertia (valid for a cylinder)
 I = pi / 4 * (r^4 - (r - t).^4);
 
-% Stresses (MAGNITUDE)
-longitudinalStress = longitudinalLoad / A * SF; 
-bendingStress = bendingMoment ./ I .* r * SF;
-shearStress = lateralLoad ./ A * SF;
-hoopStress = (p .* r + rhoProp .* g0 .* nx .* h .* r) ./ t;
-axialStress = hoopStress / 2;
-
+% Mass computation
+volume = pi .* h .* (r^2 - (r - t).^2);
+mStruct = volume .* rhoMaterial;
+[tMax] = max(t);
 
 % Buckling for Pressurized Cylinders
 k0 = 9 * (t / r).^(0.6) + 0.16 .* (r / h).^(1.3) .* (t / r).^(0.3);
@@ -90,12 +80,17 @@ end
 
 sigmaBuckling = ((k0 + kp) * E .* t) / r;
 
+% Stresses (MAGNITUDE)
+longitudinalStress = longitudinalLoad / A * SF; 
+bendingStress = bendingMoment ./ I .* r * SF;
+shearStress = lateralLoad ./ A * SF;
+hoopStress = (p .* r + rhoOX .* g0 .* nx .* h .* r) ./ t;
+axialStress = hoopStress / 2;
 
-% Exctraction of the most critical result
-[tMax, tMaxPos] = max(t);
-volume = pi * h(1) * (r^2 - (r - tMax)^2);
-mStruct = volume * rhoMaterial;
-[bucklingMax, bucklingMaxPos] = max(sigmaBuckling);
+stressMatrix = [longitudinalStress, bendingStress, shearStress, hoopStress, axialStress, sigmaBuckling];
+
+end
+
 
 
 
