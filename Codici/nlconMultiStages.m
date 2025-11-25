@@ -13,7 +13,7 @@ for i = 1:opt.nStages
 end
 
 accMax = max(accMaxStage);
-cin = [accMax-8*mission.environment.g0];
+cin = [accMax-6*mission.environment.g0];
 ceq = norm(stateCollocation(1:3,end,end) - mission.target);
 
 end

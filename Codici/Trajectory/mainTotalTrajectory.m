@@ -63,19 +63,24 @@ figure(1)
 
 EarthPlot(mission.environment.rEarth)
 hold on
-plot3(stateCollocation(1,:,1),stateCollocation(2,:,1),stateCollocation(3,:,1))
-plot3(stateCollocation(1,:,2),stateCollocation(2,:,2),stateCollocation(3,:,2))
-plot3(stateCollocation(1,:,3),stateCollocation(2,:,3),stateCollocation(3,:,3))
+plot3(stateCollocation(1,:,1),stateCollocation(2,:,1),stateCollocation(3,:,1),'r')
+plot3(stateCollocation(1,:,2),stateCollocation(2,:,2),stateCollocation(3,:,2),'y')
+plot3(stateCollocation(1,:,3),stateCollocation(2,:,3),stateCollocation(3,:,3),'g')
 plot3(mission.target(1),mission.target(2),mission.target(3),'bo')
+title("Trajectory")
 hold off
 
 
 %%
 figure
 plot(timeCollocation(:),[stateCollocation(7,:,1),stateCollocation(7,:,2) ,stateCollocation(7,:,3)]/1000)
+title("Mass")
+
 
 figure
 plot(diff([stateCollocation(7,:,1),stateCollocation(7,:,2) ,stateCollocation(7,:,3)]))
+title("Mass flow rate")
+
 
 figure
 for i = 1:opt.nStages
@@ -86,3 +91,13 @@ for i = 1:opt.nStages
     plot(time,acc./mission.environment.g0)
     hold on
 end
+title("Accelerations")
+
+
+figure
+plot([X(:,1,1);X(:,1,2)])
+title("Throttling")
+
+
+
+

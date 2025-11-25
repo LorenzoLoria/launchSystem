@@ -13,11 +13,11 @@ value(2) = h;
 
 isterminal(2) = 1;       
 direction(2)  = -1;  
-if isnan(value)
-    keyboard
-end
-if isinf(value)
-    keyboard
-end
+% if isnan(value)
+%     keyboard
+% end
+% if isinf(value)
+%     keyboard
+% end
 
 end

@@ -19,7 +19,11 @@ for i = 1:nStages
             t0 = timeCollocation(end,i-1);
         end
 
-   tSpan = [t0 t0+500]; %da rivedere nel caso i tempi non vadano bene
+
+
+   tf = opt.stage{i}.mProp * (length(thrustDataVec(:,1,i))-1)* opt.stage{i}.Isp * mission.environment.g0 * 2 ;
+   tf = tf / (opt.stage{i}.nEngines *opt.stage{i}.engine.thrust) / (2*sum(thrustDataVec(:,1,i)) - thrustDataVec(1,1,i) - thrustDataVec(end,1,i)) ;
+   tSpan = [t0 t0+tf]; %da rivedere nel caso i tempi non vadano bene
     
     tVec = linspace(tSpan(1),tSpan(end),size(thrustDataVec,1));    
     fThrust = griddedInterpolant(tVec, thrustDataVec(:,:,i), 'linear', 'none'); 
@@ -27,7 +31,7 @@ for i = 1:nStages
 
     opt.m0Tot = m0;
     
-    [tt,xx] = launcherTrajectory(x0,mission,thrustData,t0,nDeval,i,opt);
+    [tt,xx] = launcherTrajectory(x0,mission,thrustData,tSpan,nDeval,i,opt);
     
     stateCollocation(:,:,i) = xx;
     timeCollocation(:,i) = tt;

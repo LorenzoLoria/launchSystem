@@ -1,4 +1,4 @@
-function [tt,xx] = launcherTrajectory(x0,mission,thrustData,t0,nDeval,stageNumber,opt)
+function [tt,xx] = launcherTrajectory(x0,mission,thrustData,tSpan,nDeval,stageNumber,opt)
 
 %persistent copyThrustData copytt copyxx
 
@@ -12,8 +12,6 @@ function [tt,xx] = launcherTrajectory(x0,mission,thrustData,t0,nDeval,stageNumbe
 %else 
 
 % ThrustDataVec deve essere una matrice n*3
-
-tSpan = [t0 1*24*3600];
 
 % Manca la propEvent che deve riferirsi a quando finisce il carburante
 % dello stadio o qualcosa di simile.
