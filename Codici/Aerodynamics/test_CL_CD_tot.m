@@ -51,15 +51,15 @@ vsound = 340;                     % m/s
 rho    = 1.225;                   % kg/m^3
 
 %% 5) CL_tot(alpha) per due Mach (0.8 e 5)
-M_vec = [0.8 5];                  % Mach di riferimento per CL(alpha)
+M_vec_CL = [0.8 5];                  % Mach di riferimento per CL(alpha)
 alpha_deg = [0 : 0.01 : 15];
 alpha_rad = deg2rad(alpha_deg);
 
-CL_tot_alpha = zeros(numel(alpha_rad), numel(M_vec));
+CL_tot_alpha = zeros(numel(alpha_rad), numel(M_vec_CL));
 
-for j = 1:numel(M_vec)
+for j = 1:numel(M_vec_CL)
 
-    M = M_vec(j);
+    M = M_vec_CL(j);
     vlauncher = M * vsound;
     q = 0.5 * rho * vlauncher^2;
 
@@ -97,12 +97,12 @@ end
 alpha_CD_deg = 5;                  % angolo di attacco per CD(M)
 alpha_CD_rad = deg2rad(alpha_CD_deg);
 
-M_vec = linspace(0.01, 5.0, 1000); % evito M=0 per q=0
-CD_tot_M = zeros(size(M_vec));
+M_vec_CD = linspace(0.01, 5.0, 1000); % evito M=0 per q=0
+CD_tot_M = zeros(size(M_vec_CD));
 
-for k = 1:numel(M_vec)
+for k = 1:numel(M_vec_CD)
 
-    M = M_vec(k);
+    M = M_vec_CD(k);
     vlauncher = M * vsound;
     q = 0.5 * rho * vlauncher^2;
     flow.q = q;
@@ -136,12 +136,12 @@ grid on;
 xlabel('\alpha [deg]');
 ylabel('C_L^{tot}');
 title('Total lift coefficient vs \alpha (body + fins)');
-legend(sprintf('M = %.1f', M_vec(1)), ...
-       sprintf('M = %.1f', M_vec(2)), 'Location', 'northwest');
+legend(sprintf('M = %.1f', M_vec_CD(1)), ...
+       sprintf('M = %.1f', M_vec_CD(2)), 'Location', 'northwest');
 
 %% 8) PLOT: CD_tot(M) per alpha fisso
 figure;
-plot(M_vec, CD_tot_M, 'LineWidth', 1.5);
+plot(M_vec_CD, CD_tot_M, 'LineWidth', 1.5);
 grid on;
 xlabel('Mach number M [-]');
 ylabel('C_D^{tot}');
