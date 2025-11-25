@@ -17,10 +17,10 @@ function [t, tMax, stressMatrix, mStruct] = thicknessFunction(mission, nComponen
 
 % ============================== DATA =====================================
 % M              = mission.launcher.mass; % total mass of the element considered [kg]
-r              = mission.launcher.diameter / 2; % radius of cylindrical section [m]
-h              = mission.launcher.length; % length of the cylinder [m]
-% hCM            = mission.launcher.hCM; % position of the center of mass [m]
-nx             = launcher.nx; % longitudinal load factor
+r              = mission.launcher.diameter / 2; % radius of cylindrical section [m] (VECTOR)
+h              = mission.launcher.length; % length of the cylinder [m] (VECTOR)
+% hCM            = mission.launcher.hCM; % position of the center of mass [m] 
+nx             = launcher.nx; % longitudinal load factor 
 % nz             = launcher.nz; % lateral load factor
 g0             = mission.environment.g0; 
 SF             = mission.launcher.structures.SF; % safety factor
@@ -28,14 +28,18 @@ ultimateStress = mission.launcher.structures{ii}.ultimate; % ultimate stress for
 E              = mission.launcher.structures{ii}.E; % Young Modulus for chosen material [Pa]
 shearAllowable = ultimateStress / 2; % ultimate shear stress for chosen material [Pa]
 rhoOX          = mission.launcher.engines{ii}.oxDens; % density of the oxidizer [kg/m^3]
-rhoFu          = mission.launcher.engines{ii}.fuDens; % density of the fuel [kg/m^3]
-rhoMaterial    = mission.launcher.structures{ii}.rho; % density of the chosen material [kg/m^3] 
-p              = mission.launcher.tankPressure; % pressure of tanks [kg/m^3]
-longitudinalLoad = mission.launcher.structures.N; % Axial Load [N] (from loadFinder)
-lateralLoad    = mission.launcher.structures.T; % Shear Load [N] (from loadFinder)
-bendingMoment  = mission.launcher.structures.Mb; % Bending Moment [Nm] (from loadFinder)
+% rhoFu          = mission.launcher.engines{ii}.fuDens; % density of the fuel [kg/m^3]
+rhoMaterial    = mission.launcher.structures{ii}.rho; % density of the chosen material [kg/m^3] (VECTOR)
+p              = mission.launcher.tankPressure; % pressure of component [kg/m^3] (VECTOR)
+N = mission.launcher.structures.N; % Axial Load [N] (from loadFinder) (VECTOR)
+T    = mission.launcher.structures.T; % Shear Load [N] (from loadFinder) (VECTOR)
+Mb  = mission.launcher.structures.Mb; % Bending Moment [Nm] (from loadFinder) (VECTOR)
 
 % ============================ Solution ===================================
+
+t = zeros(nComponents, 1);
+mStruct = zeros(nComponents, 1);
+stressMatrix = zeros(nComponents, 6);
 
 for i = 1 : nComponents
     if p(i) ~= 0
@@ -45,9 +49,8 @@ for i = 1 : nComponents
         % bendingMoment = lateralLoad .* hCM; % bending moment vector
         
         % Minimum Allowable Thicknesses
-        tAxial = abs(- longitudinalLoad(i) / (2 * pi * r(i)) - bendingMoment(i) / (pi * r(i)^2) + p(i) * r(i) / 2 + rhoOX * nx * g0 * r(i) / 2) / ultimateStress(i) * SF;
-        tShear = lateralLoad(i) / (2 * pi * r(i) * shearAllowable) * SF;
-        
+        tAxial = abs(- N(i) / (2 * pi * r(i)) - Mb(i) / (pi * r(i)^2) + p(i) * r(i) / 2 + rhoOX * nx * g0 * r(i) / 2) / ultimateStress * SF;
+        tShear = T(i) / (2 * pi * r(i) * shearAllowable) * SF;
         
         if tAxial > tShear
             t(i) = tAxial;
@@ -55,7 +58,7 @@ for i = 1 : nComponents
             t(i) = tShear;
         end
 
-        % Area 
+        % Area of the cylinder
         A = pi * (r(i)^2 - (r(i)-t(i)).^2);
         
         % Inertia (valid for a cylinder)
@@ -63,26 +66,19 @@ for i = 1 : nComponents
         
         % Mass computation
         volume = pi .* h(i) .* (r(i)^2 - (r(i) - t(i)).^2);
-        mStruct(i) = volume .* rhoMaterial(i);
+        mStruct(i) = volume .* rhoMaterial;
         
         % Buckling for Pressurized Cylinders
         k0 = 9 * (t(i) / r(i)).^(0.6) + 0.16 .* (r(i) / h(i)).^(1.3) .* (t(i) / r(i)).^(0.3);
-        kp = 0.191 * (p(i) / E(i)) .* (r(i) / t(i)).^2;
+        kp = 0.191 * (p(i) / E) .* (r(i) / t(i)).^2;
         
-        
-        if kp(ii) < 0.229
-        else
-            kp(ii) = 0.229;
-        end
-        
-        
-        sigmaBuckling = ((k0 + kp) * E .* t) / r;
+        sigmaBuckling = ((k0 + min(kp, 0.229)) * E .* t) / r;
         
         % Stresses (MAGNITUDE)
-        longitudinalStress = longitudinalLoad / A * SF; 
-        bendingStress = bendingMoment ./ I .* r * SF;
-        shearStress = lateralLoad ./ A * SF;
-        hoopStress = (p .* r + pHydro .* r) ./ t;
+        longitudinalStress = N(i) / A * SF; 
+        bendingStress = Mb(i) ./ I .* r * SF;
+        shearStress = T(i) ./ A * SF;
+        hoopStress = (p(i) .* r(i) + pHydro .* r(i)) ./ t(i);
         axialStress = hoopStress / 2;
         
         stressMatrix(i, :) = [longitudinalStress, bendingStress, shearStress, hoopStress, axialStress, sigmaBuckling];
@@ -100,8 +96,8 @@ for i = 1 : nComponents
     % I = pi * r^3 * t;
     
     % Minimum Allowable Thicknesses
-    tAxial = abs(- longitudinalLoad(i) / (2 * pi * r(i)) - bendingMoment(i) / (pi * r(i)^2)) / ultimateStress(i) * SF;
-    tShear = lateralLoad / (2 * pi * r * shearAllowable) * SF;
+    tAxial = abs(- N(i) / (2 * pi * r(i)) - Mb(i) / (pi * r(i)^2)) / ultimateStress * SF;
+    tShear = T(i) / (2 * pi * r(i) * shearAllowable) * SF;
     
     
     if tAxial > tShear
@@ -117,13 +113,13 @@ for i = 1 : nComponents
     I = pi / 4 * (r(i)^4 - (r(i) - t(i)).^4);
     
     % Stresses (MAGNITUDE)
-    longitudinalStress = longitudinalLoad / A * SF; 
-    bendingStress = bendingMoment ./ I .* r * SF;
-    shearStress = lateralLoad ./ A * SF;
+    longitudinalStress = N(i) / A * SF; 
+    bendingStress = Mb(i) ./ I .* r(i) * SF;
+    shearStress = T(i) ./ A * SF;
     
     % Buckling for UnPressurized Cylinders
     
-    sigmaBuckling = 9 * (t ./ r)^1.6 + 0.16 * (t ./ h)^1.3;
+    sigmaBuckling = 9 * (t(i) ./ r(i))^1.6 + 0.16 * (t(i) ./ h(i))^1.3;
     
     stressMatrix(i, :) = [longitudinalStress, bendingStress, shearStress, 0, 0, sigmaBuckling];
 
@@ -132,7 +128,9 @@ for i = 1 : nComponents
     mStruct(i) = volume .* rhoMaterial;
     end
 end
+
 tMax = max(t);
+
 end
 
 % --- Data
