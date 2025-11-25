@@ -1,7 +1,7 @@
 function [value,isterminal,direction] = propEvent(t,x, mission,mP,opt,stageNumber)
 
 m0 = opt.m0Tot;
-h = norm(x(1:3)) - mission.environment.rEarth + 0.2*stageNumber;
+h = norm(x(1:3)) - mission.environment.rEarth + 0.1*stageNumber;
 
 
 value(1) = x(end) - (m0 - mP);

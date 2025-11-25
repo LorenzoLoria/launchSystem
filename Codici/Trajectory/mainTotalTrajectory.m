@@ -77,3 +77,12 @@ plot(timeCollocation(:),[stateCollocation(7,:,1),stateCollocation(7,:,2) ,stateC
 figure
 plot(diff([stateCollocation(7,:,1),stateCollocation(7,:,2) ,stateCollocation(7,:,3)]))
 
+figure
+for i = 1:opt.nStages
+    time      = linspace(timeCollocation(1,i),timeCollocation(end,i),length(timeCollocation)-1);
+    v         = stateCollocation(4:6,:,i);
+    vNorm     = sqrt( stateCollocation(4,:,i).^2 + stateCollocation(5,:,i).^2 +stateCollocation(6,:,i).^2 );
+    acc       = diff(vNorm)./(time(2)-time(1));
+    plot(time,acc./mission.environment.g0)
+    hold on
+end
