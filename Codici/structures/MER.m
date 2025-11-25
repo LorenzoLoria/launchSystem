@@ -20,7 +20,7 @@ requiredPower = mission.launcher.engines{1}.requiredPower; % required power for 
 M0 = mission.launcher.mass; % total mass of the launcher [kg]
 thrust = mission.launcher.engines{1}.thrust; % thrust [N]
 thrustVacuum = thrust;
-
+expansionRatio = mission.launcher.engines{1}.eps;
 volumeTankLOX = mp * OF / (OF + 1) / rhoOx * 1.055; % volume occupied by the ox [m^3] w/ margin
 volumeTankFu = mp / (OF + 1) / rhoFu * 1.055; % volume occupied by the fuel [m^3] w/ margin 
 
@@ -58,3 +58,5 @@ mer.thrustStructure = 2.55e-4 * thrust;
 % Mass of the engine
 mer.Engine = 150 + 0.086 * (thrustVacuum)^0.86; % value in lb
 mer.Engine = mer.Engine * 0.45359237; % value in kg
+
+mer.Engine2 = 7.81 * 1e-4 * thrust + 3.37 * 1e-5 * thrust * sqrt(expansionRatio) + 59;

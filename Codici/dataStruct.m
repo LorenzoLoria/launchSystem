@@ -15,6 +15,7 @@ mission.launcher.engines{1}.oxDens = 1143;
 mission.launcher.engines{1}.fuelDens = 835;
 mission.launcher.engines{1}.pumpRotationalSpeed = 36000 * 2 * pi / 60; % [rad/s] % Source: https://www.wevolver.com/specs/merlin-engine-merlin-1d-falcon-9-falcon-heavy?utm_source
 mission.launcher.engines{1}.requiredPower = 7.5e6; % [W]
+mission.launcher.engines{1}.eps = 16;
 
 % Questi valori dovrebbero essere dati da GA:
 mission.launcher.engines{1}.mPropellant1 =  180e3;
