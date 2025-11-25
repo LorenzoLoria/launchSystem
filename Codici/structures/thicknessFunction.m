@@ -1,4 +1,4 @@
-function [t, tMax, stressMatrix, mStruct] = pressurizedTanks(mission, nComponents)
+function [t, tMax, stressMatrix, mStruct] = thicknessFunction(mission, nComponents)
 
 % Function required to size the launcher thickess when tanks are
 % pressurized during the flight. Evaluation must be done in the most
