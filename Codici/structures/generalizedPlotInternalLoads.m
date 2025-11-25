@@ -33,11 +33,7 @@ launcher.pressureCenterPosition = 2 / 3 * launcher.stagesDimensions;
 
 % ========================== SOLUTION =====================================
 
-loadsResults =  loadsFinder(nComponents, launcher);
-
-N = loadsResults(1:3:end);
-T = loadsResults(2:3:end);
-M = loadsResults(3:3:end);
+[N, T, M] =  loadsFinder(nComponents, launcher);
 
 % ============================== PLOTS ====================================
 

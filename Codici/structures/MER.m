@@ -6,6 +6,7 @@ function [mer] = MER(mission)
 % --- OUTPUTS
 % mission.launcher.mer = structure containing all Mass Estimation Relations results
 
+% ============================== DATA =====================================
 mp = mission.launcher.mPropellant1; % mass of propellant [kg]
 OF = mission.launcher.engines{1}.OF; % OF ratio
 rhoOx = mission.launcher.engines{1}.oxDens; % density of oxidizer [kg/m^3]
@@ -14,16 +15,18 @@ areaTankLOX = mission.launcher.areaTankOx; % area of the LOX tank [m^2]
 areaTankFu = mission.launcher.areaTankFu; % area of the fu tank [m^2]
 A = 1.3; % ranges between 1.3-2.6 ---> for turbopump mass
 b = 0.6; % ranges between 0.6-0.666 ---> for turbopump mass
-pumpRotationalSpeed = 36000 * 2 * pi / 60; % [rad/s]. This value is for Merlin1D
-requiredPower = 7.5e6; % [W]. This value is for Merlin1D. 
-% Source: https://www.wevolver.com/specs/merlin-engine-merlin-1d-falcon-9-falcon-heavy?utm_source
-
+pumpRotationalSpeed = mission.launcher.engines{1}.pumpRotationalSpeed; % rotational speed of the pump [rad/s]
+requiredPower = mission.launcher.engines{1}.requiredPower; % required power for pumps [W]
+M0 = mission.launcher.mass; % total mass of the launcher [kg]
+thrust = mission.launcher.engines{1}.thrust; % thrust [N]
+thrustVacuum = thrust;
+expansionRatio = mission.launcher.engines{1}.eps;
 volumeTankLOX = mp * OF / (OF + 1) / rhoOx * 1.055; % volume occupied by the ox [m^3] w/ margin
 volumeTankFu = mp / (OF + 1) / rhoFu * 1.055; % volume occupied by the fuel [m^3] w/ margin 
 
 % margins : 3% for ullage, 0.5% for residuals, 2% for loading margins
 
-% ============================ SOLUTION ===================================
+% ============================ MERs =======================================
 
 % LOX Tank Mass
 mer.tankMassLOX = 12.2 * volumeTankLOX + 255.2;
@@ -55,3 +58,5 @@ mer.thrustStructure = 2.55e-4 * thrust;
 % Mass of the engine
 mer.Engine = 150 + 0.086 * (thrustVacuum)^0.86; % value in lb
 mer.Engine = mer.Engine * 0.45359237; % value in kg
+
+mer.Engine2 = 7.81 * 1e-4 * thrust + 3.37 * 1e-5 * thrust * sqrt(expansionRatio) + 59;

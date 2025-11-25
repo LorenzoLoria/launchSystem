@@ -1,5 +1,6 @@
 % ======================= STRUCTURES DATA =================================
-% Density [kg/m^3] and Young Modulus [Pa] of Different Materials 
+% Density [kg/m^3], Young Modulus [Pa], Yield and Ultimate Stresses
+% of different materials 
 
 % Al2219
 mission.launcher.structures{1}.rho      = 2840;
