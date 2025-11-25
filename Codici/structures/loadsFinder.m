@@ -1,4 +1,4 @@
-function loads = loadsFinder(nComponents, launcher)
+function [N, T, M] = loadsFinder(nComponents, launcher)
 % Builds matrix A required to solve the linear system Ax = b where:
 % A = matrix that encodes the equilibrium equations
 % x = vector containing the internal actions unknown [N1 T1 M1 ... Nn Tn Mn]
@@ -120,4 +120,9 @@ b(rBC_M)          = 0;
 
 % =========================== SOLUTION ====================================
 loads = A \ b;
+
+N = loads(1:3:end);
+T = loads(2:3:end);
+M = loads(3:3:end);
+
 end
