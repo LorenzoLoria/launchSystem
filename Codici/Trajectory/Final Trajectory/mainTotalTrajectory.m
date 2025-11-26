@@ -15,13 +15,18 @@ tSpan = [0 500];
 % Generate optimisation variables for general stages
 
 thrustDataVec1 = [[1; 1 ;1; 1; 1] , [0; 0; 0; 0; 0] ];
-thrustDataVec2 = [[1; 1 ; 1; 1; 1] , [0; 60; 70; 80; 90] ];
+thrustDataVec2 = [[1; 0.5 ; 0.5; 0.3; 0.3] , [0; 1; 3; 5; -1] ];
 
 thrustData(:,:,1) =thrustDataVec1;
 thrustData(:,:,2) =thrustDataVec2;
 
 [timeCollocation, stateCollocation] = totalTrajectory(mission,opt,thrustData);
-
+figure
+EarthPlot(mission.environment.rEarth)
+hold on
+plot3(stateCollocation(1,:,1),stateCollocation(2,:,1),stateCollocation(3,:,1))
+plot3(stateCollocation(1,:,2),stateCollocation(2,:,2),stateCollocation(3,:,2))
+plot3(stateCollocation(1,:,3),stateCollocation(2,:,3),stateCollocation(3,:,3))
 %%
 
 % Initial Guess using GA
@@ -61,11 +66,18 @@ thrustData = X;
 [timeCollocation, stateCollocation] = totalTrajectory(mission,opt,thrustData);
 figure(1)
 
+%%
+stateCollocation(3,:,:) = zeros(size(stateCollocation(3,:,:)));
+localIRFtoGlobalIRF = [mission.initialPoint'/norm(mission.initialPoint) (cross(mission.environment.normalToTrajectoryPlane,mission.initialPoint'/norm(mission.initialPoint)))' mission.environment.normalToTrajectoryPlane' ]' ;
+stateCollocation(1:3,:,1) = localIRFtoGlobalIRF * stateCollocation(1:3,:,1);
+stateCollocation(1:3,:,2) = localIRFtoGlobalIRF * stateCollocation(1:3,:,2);
+stateCollocation(1:3,:,3) = localIRFtoGlobalIRF * stateCollocation(1:3,:,3);
+%%
 EarthPlot(mission.environment.rEarth)
 hold on
 plot3(stateCollocation(1,:,1),stateCollocation(2,:,1),stateCollocation(3,:,1),'r')
 plot3(stateCollocation(1,:,2),stateCollocation(2,:,2),stateCollocation(3,:,2),'y')
-plot3(stateCollocation(1,:,3),stateCollocation(2,:,3),stateCollocation(3,:,3),'g')
+%plot3(stateCollocation(1,:,3),stateCollocation(2,:,3),stateCollocation(3,:,3),'g')
 plot3(mission.target(1),mission.target(2),mission.target(3),'bo')
 title("Trajectory")
 hold off

@@ -98,11 +98,11 @@ latFinal = deg2rad(+39.261515237910196);
 lonFinal =deg2rad(+177.86521705520965);
 mission.target = 6371000*[cos(latFinal)*cos(lonFinal); cos(latFinal)*sin(lonFinal); sin(latFinal) ];
 
-n = cross(mission.initialPoint,[1,0,0])/(norm(cross(mission.initialPoint,[1,0,0])));
-
+normalToTrajectoryPlane = cross(mission.initialPoint,[1,0,0])/(norm(cross(mission.initialPoint,[1,0,0])));
+mission.environment.normalToTrajectoryPlane = normalToTrajectoryPlane ;
 
 ex = mission.initialPoint' / norm(mission.initialPoint);
-ez = n' / norm(n) ;
+ez = normalToTrajectoryPlane' / norm(normalToTrajectoryPlane) ;
 ey = cross(ez,ex)/norm(cross(ez,ex));
 
 rot = [ex,ey,ez]';
