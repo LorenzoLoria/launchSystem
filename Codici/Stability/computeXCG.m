@@ -1,41 +1,36 @@
-function Xcg = computeXCG(lc1, lc2, lf, lc3, lco, R, rf, mc1, mc2, mf, mc3, mco, m)
-
-% Computes the center of gravity Xcg of a three stage launcher
+function Xcg = computeXCG(lc1, lc2, lco, mc1, mc2, mco, m_dot1, m_dot2, t, t1, t2)
+% Computes the center of gravity Xcg of a two-stage launcher with a nose cone
 %
 % Inputs:
-%   lc1 : length of section 1
-%   lc2 : length of section 2
-%   lf  : length of fin/flared section
-%   lc3 : length of cylindrical section 3
-%   lco : length of conical/ogive nose
-%   R   : base radius of flare
-%   rf  : tip radius of flare
-%
-%   mc1, mc2, mf, mc3, mco : masses of each section
-%   m   : total mass (sum of all components)
+%   lc1, lc2 : length to CG of stage 1 and 2
+%   lco      : length to CG of conical nose
+%   mc1, mc2, mco : masses of stage 1, stage 2, and nose cone
+%   m_dot1, m_dot2 : propellant mass flow rates of stage 1 and 2
+%   t        : current time
+%   t1, t2   : staging times of stage 1 and stage 2
 %
 % Output:
-%   Xcg : center of gravity measured from the top of the launcher
+%   Xcg      : center of gravity measured from the top of the launcher
 
-    % --- Compute section CG locations (hc1, hc2, hf, hc3, hco) ---
-    hc1 = lc1 / 2;
+% Stage 1
+if t <= t1
+    m1 = mc1 - m_dot1*t;
+    X1 = lc1;
+    m2 = mc2;
+    X2 = lc2;
+elseif t > t1 && t <= t2
+    m1 = 0;
+    X1 = 0;
+    m2 = mc2 - m_dot2*(t - t1); % remaining mass of stage 2
+    X2 = lc2;
+else
+    m1 = 0;
+    X1 = 0;
+    m2 = 0;
+    X2 = 0;
+end
 
-    hc2 = lc1 + lc2/2;
-
-    % Fin/flared section CG (given formula)
-    hf = lc1 + lc2 + lf/4 * ( (R^2 + 2*R*rf + 3*rf^2) / (R^2 + R*rf + rf^2) );
-
-    hc3 = lc1 + lc2 + lf + lc3/2;
-
-    hco = lc1 + lc2 + lf + lc3 + lco/4;
-
-    % --- Solve CG equation:  m*(l - Xcg) = sum(m_i * h_i)  ---
-    numerator = mco*hco + mc3*hc3 + mf*hf + mc2*hc2 + mc1*hc1;
-
-    % Total length l of vehicle
-    l = lc1 + lc2 + lf + lc3 + lco;
-
-    % Compute Xcg
-    Xcg = l - numerator / m;
+% CG calculation
+Xcg = (m1*X1 + m2*X2 + mco*lco) / (m1 + m2 + mco);
 
 end
