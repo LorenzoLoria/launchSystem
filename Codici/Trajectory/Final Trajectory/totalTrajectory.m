@@ -11,11 +11,11 @@ for i = 1:nStages
 
         if i == 1
             m0 = m0Tot;
-            x0 = [mission.initialPoint'; 0 ;0 ; 0;  m0];
+            x0 = [mission.environment.rEarth; 0; 0; 0; 0; 0; m0];
             t0 = 0;
         else
             m0 = m0-opt.stage{i-1}.mStage;
-            x0 = [stateCollocation(1:3,end,i-1); stateCollocation(4:6,end,i-1); m0];
+            x0 = [stateCollocation(1:6,end,i-1); m0];
             t0 = timeCollocation(end,i-1);
         end
 
