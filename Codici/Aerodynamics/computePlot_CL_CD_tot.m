@@ -9,7 +9,7 @@ function [CL_tot_alpha, CD_tot_mach] = computePlot_CL_CD_tot(vector, bodyGeom, f
 %                 vector.alpha_deg_cases  = vettore di valori di alpha per CD plot [deg]
 %
 % - bodyGeom    : struct con parametri geometrici del body
-%                 bodyGeom.L          = lunghezza totale corpo (ell_SI) [m]
+%                 bodyGeom.l          = lunghezza totale corpo (ell_SI) [m]
 %                 bodyGeom.d          = diametro di riferimento [m]
 %                 bodyGeom.Lnose      = lunghezza del nose l_N [m]
 %                 bodyGeom.Aref       = area di riferimento A_ref [m^2]
@@ -19,15 +19,15 @@ function [CL_tot_alpha, CD_tot_mach] = computePlot_CL_CD_tot(vector, bodyGeom, f
 %                 bodyGeom.phi        = angolo di giunzione nose-body φ [rad]
 %                 bodyGeom.Ab         = body area caratteristica A_b [m^2]
 %                 bodyGeom.Ap         = area proiettata in crossflow A_p [m^2]
-%                 bodyGeom.l          = lunghezza caratteristica ell [m]
 %
 % - finsGeom    : struct con parametri geometrici delle fins
 %                 finsGeom.Nfins      = number of fins [-]
+%                 finsGeom.be         = equivalent span of the fin [m]
 %                 finsGeom.Se         = surface of the fin [m^2]
 %                 finsGeom.cmac       = mean aerodynamic chord of fin [m]
 %                 finsGeom.delta_le   = leading edge sweep [deg]
 %                 finsGeom.lambda_le  = fin base angle [deg]
-%                 finsGeom.be         = 2*length of base of fin [m]
+%                 finsGeom.b          = 2*length of base of fin [m]
 %                 finsGeom.tmac       = max thickness of MAC [m]
 % 
 % - bodyInfo    : struct con info per body CA e CN
@@ -60,7 +60,7 @@ alpha_deg_vec = vector.alpha_deg;
 alpha_deg_cases = vector.alpha_cases;
 
 % Geometry of the body
-L = bodyGeom.L;
+l = bodyGeom.l;
 d = bodyGeom.d;
 Lnose = bodyGeom.Lnose;
 Aref = bodyGeom.Aref;
@@ -70,15 +70,15 @@ Aexit = bodyGeom.Aexit;
 phi = bodyGeom.phi;
 Ab = bodyGeom.Ab;
 Ap = bodyGeom.Ap;
-l = bodyGeom.l;
 
 % Geometry of the fins
 Nfins = finsGeom.Nfins;
+be = finsGeom.be;
 Se = finsGeom.Se;
 cmac = finsGeom.cmac;
 delta_le = finsGeom.delta_le;
 lambda_le = finsGeom.lambda_le;
-be = finsGeom.b;
+b = finsGeom.b;
 tmac = finsGeom.tmac;
 
 % Info body
@@ -103,6 +103,7 @@ CD_tot_mach = zeros(length(M_vec), length(alpha_deg_cases));
 
 
 
+
 % CL_tot_alpha per M_cases
 for i = 1:length(M_cases)
 
@@ -120,7 +121,7 @@ for i = 1:length(M_cases)
         CA_body_val = CA_body(M, alpha, bodyGeom, flow, isPowered, a_sub, b_sub);
 
         % --- Fins: CN e CA per UNA ALETTTA
-        [CN_fin_single, CD0_fric_single, CD0_wave_single] = AerodynCoefFins_new(alpha, vlauncher, vsound, be, Se, q, Aref, cmac, delta_le, lambda_le, be, tmac);
+        [CN_fin_single, CD0_fric_single, CD0_wave_single] = AerodynCoefFins_new(alpha, vlauncher, vsound, be, Se, q, Aref, cmac, delta_le, lambda_le, b, tmac);
 
         CN_fins_tot = Nfins * CN_fin_single;
         CD0_fins_tot = Nfins * (CD0_fric_single + CD0_wave_single);
@@ -136,6 +137,7 @@ for i = 1:length(M_cases)
         CL_tot_alpha(j, i) = CL_val;
     end
 end
+
 
 
 
@@ -178,7 +180,7 @@ end
 
 % CL
 figure;
-plot(alpha_deg_vec, CL_tot_alpha(:, :), 'LineWidth', 1.5);
+plot(alpha_deg_vec, CL_tot_alpha, 'LineWidth', 1.5);
 grid on;
 hold on;
 xlabel('\alpha [deg]');
@@ -190,7 +192,7 @@ legend(leg_str, 'Location', 'best');
 
 % CD
 figure;
-plot(M_vec, CD_tot_mach(:, :), 'LineWidth', 1.5);
+plot(M_vec, CD_tot_mach, 'LineWidth', 1.5);
 grid on;
 xlabel('Mach number M [-]');
 ylabel('C_D^{tot}');
