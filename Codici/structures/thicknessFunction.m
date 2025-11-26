@@ -1,4 +1,4 @@
-function [mStruct, t, tMax, stressMatrix] = thicknessFunction(mission, nComponents)
+function [mStruct, t, stressMatrix] = thicknessFunction(mission, nComponents)
 
 % Function required to size the launcher thickess of all the different 
 % components of the LV. Evaluation must be done in the most
@@ -141,11 +141,6 @@ for i = 1 : nComponents
         mStruct(i) = volume .* rhoMaterial;
     end
 end
-
-% Conversions
-% t = t * 1e3; % from m to mm
-tMax = max(t); 
-% stressMatrix = stressMatrix * 1e-6; % from Pa to MPa
 end
 
 % --- Data
