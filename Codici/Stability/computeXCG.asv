@@ -1,30 +1,36 @@
-function Xcg = computeXCG(lc1, lc2, lf, lc3, lco, R, rf, mc1, mc2, mf, mc3, mco, m)
-
-% Computes the center of gravity Xcg of a three stage launcher
+function Xcg = computeXCG(N, lc1, lc2, lco, m, mc2, mco)
+% Computes the center of gravity Xcg of a two-stage launcher with a nose cone
 %
 % Inputs:
-%   lc1 : length of reference stage 1
-%   lc2 : length of reference stage 2
-%   lco : length of conical/ogive nose
-%   t1 : time of staging stage 1
-%   t2 : time of staging stage 1
-%
-%   mc1, mc2, mco : masses of each section
-%   m   : total mass (sum of all components)
+%   lc1, lc2 : length of stage 1 and 2
+%   lco      : length of conical nose
+%   m        : mass of the launcher at time t 
+%   mc2      : wet mass of stage 2 
+%   t        : current time
+%   t1, t2   : staging times of stage 1 and stage 2
 %
 % Output:
-%   Xcg : center of gravity measured from the top of the launcher
+%   Xcg      : center of gravity measured from the top of the launcher
 
-    
+% Stage 1
+if N == 2
+    m1 = m-mc2-mco;
+    X1 = lco + lc2 + lc1/2;
+    m2 = mc2;
+    X2 = lco + lc2/2;
+elseif N == 1
+    m1 = 0;
+    X1 = 0;
+    m2 = m - mco; 
+    X2 = lco + lc2/2;
+else
+    m1 = 0;
+    X1 = 0;
+    m2 = 0;
+    X2 = 0;
+end
 
-   X1 = 0; 
-   X2 = 0;
-   if t<t1
-       X1 = lc1;
-       X2 = lc2;
-   elif t
-   
-
-
+% CG calculation
+Xcg = (m1*X1 + m2*X2 + mco*lco/2) / (m1 + m2 + mco);
 
 end

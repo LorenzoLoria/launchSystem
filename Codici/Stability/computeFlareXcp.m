@@ -1,4 +1,4 @@
-function Xcp = computeFlareXcp(Lb,d, h, hf, db)
+function Xcp = computeFlareXcp(N, lc1, lc2, lco,d, hf, db)
 % Calculates the center of pressure of the launcher
 % Inputs:
 %   d   : reference diameter of launcher, [m]
