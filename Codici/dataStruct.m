@@ -88,20 +88,19 @@ mission.launcher.booster.cp = [0 0 -2]';
 mission.environment.rhoFun = @(h) 1.29*exp(-h/8433);
 
 
-lat = deg2rad(-39.261515237910196);
-lon =deg2rad(+177.86521705520965-180);
-mission.initialPoint = 6371000*[cos(lat)*cos(lon); cos(lat)*sin(lon); sin(lat)]';
-
-%mission.initialPoint = [0 0 6371000];
-
-latFinal = deg2rad(+39.261515237910196);
-lonFinal =deg2rad(+177.86521705520965);
-mission.target = 6371000*[cos(latFinal)*cos(lonFinal); cos(latFinal)*sin(lonFinal); sin(latFinal) ];
-
-n = cross(mission.initialPoint,[0,1,0])/(norm(cross(mission.initialPoint,[0,1,0])));
+mission.launchBase.latInitial = deg2rad(-39.261515237910196) ;
+mission.launchBase.lonInitial = deg2rad(+177.86521705520965) ;
+mission.launchBase.initialPointECI = 6371000*[cos(mission.launchBase.latInitial)*cos(mission.launchBase.lonInitial ); cos(mission.launchBase.latInitial)*sin(mission.launchBase.lonInitial ); sin(mission.launchBase.latInitial)]' ;
+mission.target.latInitial = - mission.launchBase.latInitial;
+mission.target.lonInitial = mission.launchBase.lonInitial - pi ;
+mission.target.initialPointECI = 6371000*[cos(mission.target.latInitial)*cos(mission.target.lonInitial); cos(mission.target.latInitial)*sin(mission.target.lonInitial); sin(mission.target.latInitial) ];
+mission.target.omega = 2*pi/86164.1 ;
 
 
-ex = mission.initialPoint' / norm(mission.initialPoint);
+n = cross(mission.launchBase.initialPointECI,[0,0,1])/(norm(cross(mission.launchBase.initialPointECI,[0,0,1])));
+
+
+ex = mission.launchBase.initialPointECI' / norm(mission.launchBase.initialPointECI);
 ez = n' / norm(n) ;
 ey = cross(ez,ex)/norm(cross(ez,ex));
 

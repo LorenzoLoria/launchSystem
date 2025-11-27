@@ -14,25 +14,25 @@ tSpan = [0 500];
 
 % Generate optimisation variables for general stages
 
-thrustDataVec1 = [[1; 1 ;1; 1; 1] , [0; 0; 0; 0; 0] ];
-thrustDataVec2 = [[1; 1 ; 1; 1; 1] , [0; 60; 70; 80; 90] ];
-
-thrustData(:,:,1) =thrustDataVec1;
-thrustData(:,:,2) =thrustDataVec2;
-
-[timeCollocation, stateCollocation] = totalTrajectory(mission,opt,thrustData);
+% thrustDataVec1 = [[1; 1 ;1; 1; 1] , [0; 0; 0; 0; 0] ];
+% thrustDataVec2 = [[1; 1 ; 1; 1; 1] , [0; 60; 70; 80; 90] ];
+% 
+% thrustData(:,:,1) =thrustDataVec1;
+% thrustData(:,:,2) =thrustDataVec2;
+% 
+% [timeCollocation, stateCollocation] = totalTrajectory(mission,opt,thrustData);
 
 %%
 
 % Initial Guess using GA
-obj_ga = @(x) objFunMultiStagesGA( reshape(x,mission.optimisation.GA.variables,2,2), mission,opt);
-nonlcon_ga = @(x) nlconMultiStagesGA( reshape(x,mission.optimisation.GA.variables,2,2), mission,opt );
+obj_ga = @(x) objFunMultiStagesGA( reshape(x,mission.optimisation.GA.variables,3,2), mission,opt);
+nonlcon_ga = @(x) nlconMultiStagesGA( reshape(x,mission.optimisation.GA.variables,3,2), mission,opt );
 
-lbFmincon(:,:,1) = [0.9*ones(mission.optimisation.GA.variables,1);0*ones(mission.optimisation.GA.variables,1)];
-ubFmincon(:,:,1) = [ones(mission.optimisation.GA.variables,1);150*ones(mission.optimisation.GA.variables,1)];
+lbFmincon(:,:,1) = [0.9*ones(mission.optimisation.GA.variables,1);-90*ones(mission.optimisation.GA.variables,1);0*ones(mission.optimisation.GA.variables,1)];
+ubFmincon(:,:,1) = [ones(mission.optimisation.GA.variables,1);90*ones(mission.optimisation.GA.variables,1);100*ones(mission.optimisation.GA.variables,1)];
 
-lbFmincon(:,:,2) = [0.3*ones(mission.optimisation.GA.variables,1);0*ones(mission.optimisation.GA.variables,1)];
-ubFmincon(:,:,2) = [ones(mission.optimisation.GA.variables,1);150*ones(mission.optimisation.GA.variables,1)];
+lbFmincon(:,:,2) = [0.3*ones(mission.optimisation.GA.variables,1);-90*ones(mission.optimisation.GA.variables,1);0*ones(mission.optimisation.GA.variables,1)];
+ubFmincon(:,:,2) = [ones(mission.optimisation.GA.variables,1);90*ones(mission.optimisation.GA.variables,1);100*ones(mission.optimisation.GA.variables,1)];
 
 
 lbGA = lbFmincon(:);
@@ -45,11 +45,12 @@ options_ga = optimoptions("ga", ...
     "Display","iter", ...
     "MaxGenerations",20, ...
     "PopulationSize",100,...
-    "UseParallel",true); 
+    "UseParallel",true,...
+    "FunctionTolerance", 1e-9); 
 
-[x_ga, fval_ga] = ga(obj_ga,2*2*mission.optimisation.GA.variables,[],[],[],[],lbGA,ubGA,nonlcon_ga,options_ga);
+[x_ga, fval_ga] = ga(obj_ga,3*2*mission.optimisation.GA.variables,[],[],[],[],lbGA,ubGA,nonlcon_ga,options_ga);
 %%
-T0 = reshape(x_ga,mission.optimisation.GA.variables,2,2);
+T0 = reshape(x_ga,mission.optimisation.GA.variables,3,2);
 % Optimisation with fMinCon
 [X,FVAL,EXITFLAG,OUTPUT] = fmincon(@(x) objFunMultiStages(x,mission,opt),T0,[],[],[],[],lbFmincon-eps,ubFmincon+eps,@(x) nlconMultiStages(x,mission,opt),mission.options.fmincon);
 

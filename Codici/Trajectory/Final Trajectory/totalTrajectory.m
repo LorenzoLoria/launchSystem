@@ -7,11 +7,18 @@ nDeval = 100;
 stateCollocation = zeros(7,nDeval,nStages+1);
 timeCollocation = zeros(nDeval,nStages+1);
 
+latInitial = mission.launchBase.latInitial;
+lonInitial = mission.launchBase.lonInitial;
+omega = mission.target.omega ;
+vxInitial = - omega * mission.environment.rEarth * cos(latInitial) * sin(lonInitial) ;
+vyInitial = omega * mission.environment.rEarth * cos(latInitial) * cos(lonInitial) ;
+
+
 for i = 1:nStages
 
         if i == 1
             m0 = m0Tot;
-            x0 = [mission.initialPoint'; 0 ;0 ; 0;  m0];
+            x0 = [mission.launchBase.initialPointECI'; vxInitial; vyInitial; 0;  m0];
             t0 = 0;
         else
             m0 = m0-opt.stage{i-1}.mStage;

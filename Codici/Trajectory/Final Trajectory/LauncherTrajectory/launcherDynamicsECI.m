@@ -53,8 +53,9 @@ function dsdt = launcherDynamicsECI(t, x,thrustData, mission,stageNumber,opt)
     
    
 percVec = optVar(1);
-thetaGimball =0; 
 gammaGimball =deg2rad(optVar(2));
+thetaGimball =deg2rad(optVar(3));
+
 
 ThrustBRF = percVec * opt.stage{stageNumber}.nEngines *opt.stage{stageNumber}.engine.thrust* [cos(thetaGimball)*cos(gammaGimball); cos(thetaGimball)*sin(gammaGimball); sin(thetaGimball)];
 

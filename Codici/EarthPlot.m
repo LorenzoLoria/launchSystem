@@ -7,7 +7,7 @@ function EarthPlot(r)
     textureImage = imread('Earth_NASA.jpg');
 
     % Genera la superficie sferica
-    [theta, phi] = meshgrid(linspace(0, 2*pi, size(textureImage, 2)), linspace(0, pi, size(textureImage, 1)));
+    [theta, phi] = meshgrid(linspace(pi, 3*pi, size(textureImage, 2)), linspace(0, pi, size(textureImage, 1)));
     X = r * sin(phi) .* cos(theta);
     Y = r * sin(phi) .* sin(theta);
     Z = r * cos(phi);

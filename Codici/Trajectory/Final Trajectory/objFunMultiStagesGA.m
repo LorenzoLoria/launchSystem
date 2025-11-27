@@ -9,6 +9,13 @@ thrustDataVec = x;
 
 [timeCollocation,stateCollocation] = totalTrajectory(mission,opt,thrustDataVec);
 
-objective =   0.8* norm (stateCollocation(1:3,end,end)-mission.target)/1000 + 0.2*timeCollocation(end,end)/3000;
+latInitial = mission.target.latInitial ;
+latFinal = latInitial ;
+lonInitial = mission.target.lonInitial ;
+omega = mission.target.omega ;
+lonFinal = lonInitial + omega * timeCollocation(end,end) ;
+targetFinalPos = 6371000*[cos(latFinal)*cos(lonFinal); cos(latFinal)*sin(lonFinal); sin(latFinal) ];
+
+objective =   0.8* norm (stateCollocation(1:3,end,end)-targetFinalPos)/1000 + 0.2*timeCollocation(end,end)/3000;
 
 end

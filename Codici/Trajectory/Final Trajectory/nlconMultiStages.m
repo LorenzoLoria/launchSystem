@@ -4,6 +4,14 @@ thrustDataVec = x;
 
 [timeCollocation,stateCollocation] = totalTrajectory(mission,opt,thrustDataVec);
 
+latInitial = mission.target.latInitial ;
+latFinal = latInitial ;
+lonInitial = mission.target.lonInitial ;
+omega = mission.target.omega ;
+lonFinal = lonInitial + omega * timeCollocation(end,end) ;
+targetFinalPos = 6371000*[cos(latFinal)*cos(lonFinal); cos(latFinal)*sin(lonFinal); sin(latFinal) ];
+
+
 for i = 1:opt.nStages
     time      = linspace(timeCollocation(1,i),timeCollocation(end,i),length(timeCollocation)-1);
     v         = stateCollocation(4:6,:,i);
@@ -14,6 +22,6 @@ end
 
 accMax = max(accMaxStage);
 cin = [accMax-6*mission.environment.g0];
-ceq = norm(stateCollocation(1:3,end,end) - mission.target);
+ceq = norm(stateCollocation(1:3,end,end) - targetFinalPos);
 
 end
