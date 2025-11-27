@@ -79,9 +79,6 @@ IRFtoBRF = BRFtoIRF' ;
     % xCG = f(m)
     % inertiaCG = f(m)
 
-    xCG = 30 ;
-    xCP = 10 ; 
-    inertiaCG = 27 * 1e6 ;
 
 
 
@@ -97,8 +94,7 @@ thrustIRF =  BRFtoIRF * thrustBRF;
     ClAlpha = 2*pi ; % Momentaneamente finchè non abbiamo funzione di Lucrezia
     alpha0 = 0 ; % Momentaneamente finchè non abbiamo funzione di Lucrezia
 
-    liftIRF = 0.5 .* rho .* norm(v) .* A .* (ClAlpha .* (alpha-alpha0).* (rad2deg(alpha)<15) ).* cross([v;0] , [0; 0; 1]);
-    liftIRF = liftIRF(1:2) ;
+    liftIRF = 0.5 .* rho .* norm(v) .* A .* ClAlpha .* (alpha-alpha0) .* cross([v;0] , [0; 0; 1]);
 
     % liftIRF = 0.5 .* rho .* norm(v) .* A .* Cd .* v;
     
@@ -106,7 +102,7 @@ thrustIRF =  BRFtoIRF * thrustBRF;
     gravityIRF = - GM * r /norm(r)^3;
 
     % mass flow rate
-    mDot = - norm(thrustIRF) / (g0 * opt.stage{stageNumber}.engine.isp); 
+    mDot = - norm(ThrustIRF) / (g0 * opt.stage{stageNumber}.engine.isp); 
 
     % Equation of motion
     dxdt = zeros(7,1);
@@ -116,17 +112,17 @@ thrustIRF =  BRFtoIRF * thrustBRF;
     dxdt(1:2) = v;
 
     % Acceleration derivatives (Velocity rates)
-    dxdt(3:4) = (thrustIRF + dragIRF + liftIRF ) / m + gravityIRF;  
+    dxdt(3:4) = (ThrustIRF + dragIRF + liftIRF ) / m + gravityIRF;  
 
     
     dxdt(5) = omega ;
 
 
 
-    dxdt(6) = -norm(liftIRF) * (xCP - xCG) * cos(alpha) - norm(dragIRF) *...
-    (xCP - xCG) * sin(alpha) - thrustBRF(2) * xCG ;
-    dxdt(6) = dxdt(6) / inertiaCG ;
-    % dxdt(6) = 0;
+    % dxdt(6) = -norm(liftIRF) * (xCP - xCG) * cos(alpha) - norm(dragIRF) *
+    % (xCP - xCG) * sin(alpha) - thrustBRF(2) * xCG ;
+    % dxdt(6) = dxdt(6) / inertiaCG ;
+    dxdt(6) = 0;
 
 
 
