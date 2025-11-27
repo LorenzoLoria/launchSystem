@@ -83,9 +83,9 @@ for i = 1:nComponents
     % di carico lungo l'elemento), assumendo che i vettori drag/lift siano
     % definiti coerentemente.
     
-    b(rN) = - drag / nComponents - m(i)*g0*sin(gamma) - m(i) * aA;
+    b(rN) = - drag / n - m(i)*g0*sin(gamma) - m(i) * aA;
     
-    b(rT) = - lift / nComponents + m(i)*g0*cos(gamma) + m(i) * aN;
+    b(rT) = - lift + m(i)*g0*cos(gamma) + m(i) * aN;
     
     b(rM) = ( m(i)*g0*cos(gamma) - m(i) * aN) * h(i) / 2 - lift * hCP(i);
 end
