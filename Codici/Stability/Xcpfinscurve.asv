@@ -1,0 +1,162 @@
+function [p, fit_mid_fun, Mfull, Xcp] = Xcpfinscurve(imgFilename)
+% Xcpfinscurve  Fit Xcp/cmac curve for A = 1 from digitized plot.
+%
+% Usage:
+%   [p, fit_mid_fun, Mfull, Xcp] = Xcpfinscurve('Xcpfins.png');
+%
+% Interaction:
+%   - Click point at Mach = 0.7 on the curve
+%   - Click point at Mach = 2.0 on the curve
+%   - Then click curve points ONLY between 0.7 and 2, press ENTER when done
+
+    if nargin < 1
+        imgFilename = 'Xcpfins.png';
+    end
+
+    %% =================================================================
+    %  CONSTANTS / END MODELS
+    %% =================================================================
+    M1 = 0.7;          % start of transition
+    X1 = 0.25;         % from the subsonic model
+
+    A  = 3;            % A = 1 curve wanted
+    X_supersonic = @(M) (A*sqrt(M.^2 - 1) - 0.67) ./ ...
+                        (2*A*sqrt(M.^2 - 1) - 1);
+
+    M2 = 2.0;          % end of transition
+    X2 = X_supersonic(M2);   % value from supersonic model
+
+    %% =================================================================
+    % 1) DIGITIZE IMAGE
+    %% =================================================================
+    img = imread(imgFilename);
+    figure;
+    imshow(img);
+    title({'Click in order:', ...
+           '1) Point at Mach = 0.7', ...
+           '2) Point at Mach = 2.0', ...
+           'Then click curve points ONLY between 0.7 and 2.', ...
+           'Press ENTER when done.'}, 'Interpreter', 'none');
+
+    disp('Click reference point at Mach = 0.7');
+    [x1_pix, y1_pix] = ginput(1);
+
+    disp('Click reference point at Mach = 2.0');
+    [x2_pix, y2_pix] = ginput(1);
+
+    disp('Now click ONLY the curve points between Mach 0.7 and 2, then press ENTER.');
+    [x_pix, y_pix] = ginput;
+
+    %% =================================================================
+    % 2) PIXELS → PHYSICAL DATA
+    %% =================================================================
+    % x: Mach mapping
+    aX = (M2 - M1) / (x2_pix - x1_pix);
+    bX = M1 - aX * x1_pix;
+
+    % y: Xcp mapping (linear in this zoomed region)
+    aY = (X2 - X1) / (y2_pix - y1_pix);
+    bY = X1 - aY * y1_pix;
+
+    M_points = aX * x_pix + bX;
+    X_points = aY * y_pix + bY;
+
+    %% =================================================================
+    % 3) CONSTRAINED QUINTIC WITH LS FIT (NO INFLECTION CONSTRAINT)
+    %% =================================================================
+    % Quintic: f(M) = p5*M^5 + p4*M^4 + p3*M^3 + p2*M^2 + p1*M + p0
+    % Hard constraints:
+    %   (1) f(M1) = X1
+    %   (2) f(M2) = X2
+    %   (3) f'(M1) = 0
+    %   (4) f'(M2) = dXsup/dM at M2
+
+    % Numerical derivative of supersonic model at M2
+    h = 1e-3;
+    slope_M2 = (X_supersonic(M2 + h) - X_supersonic(M2 - h)) / (2*h);
+
+    % Constraint matrix C * p = d
+    C = [ ...
+        M1^5     M1^4     M1^3     M1^2   M1   1 ;  % f(M1) = X1
+        M2^5     M2^4     M2^3     M2^2   M2   1 ;  % f(M2) = X2
+        5*M1^4   4*M1^3   3*M1^2   2*M1   1    0 ;  % f'(M1) = 0
+        5*M2^4   4*M2^3   3*M2^2   2*M2   1    0 ]; % f'(M2) = slope_M2
+
+    d = [X1; X2; 0; slope_M2];
+
+    % One particular solution satisfying constraints
+    p0 = C \ d;           % 6x1
+
+    % Nullspace of constraints -> free parameters for LS fit
+    N = null(C, 'r');     % 6x2
+
+    % Data matrix for digitized points
+    Adata = [M_points.^5, M_points.^4, M_points.^3, ...
+             M_points.^2, M_points,      ones(size(M_points))];
+
+    % Least-squares on 2D parameter z:
+    % minimize ||Adata*(p0 + N*z) - X_points||^2
+    r0 = Adata*p0 - X_points;
+    AN = Adata*N;
+    z  = - (AN' * AN) \ (AN' * r0);
+
+    % Final polynomial coefficients
+    p = p0 + N*z;
+    fit_mid_fun = @(M) polyval(p, M);
+
+    %% =================================================================
+    % 4) PLOT FIT IN [0.7, 2]
+    %% =================================================================
+    xx = linspace(M1, M2, 400);
+    yy = fit_mid_fun(xx);
+
+    figure;
+    plot(M_points, X_points, 'o', 'MarkerSize', 6, ...
+         'DisplayName', 'Digitized points');
+    hold on;
+    plot(xx, yy, 'LineWidth', 2, 'DisplayName', 'Quintic fit (0.7–2)');
+    xlabel('Mach number');
+    ylabel('X_{cp}/c_{mac}');
+    title('Fitted transition curve, A = 2');
+    grid on;
+    legend('Location', 'best');
+    ylim([0 0.5]);
+
+    %% =================================================================
+    % 5) FULL PIECEWISE MODEL 0–5
+    %% =================================================================
+    Mfull = linspace(0, 5, 400);
+    Xcp   = zeros(size(Mfull));
+
+    for k = 1:length(Mfull)
+        Mk = Mfull(k);
+        if Mk < M1
+            Xcp(k) = X1;              % subsonic model: flat ~0.25
+        elseif Mk <= M2
+            Xcp(k) = fit_mid_fun(Mk); % fitted quintic
+        else
+            Xcp(k) = X_supersonic(Mk);% analytic supersonic part
+        end
+    end
+
+    figure;
+    plot(Mfull, Xcp, 'LineWidth', 2);
+    xlabel('Mach number');
+    ylabel('X_{cp}/c_{mac}');
+    title('Center of Pressure Position on Fin – Full Piecewise Model (A = 2)');
+    grid on;
+    ylim([0 0.5]);
+
+    %% =================================================================
+    % 6) OVERLAY FULL 0–5 MACH CURVE ON ORIGINAL IMAGE
+    %% =================================================================
+    % Convert full curve (Mfull, Xcp) to pixel coordinates
+    x_full_pix = (Mfull - bX) / aX;
+    y_full_pix = (Xcp   - bY) / aY;
+
+    figure;
+    imshow(img);               % show original graph
+    hold on;
+    plot(x_full_pix, y_full_pix, 'r-', 'LineWidth', 2); % overlay curve
+    title('Full piecewise X_{cp}/c_{mac} curve over original plot');
+end

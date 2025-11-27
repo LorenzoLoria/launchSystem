@@ -18,5 +18,6 @@ function Xcp = computeXcp(N, alpha, lc1, lc2, lco)
     end
     
     Xcp_over_l = 0.63*(1-(sin(alpha))^2)+ 0.5*l/lco*(sin(alpha))^2;
-    
+    Xcp = Xcp_over_l*l;
+
 end

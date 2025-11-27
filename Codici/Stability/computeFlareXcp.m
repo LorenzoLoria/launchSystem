@@ -1,21 +1,32 @@
-function Xcp = computeFlareXcp(N, lc1, lc2, lco,d, hf, db)
+function Xcp = computeFlareXcp(N, lc1, lc2, lco, d, hf, db)
 % Calculates the center of pressure of the launcher
 % Inputs:
-%   d   : reference diameter of launcher, [m]
-%   h   : cone length, [m]
-%   hf  : flare length, [m]
-%   db  : base radius of the flare cone, [m]
+%   N    : Number of stages, [-]
+%   lc1, lc2 : length of stages 1 and 2, [m]
+%   lco  : length of cone, [m]
+%   d    : reference diameter of launcher, [m]
+%   hf   : flare length, [m]
+%   db   : base radius of the flare cone, [m]
 %
 % Output:
-%   Xcp : center of pressure location (from top), [m]
+%   Xcp  : center of pressure location (from top), [m]
 
-    S = pi*d^2/4; %reference surface area [m^2]
-    Sb = pi*db^2/4; %base surface area for volume normalization [m^2]
-    dm = (db+d)/2; % mean radius of the flare cone, [m]
-  
-    % --- Compute nondimensional slender-body volume term v/(Sb*d)
-    Xcp_over_d = (2/3)*(h/d)*(S/Sb) + (1 - S/Sb)*(Lb/d) - (hf/d)*((dm^2)/(d^2) - 1)*(S/Sb);
+    % Reference areas
+    S  = pi*d^2/4;   % reference surface area [m^2]
+    Sb = pi*db^2/4;  % base surface area for volume normalization [m^2]
+    dm = (db + d)/2; % mean radius of the flare cone, [m]
 
-    % --- Convert to dimensional Xcp
+    % Compute center of pressure
+    if N == 2
+        l = lco + lc2 + lc1;
+        Xcp_over_d = (2/3)*(hf/d)*(S/Sb) + (1 - S/Sb)*(l/d) - (hf/d)*((dm^2)/(d^2) - 1)*(S/Sb);
+
+    else
+        Xcp_over_d = 2/3*lco;
+    end
+
+    % Scale to actual length
     Xcp = Xcp_over_d * d;
+
 end
+

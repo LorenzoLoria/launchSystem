@@ -1,4 +1,4 @@
-function Xcp = computeFinXcp(vlauncher, vsound, cmac, be, Se)
+function  = computeFinXcp(vlauncher, vsound, cmac, be, Se)
 % computeFinXcp   Computes the new center of pressure (xCP) for a 
 %                 fin-stabilized launch vehicle.
 %
