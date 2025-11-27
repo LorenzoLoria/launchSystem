@@ -18,6 +18,7 @@ end
 accMax = max(accMaxStage);
 
 cin = [accMax-8*mission.environment.g0];% [norm(stateCollocation(1:3,end,end) - mission.target) , accMax-8*mission.environment.g0];
+cin = [];
 ceq = [];
 
 end

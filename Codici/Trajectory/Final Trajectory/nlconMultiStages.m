@@ -21,7 +21,8 @@ for i = 1:opt.nStages
 end
 
 accMax = max(accMaxStage);
-cin = [accMax-6*mission.environment.g0];
-ceq = norm(stateCollocation(1:3,end,end) - targetFinalPos);
-
+%cin = [(accMax-6*mission.environment.g0)/mission.environment.g0 ; (norm(stateCollocation(1:3,end,end) - targetFinalPos) - 5e3)/1e3];
+%ceq = norm(stateCollocation(1:3,end,end) - targetFinalPos);
+cin = [(accMax-6*mission.environment.g0)/mission.environment.g0];
+ceq = [];
 end

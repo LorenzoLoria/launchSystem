@@ -1,5 +1,21 @@
 function [timeCollocation, stateCollocation] = totalTrajectory(mission,opt,thrustDataVec)
 
+persistent thrustDataVecPrev timeCollocationPrev stateCollocationPrev
+
+if isempty(thrustDataVecPrev)
+    thrustDataVecPrev = zeros(size(thrustDataVec)) ;
+end
+
+
+if thrustDataVec == thrustDataVecPrev
+
+timeCollocation = timeCollocationPrev ;
+stateCollocation = stateCollocationPrev ;
+
+else
+
+thrustDataVecPrev = thrustDataVec ; 
+
 nStages = opt.nStages;
 m0Tot = opt.m0Tot;
  
@@ -53,8 +69,14 @@ windDirection = [1 0 0]';
 stateCollocation(:,:,end) = [xxCaps;mission.capsule.weigth*ones(1,nDeval)];
 timeCollocation(:,end) = ttCaps;
 
+timeCollocationPrev = timeCollocation ;
+stateCollocationPrev = stateCollocation ; 
+
 end
 
+
+
+end
 
 
 
