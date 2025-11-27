@@ -68,7 +68,7 @@ for i = 1:nComponents
     
     % CHANGE: Use colT(i) instead of colT(i+1) because shear at the top (Node i)
     % creates a moment arm relative to the bottom (Node i+1).
-    A(rM, colT(i))     = A(rM, colT(i))     - h(i); % -T(i)*h(i)
+    A(rM, colT(i))     = A(rM, colT(i))     + h(i); % -T(i)*h(i)
 end
 
 % ==================== CREATION OF LOAD VECTOR b ==========================
@@ -87,16 +87,16 @@ for i = 1:nComponents
     
     b(rT) = - lift / nComponents + m(i)*g0*cos(gamma) + m(i) * aN;
     
-    b(rM) = ( m(i)*g0*cos(gamma) - m(i) * aN) * h(i) / 2 - lift * hCP(i);
+    b(rM) = ( m(i)*g0*cos(gamma) + m(i) * aN) * h(i) / 2 - lift * hCP(i);
 end
 
 % ============================ THRUST =====================================
 
-rN_last = 3*(nComponents-1) + 1;
-rT_last = 3*(nComponents-1) + 2; 
+% rN_last = 3*(nComponents-1) + 1;
+% rT_last = 3*(nComponents-1) + 2; 
 
-b(rN_last) = b(rN_last) + thrust * cos(theta); 
-b(rT_last) = b(rT_last) + thrust * sin(theta); 
+% b(rN_last) = b(rN_last) + thrust * cos(theta); 
+% b(rT_last) = b(rT_last) + thrust * sin(theta); 
 
 % =================== BOUNDARY CONDITIONS (NOSE = NODE 1) =================
 % --- MODIFIED ---
