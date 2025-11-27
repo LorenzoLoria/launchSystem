@@ -1,9 +1,9 @@
-
 close all 
+clear all
 
 %% PARAMETERS
 % Lengths [m]
-lc1 = 5;   % stage 1
+lc1 = 20;   % stage 1
 lc2 = 10;  % stage 2
 lco = 2;   % nose cone
 
@@ -13,9 +13,10 @@ mc2 = 500;   % stage 2 wet mass
 mco = 100;   % payload mass
 
 % Aerodynamic / flare parameters
-d  = 1.5;  % reference diameter
-hf = 1;  % flare length
-db = 3.5;  % flare base radius
+d  = 1.5;    % reference diameter
+hf = 5;      % flare length
+db = 1.8;    % flare base radius
+flare_ratio = (db-d)/(2*hf);
 
 % Time vector
 t = 0:0.5:50;  % seconds
@@ -26,26 +27,40 @@ Xcp_cone_curve  = zeros(size(t));
 Xcp_flare_curve = zeros(size(t));
 
 %% DYNAMIC PARAMETERS
-% Example: N changes with time (2 → 1 → 0)
+% N = number of stages attached
 N = ones(size(t));
-N(t <= 20) = 2;   % stage 1 + 2
-N(t > 20 & t <= 40) = 1; % only stage 2
-N(t > 40) = 0;    % only payload
+N(t <= 20) = 2;                         % stage 1 + 2
+N(t > 20 & t <= 40) = 1;                % only stage 2
+N(t > 40) = 0;                          % payload only / nose
 
-% Mass decreases linearly as fuel burns
-m = m0 - (m0-mc2-mco)/20*min(t,20) - (mc2/20)*max(0,t-20); 
+% MASS evolution (clamped to mco)
+m = m0 - (m0-mc2-mco)/20 .* min(t,20) ...
+      - (mc2/20) .* max(0,t-20);
+m = max(m, mco);
 
-% Angle of attack changes with time [deg]
+% Angle of attack [deg]
 alpha = 0.05 * sin(0.1*t); 
 
 %% COMPUTE CG AND CP
 for i = 1:length(t)
-    Xcg_curve(i)       = computeXCG(N(i), lc1, lc2, lco, m(i), mc2, mco);
-    Xcp_cone_curve(i)  = computeXcp(N(i), alpha(i), lc1, lc2, lco);
-    Xcp_flare_curve(i) = computeFlareXcp(N(i), lc1, lc2, lco, d, hf, db);
+
+    % CG
+    Xcg_curve(i) = computeXCG(N(i), lc1, lc2, lco, m(i), mc2, mco);
+
+    % Cone CP (always computed)
+    Xcp_cone_curve(i) = computeXcp(N(i), alpha(i), lc1, lc2, lco);
+
+    % Flare CP: --> Flare model ONLY when stage 1 attached (N=2)
+    if N(i) == 2
+        Xcp_flare_curve(i) = computeFlareXcp(lc1, lc2, lco, d, hf, db);
+    else
+        % After staging → use standard CP model
+        Xcp_flare_curve(i) = computeXcp(N(i), alpha(i), lc1, lc2, lco);
+    end
+
 end
 
-%% PLOT
+%% PLOT CG + CP
 figure;
 plot(t, Xcg_curve, 'LineWidth', 2, 'DisplayName', 'X_{cg}');
 hold on;
@@ -59,17 +74,13 @@ title('Center of Gravity and Center of Pressure Evolution');
 legend('Location', 'best');
 ylim([0 max([Xcg_curve Xcp_cone_curve Xcp_flare_curve])*1.1]);
 
-%% From base
-
-%% Compute dynamic total length
+%% FROM BASE
 L_total = lco + lc1 + lc2;
 
-%% Compute distances from base
 Xcg_from_base       = L_total - Xcg_curve;
 Xcp_cone_from_base  = L_total - Xcp_cone_curve;
 Xcp_flare_from_base = L_total - Xcp_flare_curve;
 
-%% Plot distances from base
 figure;
 plot(t, Xcg_from_base, 'LineWidth', 2, 'DisplayName', 'L - X_{cg}');
 hold on;
@@ -83,3 +94,19 @@ title('Distance from Base vs Time (Dynamic L_{total})');
 legend('Location', 'best');
 ylim([0 max(L_total)*1.1]);
 
+%% STABILITY MARGIN
+margin_cone  = (Xcp_cone_curve  - Xcg_curve) / d;
+margin_flare = (Xcp_flare_curve - Xcg_curve) / d;
+
+figure;
+plot(t, margin_cone, 'LineWidth', 2, 'DisplayName', 'Margin (cone CP)');
+hold on;
+plot(t, margin_flare, '--', 'LineWidth', 2, 'DisplayName', 'Margin (flare CP)');
+
+yline(0, 'k--', 'LineWidth', 1.2, 'DisplayName', 'Neutral Stability');
+
+grid on;
+xlabel('Time [s]');
+ylabel('(X_{cp} - X_{cg}) / d');
+title('Static Stability Margin Over Time');
+legend('Location', 'best');

@@ -1,5 +1,6 @@
-function Xcp = computeFlareXcp(N, lc1, lc2, lco, d, hf, db)
-% Calculates the center of pressure of the launcher
+function Xcp = computeFlareXcp( lc1, lc2, lco, d, hf, db)
+% Calculates the center of pressure of the launcher with a single flare at
+% the end
 % Inputs:
 %   N    : Number of stages, [-]
 %   lc1, lc2 : length of stages 1 and 2, [m]
@@ -17,15 +18,11 @@ function Xcp = computeFlareXcp(N, lc1, lc2, lco, d, hf, db)
     dm = (db + d)/2; % mean radius of the flare cone, [m]
 
     % Compute center of pressure
-    if N == 2
-        l = lco + lc2 + lc1;
-        Xcp_over_d = (2/3)*(hf/d)*(S/Sb) + (1 - S/Sb)*(l/d) - (hf/d)*((dm^2)/(d^2) - 1)*(S/Sb);
+    
+    l = lco + lc2 + lc1;
+    Xcp_over_d = (2/3)*(hf/d)*(S/Sb) + (1 - S/Sb)*(l/d) - (hf/d)*((dm^2)/(d^2) - 1)*(S/Sb);
 
-    else
-        Xcp_over_d = 2/3*lco;
-    end
-
-    % Scale to actual length
+    
     Xcp = Xcp_over_d * d;
 
 end
