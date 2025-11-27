@@ -100,4 +100,12 @@ title("Throttling")
 
 
 
+figure
+plot([X(:,2,1);X(:,2,2)])
+title("Angle")
 
+% dist = sqrt ( stateCollocation(1,:,end).*stateCollocation(1,:,end) + stateCollocation(2,:,end).*stateCollocation(2,:,end)+stateCollocation(3,:,end).*stateCollocation(3,:,end));
+% h = dist-6371000;
+% 
+% figure
+% plot(h)

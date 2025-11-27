@@ -98,7 +98,7 @@ latFinal = deg2rad(+39.261515237910196);
 lonFinal =deg2rad(+177.86521705520965);
 mission.target = 6371000*[cos(latFinal)*cos(lonFinal); cos(latFinal)*sin(lonFinal); sin(latFinal) ];
 
-n = cross(mission.initialPoint,[1,0,0])/(norm(cross(mission.initialPoint,[1,0,0])));
+n = cross(mission.initialPoint,[0,1,0])/(norm(cross(mission.initialPoint,[0,1,0])));
 
 
 ex = mission.initialPoint' / norm(mission.initialPoint);
@@ -145,11 +145,14 @@ optimisation.m0Tot = mStage1 + mStage2 + mission.capsule.weigth;
 
 optimisation.stage{1}.mStage = mStage1;
 optimisation.stage{1}.mProp = mProp1;
+optimisation.stage{1}.structuralMass = mS1;
 optimisation.stage{1}.Isp = mission.launcher.engines{1}.isp;
 
 optimisation.stage{2}.mStage = mStage2;
 optimisation.stage{2}.mProp = mProp2;
+optimisation.stage{2}.structuralMass = mS2;
 optimisation.stage{2}.Isp = mission.launcher.engines{3}.isp;
+
 
 
 

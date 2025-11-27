@@ -9,6 +9,6 @@ thrustDataVec = x;
 
 [timeCollocation,stateCollocation] = totalTrajectory(mission,opt,thrustDataVec);
 
-objective =    timeCollocation(end,end);
+objective =   0.8* norm (stateCollocation(1:3,end,end)-mission.target)/1000 + 0.2*timeCollocation(end,end)/3000;
 
 end
