@@ -8,6 +8,14 @@ A  = mission.capsule.Area;
 cD = mission.capsule.supersonicCD;
 GM = mission.environment.GM;
 
+latInitial = mission.target.latInitial ;
+latFinal = latInitial ;
+lonInitial = mission.target.lonInitial ;
+omega = mission.target.omega ;
+lonFinal = lonInitial + omega * timeCollocation(end,end) ;
+targetFinalPos = 6371000*[cos(latFinal)*cos(lonFinal); cos(latFinal)*sin(lonFinal); sin(latFinal) ];
+
+
 for i = 1:opt.nStages
     time      = linspace(timeCollocation(1,i),timeCollocation(end,i),length(timeCollocation)-1);
     v         = stateCollocation(4:6,:,i);
@@ -17,8 +25,8 @@ for i = 1:opt.nStages
 end
 accMax = max(accMaxStage);
 
-cin = [accMax-8*mission.environment.g0];% [norm(stateCollocation(1:3,end,end) - mission.target) , accMax-8*mission.environment.g0];
-cin = [];
+cin = [accMax-8*mission.environment.g0 ];% [norm(stateCollocation(1:3,end,end) - mission.target) , accMax-8*mission.environment.g0];
+% cin = [norm(stateCollocation(1:3,end,end) - targetFinalPos) - 500e3];
 ceq = [];
 
 end

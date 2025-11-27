@@ -15,14 +15,11 @@ lonInitial = mission.target.lonInitial ;
 omega = mission.target.omega ;
 lonFinal = lonInitial + omega * timeCollocation(end,end) ;
 targetFinalPos = 6371000*[cos(latFinal)*cos(lonFinal); cos(latFinal)*sin(lonFinal); sin(latFinal) ];
-if norm (stateCollocation(1:3,end,end)-targetFinalPos)/1000<5e3
-    objective = 0;
-end
 
-objective =    norm (stateCollocation(1:3,end,end)-targetFinalPos)/1000 ;
+objective =   0.8 * norm (stateCollocation(1:3,end,end)-targetFinalPos)/2000 ;
 
-% thetaOscillation = sqrt(sum((diff([x(:,2,1) ; x(:,2,2)])).^2)) ;
-% phiOscillation = sqrt(sum((diff([x(:,3,1) ; x(:,3,2)])).^2)) ;
-% 
-% objective = objective + 0.1 * thetaOscillation + 0.1 * phiOscillation ;
+thetaOscillation = sqrt(sum((diff([x(:,2,1) ; x(:,2,2)])).^2)) ;
+phiOscillation = sqrt(sum((diff([x(:,3,1) ; x(:,3,2)])).^2)) ;
+
+objective = objective + 0.1 * thetaOscillation / 30 + 0.1 * phiOscillation / 60;
 end
