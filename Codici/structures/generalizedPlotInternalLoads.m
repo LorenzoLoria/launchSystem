@@ -5,39 +5,35 @@ close all
 % ============================== DATA =====================================
 nComponents = 4;
 nPointsPerComponent = 100; 
-
+syms theta
 % Dati Launcher
 m1 = 180e3;
 mi = 1000;
 m2 = 20e3;
 mp = 8e3;
 launcher.mass = [mp, m2, mi, m1];
-launcher.drag = ones(nComponents,1) * 5000;
+launcher.drag = 5000;
 launcher.alpha = deg2rad(2);
-launcher.theta = deg2rad(4);
+launcher.theta = deg2rad(45);
 launcher.thrust = 4*845e3;
 launcher.accelerationAxial = 1.6 * 9.81;
-launcher.lift= ones(nComponents,1) * 0;
+launcher.lift= 0;
 launcher.g0 = 9.81;
-launcher.accelerationNormal = 0.88 * 9.81;
+launcher.accelerationNormal = 2 * 9.81; 
 
-
-% Dimensioni
+% Dimensions
 launcher.firstStage  = 30;
 launcher.interStage  = 2;
 launcher.secondStage = 15;
 launcher.fairing     = 10;
-
-% Costruisci stagesDimensions dinamicamente
 launcher.stagesDimensions = [launcher.fairing, launcher.secondStage, launcher.interStage, launcher.firstStage];
+
+% Position of the center of pressure for each stage
+launcher.pressureCenterPosition = 2 / 3 * launcher.stagesDimensions;
 
 % ========================== SOLUTION =====================================
 
-loadsResults =  loadsFinder(nComponents, launcher);
-
-N = loadsResults(1:3:end);
-T = loadsResults(2:3:end);
-M = loadsResults(3:3:end);
+[N, T, M] =  loadsFinder(nComponents, launcher);
 
 % ============================== PLOTS ====================================
 

@@ -1,128 +1,128 @@
-function loads = loadsFinder(nComponents, launcher)
+function [N, T, M] = loadsFinder(nComponents, launcher)
 % Builds matrix A required to solve the linear system Ax = b where:
-% A = matrix that encodes the equilibrium equations for
-%     axial (N), transverse (T) and bending (M) internal loads
-% x = vector containing the internal actions unknown
-% b = vector containing all the forces acting on a particular element
-%     (size nComponents x 1)
-
-% --- INPUTS:
-% nComponents = number of components in which the launcher is discretized
-% x = vector of component lengths or lever arms (size nComponents x 1)
-% launcher = struct containing required data
-
-% --- OUTPUT:
-% loads = [N1 T1 M1 N2 T2 M2 ... Nn Tn Mn]'  (3*nComponents x 1). Solution
-% of the linear system
+% A = matrix that encodes the equilibrium equations
+% x = vector containing the internal actions unknown [N1 T1 M1 ... Nn Tn Mn]
+% b = vector containing external forces
+%
+% CONVENTION CHANGE:
+% Node 1 = NOSE (TOP)
+% Node nNodes = TAIL (BOTTOM)
 
 % ======================== DATA CONVERSION ================================
-m       = launcher.mass;         % [nComponents x 1]
-drag    = launcher.drag;         % [nComponents x 1]
-aA      = launcher.accelerationAxial; % scalar (global acceleration)
+m       = launcher.mass;         
+drag    = launcher.drag;         
+aA      = launcher.accelerationAxial; 
 aN      = launcher.accelerationNormal;
-alpha   = launcher.alpha;        % scalar angle
-theta   = launcher.theta;        % scalare (spinta globale)
-thrust  = launcher.thrust;       % scalare
-lift    = launcher.lift;         % [nComponents x 1]
+alpha   = launcher.alpha;        
+theta   = launcher.theta;        
+thrust  = launcher.thrust;       
+lift    = launcher.lift;         
 g0      = launcher.g0;
-h       = launcher.stagesDimensions; % [nComponents x 1]
-
-% Numero di nodi (dal basso all'alto: 1 ... nComponents+1)
-nNodes = nComponents + 1;
+h       = launcher.stagesDimensions; 
+hCP     = launcher.pressureCenterPosition;
+nNodes  = nComponents + 1;
 
 % ===================== Creation of A Matrix ==============================
-
-% --- Create matrix A (initialized to zero)
-% Now we have N,T,M for all nodes 1..nNodes
 A = zeros(3 * nNodes, 3 * nNodes);
 
-% Helper functions to map (node i, type N/T/M) to column index in x
-colN = @(i) 3*(i-1) + 1;  % column of Ni
-colT = @(i) 3*(i-1) + 2;  % column of Ti
-colM = @(i) 3*(i-1) + 3;  % column of Mi
+colN = @(i) 3*(i-1) + 1;  
+colT = @(i) 3*(i-1) + 2;  
+colM = @(i) 3*(i-1) + 3;  
 
 % --- Fill matrix A with equilibrium conditions for each component
+% Element i connects Node i (Top) to Node i+1 (Bottom)
 for i = 1:nComponents
     
     % Row indices for component i
-    rN = 3*(i-1) + 1;   % axial equilibrium
-    rT = 3*(i-1) + 2;   % transverse equilibrium
-    rM = 3*(i-1) + 3;   % moment equilibrium
+    rN = 3*(i-1) + 1;   
+    rT = 3*(i-1) + 2;   
+    rM = 3*(i-1) + 3;   
     
     % ============================
     % AXIAL EQUILIBRIUM (N)
-    %   -Ni + N(i+1) = ...
+    % -N_top + N_bottom = Loads
     % ============================
-    A(rN, colN(i))     = A(rN, colN(i))     - 1;   % -Ni
-    A(rN, colN(i+1))   = A(rN, colN(i+1))   + 1;   % +N(i+1)
+    A(rN, colN(i))     = A(rN, colN(i))     + 1;   % +Ni (Top)
+    A(rN, colN(i+1))   = A(rN, colN(i+1))   - 1;   % -N(i+1) (Bottom)
     
     % ==============================
     % TRANSVERSE EQUILIBRIUM (T)
-    %   +Ti - T(i+1) = ...
+    % +T_top - T_bottom = Loads
     % ==============================
-    A(rT, colT(i))     = A(rT, colT(i))     + 1;   % +Ti
-    A(rT, colT(i+1))   = A(rT, colT(i+1))   - 1;   % -T(i+1)
+    A(rT, colT(i))     = A(rT, colT(i))     - 1;   % -Ti (Top)
+    A(rT, colT(i+1))   = A(rT, colT(i+1))   + 1;   % +T(i+1) (Bottom)
     
     % ============================
     % MOMENT EQUILIBRIUM (M)
-    %   Mi - M(i+1) - T(i+1)*x(i) = ...
-    % dove x(i) è la lunghezza / leva del componente i
+    % --- MODIFIED ---
+    % Calcolando il momento rispetto al nodo inferiore (i+1):
+    % M_top - M_bottom - T_top * h = ...
+    % (Nota: la struttura dei segni dipende dalla convenzione, qui mantengo
+    %  la coerenza con la riga originale: M_i - M_i+1 - TermineTaglio)
+    %
+    % La differenza cruciale: il braccio h agisce sul taglio al nodo i (TOP),
+    % non i+1.
     % ============================
-    A(rM, colM(i))     = A(rM, colM(i))     + 1;   % +Mi
-    A(rM, colM(i+1))   = A(rM, colM(i+1))   - 1;   % -M(i+1)
-    A(rM, colT(i+1))   = A(rM, colT(i+1))   - h(i);% -T(i+1)*x(i)
+    A(rM, colM(i))     = A(rM, colM(i))     - 1;   % -Mi
+    A(rM, colM(i+1))   = A(rM, colM(i+1))   + 1;   % +M(i+1)
+    
+    % CHANGE: Use colT(i) instead of colT(i+1) because shear at the top (Node i)
+    % creates a moment arm relative to the bottom (Node i+1).
+    A(rM, colT(i))     = A(rM, colT(i))     - h(i); % -T(i)*h(i)
 end
 
 % ==================== CREATION OF LOAD VECTOR b ==========================
-
-% Now b has 3*nNodes rows (3 per component + 3 for boundary at top node)
-b  = zeros(3 * nNodes, 1);  % initialize RHS vector
+b  = zeros(3 * nNodes, 1); 
 
 for i = 1:nComponents
+    rN = 3*(i-1) + 1;   
+    rT = 3*(i-1) + 2;   
+    rM = 3*(i-1) + 3;   
     
-    % Row indices for component i (coerenti con A)
-    rN = 3*(i-1) + 1;   % axial equilibrium
-    rT = 3*(i-1) + 2;   % transverse equilibrium
-    rM = 3*(i-1) + 3;   % moment equilibrium
+    % I segni di b rimangono generalmente validi (rappresentano la variazione
+    % di carico lungo l'elemento), assumendo che i vettori drag/lift siano
+    % definiti coerentemente.
     
-    % --- Axial equilibrium RHS ---
-    % b_N(i) = -drag_i - m_i*g0*sin(alpha_i) - m_i*a_i
-    b(rN) = - drag(i) ...
-            - m(i)*g0*sin(alpha) ...
-            - m(i)*aA;
+    b(rN) = - drag - m(i)*g0*sin(alpha) - m(i) * aA;
     
-    % --- Transverse equilibrium RHS ---
-    % b_T(i) = -lift_i - m_i*g0*cos(alpha_i)
-    b(rT) = - lift(i) ...
-            - m(i)*g0*cos(alpha) + m(i) * aN;
+    b(rT) = - lift + m(i)*g0*cos(alpha) + m(i) * aN;
     
-    % --- Moment equilibrium RHS ---
-    % b_M(i) = (m_i*g0*cos(alpha_i) - lift_i)*x(i)/2
-    b(rM) = ( m(i)*g0*cos(alpha) - lift(i) - m(i) * aN) * h(i) / 2;
+    b(rM) = ( m(i)*g0*cos(alpha) - m(i) * aN) * h(i) / 2 - lift * hCP(i);
 end
 
-% Thrust contribution of the first element (nodo 1 in basso)
-b(1) = b(1) + thrust * cos(theta); % contributes to axial equilibrium of element 1
-b(2) = b(2) + thrust * sin(theta); % contributes to transverse equilibrium of element 1
+% ============================ THRUST =====================================
 
-% =================== BOUNDARY CONDITIONS AT TOP NODE =====================
-% Nodo finale = nNodes = nComponents+1, free end:
-% N(nNodes) = 0, T(nNodes) = 0, M(nNodes) = 0
+rN_last = 3*(nComponents-1) + 1;
+rT_last = 3*(nComponents-1) + 2; 
+
+b(rN_last) = b(rN_last) + thrust * cos(theta); 
+b(rT_last) = b(rT_last) + thrust * sin(theta); 
+
+% =================== BOUNDARY CONDITIONS (NOSE = NODE 1) =================
+% --- MODIFIED ---
+% Il nodo 1 (Naso) è ora l'estremità libera.
+% Le condizioni al contorno (spostate nelle righe finali della matrice per comodità)
+% devono imporre N1=0, T1=0, M1=0.
 
 rBC_N = 3*nComponents + 1;
 rBC_T = 3*nComponents + 2;
 rBC_M = 3*nComponents + 3;
 
-A(rBC_N, colN(nNodes)) = 1;  % N_{n+1} = 0
-b(rBC_N)               = 0;
+% Imponiamo condizioni sul nodo 1 (colonne 1, 2, 3)
+A(rBC_N, colN(1)) = 1;  % N_1 = 0
+b(rBC_N)          = 0;
 
-A(rBC_T, colT(nNodes)) = 1;  % T_{n+1} = 0
-b(rBC_T)               = 0;
+A(rBC_T, colT(1)) = 1;  % T_1 = 0
+b(rBC_T)          = 0;
 
-A(rBC_M, colM(nNodes)) = 1;  % M_{n+1} = 0
-b(rBC_M)               = 0;
+A(rBC_M, colM(1)) = 1;  % M_1 = 0
+b(rBC_M)          = 0;
 
 % =========================== SOLUTION ====================================
 loads = A \ b;
+
+N = loads(1:3:end);
+T = loads(2:3:end);
+M = loads(3:3:end);
 
 end
