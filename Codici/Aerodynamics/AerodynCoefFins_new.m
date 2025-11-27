@@ -4,6 +4,7 @@ function [CN_surf, CD0_surf_friction, CD0_surf_wave] = AerodynCoefFins_new(alpha
 %   alpha_p    : angle of attack [rad]
 %   vlauncher  : speed of launcher at time t [m/s]
 %   vsound     : speed of sound at time t [m/s]
+%   be         : equivalent span of the fin [m]
 %   q          : dynamic pressure at time t [Pa]
 %   Se         : surface of the fin [m^2]
 %   Sref       : reference surface [m^2]

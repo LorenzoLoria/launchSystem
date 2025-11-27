@@ -1,4 +1,4 @@
-function [mStruct, t, tMax, stressMatrix] = thicknessFunction(mission, nComponents)
+function [mStruct, t, stressMatrix] = thicknessFunction(mission, nComponents)
 
 % Function required to size the launcher thickess of all the different 
 % components of the LV. Evaluation must be done in the most
@@ -12,7 +12,7 @@ function [mStruct, t, tMax, stressMatrix] = thicknessFunction(mission, nComponen
 % mStruct       = vector containing mass of each structure [kg]
 % t             = vector containing thickness of each component [m]
 % tMax          = maximum thickness of the launcher [m]
-% stressMatrix  = (6 x nComponents) matrix. Each column represents a
+% stressMatrix  = (nComponents x 6) matrix. Each column represents a
 %                component of the LV (e.g. Thrust structure, 1st stage etc.), 
 %                each row represents a different kind of stress [MPa]
 
@@ -31,7 +31,7 @@ E              = mission.launcher.structures.E; % Young Modulus for chosen mater
 shearAllowable = ultimateStress / 2; % ultimate shear stress for chosen material [Pa]
 rhoOX          = mission.launcher.engines.oxDens; % density of the oxidizer [kg/m^3]
 % rhoFu        = mission.launcher.engines{ii}.fuDens; % density of the fuel [kg/m^3]
-rhoMaterial    = mission.launcher.structures.rho; % density of the chosen material [kg/m^3] (VECTOR)
+rhoMaterial    = mission.launcher.structures.rho; % density of the chosen material [kg/m^3] 
 p              = mission.launcher.tankPressure; % pressure of component [Pa] (VECTOR)
 N              = mission.launcher.structures.N; % Axial Load [N] (from loadFinder) (VECTOR)
 T              = mission.launcher.structures.T; % Shear Load [N] (from loadFinder) (VECTOR)
@@ -51,17 +51,20 @@ for i = 1 : nComponents
         % bendingMoment = lateralLoad .* hCM; % bending moment vector
         
         % Minimum Allowable Thicknesses
-        tAxial = abs(- N(i) / (2 * pi * r(i)) - Mb(i) / (pi * r(i)^2) + p(i) * r(i) / 2 + rhoOX * nx * g0 * r(i) / 2) / ultimateStress * SF;
+        tAxial = abs(- N(i) / (2 * pi * r(i)) - Mb(i) / (pi * r(i)^2) + p(i) * r(i) / 2 + rhoOX * nx * g0 * r(i) * h(i) / 2) / ultimateStress * SF;
         tShear = T(i) / (2 * pi * r(i) * shearAllowable) * SF;
-        
-        if tAxial > tShear
-            t(i) = tAxial;
-        else
-            t(i) = tShear;
-        end
+
+        t(i) = max(tAxial, tShear);
+
+        % Consider buckling
+        bucklingEq = @(t_var) ((N(i) / (pi*(r(i)^2-(r(i)-t_var)^2)) + Mb(i) / (pi/4*(r(i)^4-(r(i)-t_var)^4)) * r(i)) - ((p(i) * r(i) + rhoOX * nx * g0 * h(i) * r(i)) / (2 * t_var))) - (((9 * (t_var/r(i))^0.6 + 0.16 * (r(i)/h(i))^1.3 * (t_var/r(i))^0.3) + min(0.191 * (p(i)/E) * (r(i)/t_var)^2, 0.229)) * E * t_var / r(i));
+        options = optimoptions('fsolve', 'Display', 'off', 'TolFun', 1e-6);
+        tBuckling = fsolve(bucklingEq, t(i), options);
+
+        t(i) = max(t(i), tBuckling);
 
         % Hydrostatic pressure
-        pHydro = rhoOX .* nx .* g0 .* h;
+        pHydro = rhoOX .* nx .* g0 .* h(i);
 
         % Area of the cylinder
         A = pi * (r(i)^2 - (r(i)-t(i)).^2);
@@ -77,11 +80,15 @@ for i = 1 : nComponents
         k0 = 9 * (t(i) / r(i)).^(0.6) + 0.16 .* (r(i) / h(i)).^(1.3) .* (t(i) / r(i)).^(0.3);
         kp = 0.191 * (p(i) / E) .* (r(i) / t(i)).^2;
         
-        sigmaBuckling = ((k0 + min(kp, 0.229)) * E .* t) / r;
+        sigmaBuckling = ((k0 + min(kp, 0.229)) * E .* t(i)) / r(i);
         
+        % if sigmaBuckling < ultimateStress
+        %     error('Spessore troppo sottile')
+        % end
+
         % Stresses (MAGNITUDE)
         longitudinalStress = N(i) / A * SF; 
-        bendingStress = Mb(i) ./ I .* r * SF;
+        bendingStress = Mb(i) ./ I .* r(i) * SF;
         shearStress = T(i) ./ A * SF;
         hoopStress = (p(i) .* r(i) + pHydro .* r(i)) ./ t(i);
         axialStress = hoopStress / 2;
@@ -90,54 +97,50 @@ for i = 1 : nComponents
 
     else 
 
-    % Loads
-    % longitudinalLoad = nx .* M * g0; % longitudinal load vector
-    % lateralLoad = nz .* M .* g0; % lateral force vector
-    % bendingMoment = lateralLoad .* hCM; % bending moment vector
+        % Loads
+        % longitudinalLoad = nx .* M * g0; % longitudinal load vector
+        % lateralLoad = nz .* M .* g0; % lateral force vector
+        % bendingMoment = lateralLoad .* hCM; % bending moment vector
+        
+        % Area A and Inertia I are initially computed using the following
+        % approximation:
+        % A = 2 * pi * r * t;
+        % I = pi * r^3 * t;
+        
+        % Minimum Allowable Thicknesses
+        tAxial = abs(- N(i) / (2 * pi * r(i)) - Mb(i) / (pi * r(i)^2)) / ultimateStress * SF;
+        tShear = T(i) / (2 * pi * r(i) * shearAllowable) * SF;
     
-    % Area A and Inertia I are initially computed using the following
-    % approximation:
-    % A = 2 * pi * r * t;
-    % I = pi * r^3 * t;
+        t(i) = max(tAxial, tShear);
     
-    % Minimum Allowable Thicknesses
-    tAxial = abs(- N(i) / (2 * pi * r(i)) - Mb(i) / (pi * r(i)^2)) / ultimateStress * SF;
-    tShear = T(i) / (2 * pi * r(i) * shearAllowable) * SF;
-    
-    
-    if tAxial > tShear
-        t(i) = tAxial;
-    else
-        t(i) = tShear;
-    end
-    
-    % Area 
-    A = pi * (r(i)^2 - (r(i)-t(i)).^2);
-    
-    % Inertia
-    I = pi / 4 * (r(i)^4 - (r(i) - t(i)).^4);
-    
-    % Stresses (MAGNITUDE)
-    longitudinalStress = N(i) / A * SF; 
-    bendingStress = Mb(i) ./ I .* r(i) * SF;
-    shearStress = T(i) ./ A * SF;
-    
-    % Buckling for UnPressurized Cylinders
-    
-    sigmaBuckling = 9 * (t(i) ./ r(i))^1.6 + 0.16 * (t(i) ./ h(i))^1.3;
-    
-    stressMatrix(i, :) = [longitudinalStress, bendingStress, shearStress, 0, 0, sigmaBuckling];
+        bucklingEq = @(t_var) ((N(i) / (pi*(r(i)^2-(r(i)-t_var)^2)) + Mb(i) / (pi/4*(r(i)^4-(r(i)-t_var)^4)) * r(i))) - (9 * (t_var ./ r(i))^1.6 + 0.16 * (t_var ./ h(i))^1.3) * E * t_var / r(i);
+            options = optimoptions('fsolve', 'Display', 'off', 'TolFun', 1e-6);
+            tBuckling = fsolve(bucklingEq, t(i), options);
+            
+            t(i) = max(t(i), tBuckling);
 
-    % Exctraction of the most critical result
-    volume = pi .* h * (r(i)^2 - (r(i) - t(i)).^2);
-    mStruct(i) = volume .* rhoMaterial;
+        % Area 
+        A = pi * (r(i)^2 - (r(i)-t(i)).^2);
+        
+        % Inertia
+        I = pi / 4 * (r(i)^4 - (r(i) - t(i)).^4);
+        
+        % Stresses (MAGNITUDE)
+        longitudinalStress = N(i) / A * SF; 
+        bendingStress = Mb(i) ./ I .* r(i) * SF;
+        shearStress = T(i) ./ A * SF;
+        
+        % Buckling for UnPressurized Cylinders
+        
+        sigmaBuckling = (9 * (t(i) ./ r(i))^1.6 + 0.16 * (t(i) ./ h(i))^1.3) * E * t(i) / r(i);
+        
+        stressMatrix(i, :) = [longitudinalStress, bendingStress, shearStress, 0, 0, sigmaBuckling];
+    
+        % Exctraction of the most critical result
+        volume = pi .* h(i) * (r(i)^2 - (r(i) - t(i)).^2);
+        mStruct(i) = volume .* rhoMaterial;
     end
 end
-
-% Conversions
-t = t * 1e3; % from m to mm
-tMax = max(t); 
-stressMatrix = stressMatrix * 1e-6; % from Pa to MPa
 end
 
 % --- Data
