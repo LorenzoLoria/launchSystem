@@ -1,14 +1,14 @@
-function [CN_surf, CD0_surf_friction, CD0_surf_wave] = AerodynCoefFins(alpha_p, vlauncher, vsound, be, Se, q, Sref, cmac, M_ale, delta_le, lambda_le, b, tmac)
+function [CN_surf, CD0_surf_friction, CD0_surf_wave] = AerodynCoefFins_new(alpha_p, vlauncher, vsound, be, Se, q, Sref, cmac, delta_le, lambda_le, b, tmac)
 % Calculates aerodynamic coefficients for fins
 % Inputs:
 %   alpha_p    : angle of attack [rad]
 %   vlauncher  : speed of launcher at time t [m/s]
 %   vsound     : speed of sound at time t [m/s]
+%   be         : equivalent span of the fin [m]
 %   q          : dynamic pressure at time t [Pa]
 %   Se         : surface of the fin [m^2]
 %   Sref       : reference surface [m^2]
 %   cmac       : mean aerodynamic chord of fin [m]
-%   M_ale      : Mach number normal to fin at time t [-]
 %   delta_le   : leading edge sweep [deg]
 %   lambda_le  : fin base angle [deg]
 %   b          : 2*length of base of fin [m]
@@ -19,10 +19,9 @@ function [CN_surf, CD0_surf_friction, CD0_surf_wave] = AerodynCoefFins(alpha_p, 
 %   CD0_surf_friction : surface friction drag coefficient
 %   CD0_surf_wave     : wave drag coefficient
 
-
     M = vlauncher/vsound;
-    %   A          : aspect ratio of fin [-]
     A = be^2/Se;
+    M_ale = M * cosd(lambda_le);
 
     % --- Normal force coefficient
     if M > sqrt(1 + (8/(pi*A))^2)
@@ -35,6 +34,11 @@ function [CN_surf, CD0_surf_friction, CD0_surf_wave] = AerodynCoefFins(alpha_p, 
     CD0_surf_friction = 0.0133 * (M / (q*cmac))^0.2 * 2 * Se / Sref;
 
     % --- CD0 surface wave
-    CD0_surf_wave = (1.429 / M_ale^2) * ((1.2*M_ale^2)^3.5 * (2.4/(2.8*M_ale^2 - 0.4))^2.5 - 1) * (sin(deg2rad(delta_le))^2 * cos(deg2rad(lambda_le)) * tmac * b) / Sref;
 
+    if M_ale < 1
+        CD0_surf_wave = 0;
+    else
+        CD0_surf_wave = (1.429 / M_ale^2) * ((1.2*M_ale^2)^3.5 * (2.4/(2.8*M_ale^2 - 0.4))^2.5 - 1) * (sin(deg2rad(delta_le))^2 * cos(deg2rad(lambda_le)) * tmac * b) / Sref;
+    end
+    
 end

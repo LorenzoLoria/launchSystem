@@ -14,8 +14,8 @@ mco = 100;   % payload mass
 
 % Aerodynamic / flare parameters
 d  = 1.5;    % reference diameter
-hf = 5;      % flare length
-db = 1.8;    % flare base radius
+hf = 0.806*d;      % flare length Fleeman Saturn V
+db = sqrt(0.78)*d;    % flare base radius Fleeman Saturn V
 flare_ratio = (db-d)/(2*hf);
 
 % Time vector
