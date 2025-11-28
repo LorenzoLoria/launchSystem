@@ -1,5 +1,4 @@
 function [dxdt] = dynCapsule(~, x,mission, windDirection)
-
 %   KEPLERIAN_RHS  Evaluates the right-hand-side of a 2-body (keplerian) propagator
 %   Evaluates the right-hand-side of a newtonian 2-body propagator.
 %   x is the state
