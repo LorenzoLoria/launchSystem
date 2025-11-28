@@ -1,4 +1,4 @@
-function [N, T, M] = loadsFinder(nComponents, launcher)
+function [N, T, M, A] = loadsFinder(nComponents, launcher)
 % Builds matrix A required to solve the linear system Ax = b where:
 % A = matrix that encodes the equilibrium equations
 % x = vector containing the internal actions unknown [N1 T1 M1 ... Nn Tn Mn]
@@ -11,9 +11,10 @@ function [N, T, M] = loadsFinder(nComponents, launcher)
 % ======================== DATA CONVERSION ================================
 m       = launcher.mass;         
 drag    = launcher.drag;         
-aA      = launcher.accelerationAxial; 
-aN      = launcher.accelerationNormal;
+aN      = launcher.accelerationAxial; 
+aT      = launcher.accelerationNormal;
 gamma   = launcher.gamma;        
+alpha   = launcher.alpha;
 theta   = launcher.theta;        
 thrust  = launcher.thrust;       
 lift    = launcher.lift;         
@@ -25,99 +26,103 @@ nNodes  = nComponents + 1;
 % ===================== Creation of A Matrix ==============================
 A = zeros(3 * nNodes, 3 * nNodes);
 
-colN = @(i) 3*(i-1) + 1;  
-colT = @(i) 3*(i-1) + 2;  
-colM = @(i) 3*(i-1) + 3;  
+% Helper per gli indici
+idxN = @(k) 3*(k-1) + 1;
+idxT = @(k) 3*(k-1) + 2;
+idxM = @(k) 3*(k-1) + 3;
 
-% --- Fill matrix A with equilibrium conditions for each component
-% Element i connects Node i (Top) to Node i+1 (Bottom)
+% =========================================================
+% 1. CONDIZIONI AL CONTORNO: NODO 1 (PUNTA DEL NASO)
+% =========================================================
+% Imponiamo che le variabili del nodo 1 siano indipendenti e fissate
+% (saranno poste a 0 tramite il vettore dei termini noti b)
+A(idxN(1), idxN(1)) = 1; % 1*N1 = ... (0 nel vettore b)
+A(idxT(1), idxT(1)) = 1; % 1*T1 = ... (0 nel vettore b)
+A(idxM(1), idxM(1)) = 1; % 1*M1 = ... (0 nel vettore b)
+
+% =========================================================
+% 2. LOOP SUGLI ELEMENTI (DAL NODO 2 IN POI)
+% =========================================================
+% L'elemento 'i' connette il nodo 'i' (sopra) al nodo 'i+1' (sotto)
+% Scriviamo l'equilibrio sulla riga del nodo 'i+1'
 for i = 1:nComponents
     
-    % Row indices for component i
-    rN = 3*(i-1) + 1;   
-    rT = 3*(i-1) + 2;   
-    rM = 3*(i-1) + 3;   
+    nodeUp = i;         % Nodo precedente (i)
+    nodeDown = i + 1;   % Nodo attuale (i+1)
     
-    % ============================
-    % AXIAL EQUILIBRIUM (N)
-    % -N_top + N_bottom = Loads
-    % ============================
-    A(rN, colN(i))     = A(rN, colN(i))     + 1;   % +Ni (Top)
-    A(rN, colN(i+1))   = A(rN, colN(i+1))   - 1;   % -N(i+1) (Bottom)
+    % Indici delle RIGHE dove scriviamo l'equazione (Nodo a valle)
+    rN = idxN(nodeDown);
+    rT = idxT(nodeDown);
+    rM = idxM(nodeDown);
     
-    % ==============================
-    % TRANSVERSE EQUILIBRIUM (T)
-    % +T_top - T_bottom = Loads
-    % ==============================
-    A(rT, colT(i))     = A(rT, colT(i))     - 1;   % -Ti (Top)
-    A(rT, colT(i+1))   = A(rT, colT(i+1))   + 1;   % +T(i+1) (Bottom)
+    % Indici delle COLONNE (Variabili del nodo attuale i+1)
+    cN_down = idxN(nodeDown); cT_down = idxT(nodeDown); cM_down = idxM(nodeDown);
     
-    % ============================
-    % MOMENT EQUILIBRIUM (M)
-    % --- MODIFIED ---
-    % Calcolando il momento rispetto al nodo inferiore (i+1):
-    % M_top - M_bottom - T_top * h = ...
-    % (Nota: la struttura dei segni dipende dalla convenzione, qui mantengo
-    %  la coerenza con la riga originale: M_i - M_i+1 - TermineTaglio)
-    %
-    % La differenza cruciale: il braccio h agisce sul taglio al nodo i (TOP),
-    % non i+1.
-    % ============================
-    A(rM, colM(i))     = A(rM, colM(i))     - 1;   % -Mi
-    A(rM, colM(i+1))   = A(rM, colM(i+1))   + 1;   % +M(i+1)
+    % Indici delle COLONNE (Variabili del nodo precedente i)
+    cN_up = idxN(nodeUp); cT_up = idxT(nodeUp); cM_up = idxM(nodeUp);
     
-    % CHANGE: Use colT(i) instead of colT(i+1) because shear at the top (Node i)
-    % creates a moment arm relative to the bottom (Node i+1).
-    A(rM, colT(i))     = A(rM, colT(i))     + h(i); % -T(i)*h(i)
+    % --- EQUILIBRIO NORMALE (N) ---
+    % N(i+1) - N(i) = CaricoAssiale
+    A(rN, cN_down) =  1; 
+    A(rN, cN_up)   = -1;
+    
+    % --- EQUILIBRIO TAGLIO (T) ---
+    % T(i+1) - T(i) = CaricoTrasversale
+    A(rT, cT_down) =  1;
+    A(rT, cT_up)   = -1;
+    
+    % --- EQUILIBRIO MOMENTO (M) ---
+    % M(i+1) = M(i) + T(i)*LunghezzaElemento + MomentoCarichi
+    % M(i+1) - M(i) - T(i)*x = MomentoCarichi
+    
+    A(rM, cM_down) =  1;   % + M(i+1)
+    A(rM, cM_up)   = -1;   % - M(i)
+    A(rM, cT_up)   = h(i);   % - T(i) * lunghezza
+    
 end
 
 % ==================== CREATION OF LOAD VECTOR b ==========================
-b  = zeros(3 * nNodes, 1); 
+b = zeros(3 * nNodes, 1);
 
-for i = 1:nComponents
-    rN = 3*(i-1) + 1;   
-    rT = 3*(i-1) + 2;   
-    rM = 3*(i-1) + 3;   
-    
-    % I segni di b rimangono generalmente validi (rappresentano la variazione
-    % di carico lungo l'elemento), assumendo che i vettori drag/lift siano
-    % definiti coerentemente.
-    
-    b(rN) = - drag / nComponents - m(i)*g0*sin(gamma) - m(i) * aA;
-    
-    b(rT) = - lift / nComponents + m(i)*g0*cos(gamma) + m(i) * aN;
-    
-    b(rM) = ( m(i)*g0*cos(gamma) + m(i) * aN) * h(i) / 2 - lift * hCP(i);
-end
+% Node 1
+b(1) = 0;
+b(2) = 0;
+b(3) = 0;
 
-% ============================ THRUST =====================================
+% Node 2
+b(4) = - drag * cos(alpha) - lift * sin(alpha);
+b(5) = - drag * sin(alpha) + lift * cos(alpha);
+b(6) = 0;
 
-% rN_last = 3*(nComponents-1) + 1;
-% rT_last = 3*(nComponents-1) + 2; 
+% Node 3
+b(7) = - mPay * (g0 * sin(gamma) + aN);
+b(8) = - mPay * (g0 * cos(gamma) + aT);
+b(9) = mPay * (g0 * cos(gamma) + aT) * hCP;
 
-% b(rN_last) = b(rN_last) + thrust * cos(theta); 
-% b(rT_last) = b(rT_last) + thrust * sin(theta); 
+% Node 4
+b(10) = 0;
+b(11) = 0;
+b(12) = 0;
 
-% =================== BOUNDARY CONDITIONS (NOSE = NODE 1) =================
-% --- MODIFIED ---
-% Il nodo 1 (Naso) è ora l'estremità libera.
-% Le condizioni al contorno (spostate nelle righe finali della matrice per comodità)
-% devono imporre N1=0, T1=0, M1=0.
+% Node5 
+b(13) = -m2 * (aN + g0 * sin(gamma));
+b(14) = -m2 * (aT + g0 * cos(gamma));
+b(15) = m2 * (aT + g0 * cos(gamma)) * hCP;
 
-rBC_N = 3*nComponents + 1;
-rBC_T = 3*nComponents + 2;
-rBC_M = 3*nComponents + 3;
+% Node 6
+b(16) = 0;
+b(17) = 0;
+b(18) = 0;
 
-% Imponiamo condizioni sul nodo 1 (colonne 1, 2, 3)
-A(rBC_N, colN(1)) = 1;  % N_1 = 0
-b(rBC_N)          = 0;
+% Node 7
+b(19) = - m1 * (aN + g0 * sin(gamma));
+b(20) = - m1 * (aT + g0 * cos(gamma));
+b(21) = m1 * (aT + g0 * cos(gamma)) * hCP;
 
-A(rBC_T, colT(1)) = 1;  % T_1 = 0
-b(rBC_T)          = 0;
-
-A(rBC_M, colM(1)) = 1;  % M_1 = 0
-b(rBC_M)          = 0;
-
+% Node 8
+b(22) = - drag * cos(alpha) - lift * sin(alpha);
+b(23) = lift * cos(alpha) - drag * sin(alpha);
+b(24) = - (lift * cos(alpha) - drag * sin(alpha)) * hCP; 
 % =========================== SOLUTION ====================================
 loads = A \ b;
 

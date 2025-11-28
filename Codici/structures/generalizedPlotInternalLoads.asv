@@ -3,9 +3,9 @@ clc
 close all
 
 % ============================== DATA =====================================
-nComponents = 7;
+nComponents = 4;
 nPointsPerComponent = 100; 
-
+syms theta
 % Dati Launcher
 m1 = 180e3;
 mi = 1000;
@@ -22,15 +22,11 @@ launcher.g0 = 9.81;
 launcher.accelerationNormal = 2 * 9.81; 
 
 % Dimensions
-% launcher.firstStage  = 30;
-% launcher.interStage  = 2;
-% launcher.secondStage = 15;
-% launcher.fairing     = 10;
-% launcher.stagesDimensions = [launcher.fairing, launcher.secondStage, launcher.interStage, launcher.firstStage];
-
-distCPCGpayload = 2; % distance between the CP of the LV and the CG of the payload
-distCG2Stage = 2;
-
+launcher.firstStage  = 30;
+launcher.interStage  = 2;
+launcher.secondStage = 15;
+launcher.fairing     = 10;
+launcher.stagesDimensions = [launcher.fairing, launcher.secondStage, launcher.interStage, launcher.firstStage];
 
 % Position of the center of pressure for each stage
 launcher.pressureCenterPosition = 2 / 3 * launcher.stagesDimensions;
