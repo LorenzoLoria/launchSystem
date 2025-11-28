@@ -1,19 +1,27 @@
+%%
+close all
+clear all
+clc
+
+
 %% Code to Recover the Booster
 
 addpath(genpath("..\..\"))
 mission = dataStruct;
 
+
+global  alphaYVec alphaZVec
 %%
 
 % Stato iniziale
-r0  = [0; 0; 6500000];        % posizione iniziale
+r0  = [0; 0; 6700000];        % posizione iniziale
 v0  = [5000; 0; 0];      % velocità iniziale
 
 % Orientazione iniziale (identità): nessuna rotazione rispetto all'inerziale
 q0 = [1; 0; 0; 0];
 
 % Velocità angolare iniziale (ad es. spin attorno all'asse y del corpo)
-w0 = [0.01; 0.01 ; 0.01];        % rad/s
+w0 = [0.1; 0.1; 0.1];        % rad/s
 
 % Stato iniziale completo
 y0 = [r0; v0; q0; w0];
@@ -26,6 +34,23 @@ windDirection =[1/sqrt(2) 1/sqrt(2) 0]';
 options = odeset('RelTol',1e-6,'AbsTol',1e-6,'Events',@groundEvent);
 f = @(t,x) dynBooster(t, x,mission, windDirection);
 [t_sol, y_sol] = ode113(f, tspan, y0,options);
+
+targetPoint = 6371000*[sin(deg2rad(20));0;cos(deg2rad(20))];
+
+
+
+f = @(t,x) controlledBoosterDynamics(t, x,mission, windDirection,targetPoint);
+[tAA, yAA] = ode113(f, tspan, y0,options);
+
+
+%%
+figure
+plot3(y_sol(:,1)/1000, y_sol(:,2)/1000, y_sol(:,3)/1000, 'r-', 'LineWidth', 1.0);
+hold on
+plot3(yAA(:,1)/1000, yAA(:,2)/1000, yAA(:,3)/1000, 'g-', 'LineWidth', 1.0);
+plot3(targetPoint(1)/1000,targetPoint(2)/1000,targetPoint(3)/1000,'bo')
+
+%%
 
 %%
 
@@ -59,9 +84,9 @@ xlabel('X_I [km]'); ylabel('Y_I [km]'); zlabel('Z_I [km]');
 title('Animazione Booster: Traiettoria e Assetto');
 %EarthPlot(6371)
 view(45,15)
-%xlim([-500 1500])
-%ylim([-700 700])
-%zlim([6000 6700])
+%xlim([0 1000])
+%ylim([-400 400])
+%zlim([6000 6900])
 
 % --- 1. SETUP DEL CILINDRO (SYSTEM BODY) ---
 % Definisci dimensioni visibili sul grafico (in km se la traiettoria è in km)

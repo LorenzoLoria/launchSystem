@@ -1,4 +1,4 @@
-function dxdt = dynBooster(~, x, mission, windDirection)
+function dxdt = controlledBoosterDynamics(t, x, mission, windDirection,targetPoint)
     % -------------------------------------------------
     %  State convention:
     %  x(1:3)   = r_I  (position in the inertial frame)
@@ -12,9 +12,46 @@ function dxdt = dynBooster(~, x, mission, windDirection)
     q  = x(7:10);
     wB = x(11:13);
 
+    forceActuator = 0;
+    
+    persistent nextTrigger isActive
+    if isempty(nextTrigger)
+        nextTrigger = 10;   % primo trigger a 10 s
+        isActive    = false;
+    end
+
+    period   = 10;   % ogni 10 s
+    duration = 1;    % durata effetto: 1 s dopo il trigger
+
+    % --- LOGICA DI ATTIVAZIONE / DISATTIVAZIONE ---
+
+    % 1) Se non è ancora attivo e abbiamo superato il trigger → attiva
+    if ~isActive && t >= nextTrigger
+        isActive = true;
+        % (se vuoi qualcosa SOLO all'istante di attivazione, mettilo qui)
+        % es:
+        % fprintf('Trigger ON a t = %.4f s\n', t);
+    end
+
+    % 2) Se è attivo e abbiamo superato la fine della finestra (trigger+1s) → spegni
+    if isActive && t >= nextTrigger + duration
+        isActive    = false;
+        nextTrigger = nextTrigger + period;  % prepara il trigger successivo
+        % (se vuoi qualcosa SOLO quando finisce, mettilo qui)
+        % fprintf('Trigger OFF a t = %.4f s\n', t);
+    end
+    
+
+    if isActive
+        tspan = [t,10000]; 
+        options = odeset('RelTol',1e-6,'AbsTol',1e-6,'Events',@groundEvent);
+        f = @(t,x) dynBooster(t, x,mission, windDirection);
+        [~, landingPoint] = ode113(f, tspan, x,options);
+        forceActuator = 100000*sign(targetPoint-landingPoint(end,1:3)');
+    end
+
     % quaternionNormalisation
     q = q / norm(q);
-
     GM     = mission.environment.GM;
     rEarth = mission.environment.rEarth;
 
@@ -46,7 +83,7 @@ function dxdt = dynBooster(~, x, mission, windDirection)
     aGravI = -GM * rI / (rNorm^3);
 
     % Accelerazione totale
-    aI = aGravI + aeroForceI / m;
+    aI = aGravI + aeroForceI / m + forceActuator/m;
 
     % ------------ Quaternion Rotation Matrix ------------
     q0 = q(1); q1 = q(2); q2 = q(3); q3 = q(4);
@@ -65,8 +102,17 @@ function dxdt = dynBooster(~, x, mission, windDirection)
            2*(q0*q1-q3*q2),  -q0^2+q1^2-q2^2+q3^2,  2*(q1*q2+q0*q3);...
            2*(q0*q2+q1*q3),  2 * (q1*q2-q0*q3), -q0^2-q1^2+q2^2+q3^2]';
 
+    targetVec =windVelocityI/norm(windVelocityI);
+
     % Rib: inerziale -> body
     Rib = Rbi';
+    
+    ySystem = Rib(2,:);
+    zSystem = Rib(3,:);
+
+    alphaY = zSystem*targetVec;
+    alphaZ = -ySystem*targetVec;
+    % AeroForce In body reference frame
     aeroForceB = Rib * aeroForceI;
 
     % ------------ aerodynamic torque wrt center of mass (2ª cardinale) ------------
@@ -83,7 +129,7 @@ function dxdt = dynBooster(~, x, mission, windDirection)
     % scatter(cpB,0)
 
     rCpCgB = cpB-cgB;   % torque arm
-    torque = cross(rCpCgB, aeroForceB);   % M = r x F  (nel body)
+    torque = cross(rCpCgB, aeroForceB) -50*[wx;wy;wz] - 10*[0; alphaY; alphaZ] ;   % M = r x F  (nel body)
 
     % Matrice di inerzia nel body (3x3)
     Ix = 1000;

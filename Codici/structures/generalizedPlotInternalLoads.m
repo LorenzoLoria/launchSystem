@@ -36,7 +36,7 @@ launcher.pressureCenterPosition = 2 / 3 * launcher.stagesDimensions;
 [N, T, M] =  loadsFinder(nComponents, launcher);
 
 % ============================== PLOTS ====================================
-
+%%
 x_all = [];
 N_all = [];
 T_all = [];
@@ -47,7 +47,8 @@ x_coordinates = cumsum([0, launcher.stagesDimensions]); % defines the coordinate
 
 % Required for interpolation
 M_end_values = [M(2:end); 0];
-
+nComponents = 2;
+nPointsPerComponent = 100; 
 for i = 1:nComponents
     
     x_start = x_coordinates(i);
