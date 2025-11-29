@@ -3,37 +3,22 @@ clc
 close all
 
 % ============================== DATA =====================================
-nComponents = 7;
-nPointsPerComponent = 100; 
+nComponents = 8;
+nPointsPerComponent = 100;
 
-% Dati Launcher
 m1 = 180e3;
-mi = 1000;
-m2 = 20e3;
+m2 = 40e3;
 mp = 8e3;
-launcher.mass = [mp, m2, mi, m1];
-launcher.drag = 5000;
+
+launcher.mass = [mp, m2, m1];
+launcher.drag = 350000;
 launcher.gamma = deg2rad(2);
-launcher.theta = deg2rad(45);
-launcher.thrust = 4*845e3;
+launcher.alpha = deg2rad(3.5);
 launcher.accelerationAxial = 1.6 * 9.81;
-launcher.lift= 0;
+launcher.lift = 0;
 launcher.g0 = 9.81;
-launcher.accelerationNormal = 2 * 9.81; 
-
-% Dimensions
-% launcher.firstStage  = 30;
-% launcher.interStage  = 2;
-% launcher.secondStage = 15;
-% launcher.fairing     = 10;
-% launcher.stagesDimensions = [launcher.fairing, launcher.secondStage, launcher.interStage, launcher.firstStage];
-
-distCPCGpayload = 2; % distance between the CP of the LV and the CG of the payload
-distCG2Stage = 2;
-
-
-% Position of the center of pressure for each stage
-launcher.pressureCenterPosition = 2 / 3 * launcher.stagesDimensions;
+launcher.accelerationNormal = 2 * 9.81;
+launcher.elementLength = [4, 1, 2, 4, 4, 15, 2, 13]; % sono le lunghezze degli elementi
 
 % ========================== SOLUTION =====================================
 
@@ -46,7 +31,7 @@ N_all = [];
 T_all = [];
 M_all = [];
 
-x_coordinates = cumsum([0, launcher.stagesDimensions]); % defines the coordinates of
+x_coordinates = cumsum([0, launcher.elementLength]); % defines the coordinates of
 % start and finish of each component
 
 % Required for interpolation

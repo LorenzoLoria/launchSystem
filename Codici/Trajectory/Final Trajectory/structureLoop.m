@@ -97,7 +97,7 @@ thrustData = X;
 [timeCollocation, stateCollocation] = totalTrajectory(mission,opt,thrustData);
 
 [q,an,at,T,D,angle,gamma] = externalLoads(timeCollocation,stateCollocation,mission,opt,thrustData);
-% .... codice di strutture ... 
 
+% .... codice di strutture ... 
 
 %% Draw launcher
