@@ -36,7 +36,7 @@ mission.launcher.engines{3}.oxDens = 1143;
 mission.launcher.engines{3}.fuelDens = 71;
 
 mission.capsule.weigth = 8600;
-mission.capsule.Area = 3.7^2*pi;
+mission.capsule.Area = 4^2*pi/4;
 mission.capsule.supersonicCD = 1.23;
 mission.capsule.subsonicCD = 0.45;
 

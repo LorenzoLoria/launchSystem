@@ -9,7 +9,7 @@ function [N, T, M, A] = loadsFinder(nComponents, launcher)
 % nComponents: number of components in which the LV is discretized;
 % mission: struct containing the data needed
 % ======================== DATA CONVERSION ================================
-m       = mission.launcher.mass;    
+m       = launcher.mass;    
 mPay    = m(1); % payload mass
 m2      = m(2); % second stage
 m1      = m(3); % first  stage
@@ -21,6 +21,8 @@ alpha   = launcher.alpha;
 lift    = launcher.lift;         
 g0      = launcher.g0;
 h       = launcher.elementLength; % length of the element
+liftFins = launcher.liftFins;
+dragFins = launcher.dragFins;
 nNodes  = nComponents + 1;
 
 % ===================== Creation of A Matrix ==============================
@@ -109,8 +111,8 @@ b(20) = - m1 * (aT + g0 * cos(gamma));
 b(21) = 0;
 
 % Node 8
-b(22) = - drag * cos(alpha) - lift * sin(alpha);
-b(23) = lift * cos(alpha) - drag * sin(alpha);
+b(22) = - dragFins * cos(alpha) - liftFins * sin(alpha);
+b(23) = liftFins * cos(alpha) - dragFins * sin(alpha);
 b(24) = 0; 
 
 % Node 9

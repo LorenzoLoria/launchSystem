@@ -1,6 +1,6 @@
 function [q,an,at,T,D,angle,gamma] = externalLoads(timeCollocation,stateCollocation,mission,opt,thrustData)
 
-vel = stateCollocation(4:6,:,1:end-1);
+vel = stateCollocation(4:6,:,1:end-1)-stateCollocation(4:6,1,1);
 absVel = sqrt ( vel(1,:).^2+ vel(2,:).^2 + vel(3,:).^2 );
 
 vel = vel(1:3,:);
@@ -49,12 +49,14 @@ absThrust2 = sqrt ( ThrustTotal(1,:).^2+ ThrustTotal(2,:).^2 + ThrustTotal(3,:).
 angle = acos(dot(vel,ThrustTotal)./(absThrust2.*absVel) );
 T = absThrust2;
 
-[~,index] = max(q);
+[qmax,index] = max(q);
 
 an = an(index);
 at = at(index);
 T = T(index);
 angle = angle(index);
+rho = rhoVec(index);
+vQmax = absVel(index);
 
 D = q * mission.capsule.supersonicCD* mission.capsule.Area;
 
