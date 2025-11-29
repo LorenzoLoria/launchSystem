@@ -9,7 +9,7 @@ function CA = CA_body(M, alpha, geom, flow, isPowered, a_sub, b_sub)
 %   alpha     : angolo d'attacco [rad] (stessa size di M o scalare)
 %
 %   geom      : struct con i parametri geometrici:
-%               geom.L      = lunghezza totale corpo (ell_SI) [m]
+%               geom.l      = lunghezza totale corpo (ell_SI) [m]
 %               geom.d      = diametro di riferimento [m]
 %               geom.Lnose  = lunghezza del nose l_N [m]
 %               geom.Aref   = area di riferimento A_ref [m^2]
@@ -50,7 +50,7 @@ end
 [M, alpha] = compatDims(M, alpha);
 
 % Estrazione parametri geometrici
-L     = geom.L;       % lunghezza totale [m]
+l     = geom.l;       % lunghezza totale [m]
 d     = geom.d;       % diametro [m]
 Lnose = geom.Lnose;   % lunghezza nose [m]
 Aref  = geom.Aref;    % area di riferimento [m^2]
@@ -67,7 +67,7 @@ end
 q = flow.q;           % pressione dinamica [Pa]
 
 % Fineness ratio
-lambda = L / d;
+lambda = l / d;
 
 % -----------------------------
 % 1) Wave drag (C_A)_W
@@ -156,7 +156,7 @@ end
 % (C_A)_f ≈ 0.091 * (L/d) * ( M / (q * L) )^0.2
 % q = pressione dinamica [Pa], L in [m]
 
-CA_f = 0.091 * lambda .* ( M ./ (q * L) ).^0.2;
+CA_f = 0.091 * lambda .* ( M ./ (q * l) ).^0.2;
 
 % -----------------------------
 % 4) C_A,alpha=0 e dipendenza in alpha
@@ -170,7 +170,7 @@ end
 
 % ---------------------------------------------------------
 function [M_out, alpha_out] = compatDims(M, alpha)
-% compatDims  Rende M e alpha di dimensioni compatibili per operazioni
+% Rende M e alpha di dimensioni compatibili per operazioni
 % element-wise. Se uno dei due è scalare, lo espande alla size dell'altro.
 
 if isscalar(M) && ~isscalar(alpha)
@@ -183,7 +183,7 @@ elseif isscalar(M) && isscalar(alpha)
     M_out = M;
     alpha_out = alpha;
 else
-    % entrambi non scalari: controlliamo che abbiano la stessa size
+    % controllo stessa size
     if ~isequal(size(M), size(alpha))
         error('CA_body: M e alpha devono avere la stessa size oppure essere scalari.');
     end
