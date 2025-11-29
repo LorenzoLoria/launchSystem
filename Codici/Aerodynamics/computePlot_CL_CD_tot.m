@@ -159,7 +159,7 @@ for k = 1:length(alpha_deg_cases)
         CA_body_val = CA_body(M, alpha, bodyGeom, flow, isPowered, a_sub, b_sub);
     
         % --- Fins
-        [CN_fin_single, CD0_fric_single, CD0_wave_single] = AerodynCoefFins_new(alpha, vlauncher, vsound, be, Se, q, Aref, cmac, delta_le, lambda_le, be, tmac);
+        [CN_fin_single, CD0_fric_single, CD0_wave_single] = AerodynCoefFins_new(alpha, vlauncher, vsound, be, Se, q, Aref, cmac, delta_le, lambda_le, b, tmac);
     
         CN_fins_tot = Nfins * CN_fin_single;
         CD0_fins_tot = Nfins * (CD0_fric_single + CD0_wave_single);
