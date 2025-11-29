@@ -49,7 +49,7 @@ absThrust2 = sqrt ( ThrustTotal(1,:).^2+ ThrustTotal(2,:).^2 + ThrustTotal(3,:).
 angle = acos(dot(vel,ThrustTotal)./(absThrust2.*absVel) );
 T = absThrust2;
 
-[qmax,index] = max(q);
+[~,index] = max(q);
 
 an = an(index);
 at = at(index);
