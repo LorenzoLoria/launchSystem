@@ -57,7 +57,7 @@ function [CL_tot_alpha, CD_tot_mach] = computePlot_CL_CD_tot(vector, bodyGeom, f
 M_vec = vector.M;
 M_cases = vector.M_cases;
 alpha_deg_vec = vector.alpha_deg;
-alpha_deg_cases = vector.alpha_cases;
+alpha_deg_cases = vector.alpha_deg_cases;
 
 % Geometry of the body
 l = bodyGeom.l;
@@ -185,7 +185,7 @@ grid on;
 hold on;
 xlabel('\alpha [deg]');
 ylabel('C_L^{tot}');
-title('Total lift coefficient vs \alpha (body + fins)');
+title('Total lift coefficient vs \alpha (body + fins) - slender body theory');
 leg_str = arrayfun(@(Mval) sprintf('M = %.1f', Mval), M_cases, 'UniformOutput', false);
 legend(leg_str, 'Location', 'best');
 
@@ -203,3 +203,19 @@ legend(leg_str2, 'Location', 'best');
 
 
 end
+
+
+
+
+
+% -------------------------------- COMMENTI -------------------------------
+%
+% - "slender–body + crossflow" (Allen–Jørgensen / Fleeman model) per il
+%   calcolo del CN e CA del body (valido solo per M<=5)
+%
+% - Contributo delle alette per il calcolo del CN e CA (valido per ogni
+%   regime)
+% 
+% - Complessivamente il modello è valido solo per M <= 5
+%
+%--------------------------------------------------------------------------
