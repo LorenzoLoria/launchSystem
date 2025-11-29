@@ -168,7 +168,7 @@ for k = 1:length(alpha_deg_cases)
         CN_tot = CN_body_val + CN_fins_tot;
         CA_tot = CA_body_val + CA_fins_tot;
     
-        [~, CD_val] = calculate_CL_CD(CN_tot, CA_tot, alpha);
+        [~, CD_val] = calculate_CL_CD(CN_tot, CA_tot, rad2deg(alpha));
     
         CD_tot_mach(z, k) = CD_val;
     end

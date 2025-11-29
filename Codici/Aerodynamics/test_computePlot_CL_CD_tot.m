@@ -4,9 +4,9 @@ clc;
 
 %% dati
 
-vector.M = [0 : 0.01 : 5];
-vector.M_cases = [0.1 0.8 2 7];
-vector.alpha_deg = [0 : 0.01 : 15];
+vector.M = 2;
+vector.M_cases = 2;
+vector.alpha_deg = 3;
 vector.alpha_deg_cases = [3];
 
 
@@ -58,5 +58,5 @@ gasProp.gamma = 1.4;
 %% test
 
 [CL_tot_alpha, CD_tot_mach] = computePlot_CL_CD_tot(vector, bodyGeom, finsGeom, bodyInfo, finsInfo);
-
+%%
 [CL_tot_alpha2, CD_tot_mach2] = computePlot_CL_CD_tot_2(vector, bodyGeom, finsGeom, bodyInfo, finsInfo, gasProp);
