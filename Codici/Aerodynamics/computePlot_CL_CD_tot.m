@@ -57,7 +57,7 @@ function [CL_tot_alpha, CD_tot_mach] = computePlot_CL_CD_tot(vector, bodyGeom, f
 M_vec = vector.M;
 M_cases = vector.M_cases;
 alpha_deg_vec = vector.alpha_deg;
-alpha_deg_cases = vector.alpha_cases;
+alpha_deg_cases = vector.alpha_deg_cases;
 
 % Geometry of the body
 l = bodyGeom.l;
@@ -159,7 +159,7 @@ for k = 1:length(alpha_deg_cases)
         CA_body_val = CA_body(M, alpha, bodyGeom, flow, isPowered, a_sub, b_sub);
     
         % --- Fins
-        [CN_fin_single, CD0_fric_single, CD0_wave_single] = AerodynCoefFins_new(alpha, vlauncher, vsound, be, Se, q, Aref, cmac, delta_le, lambda_le, be, tmac);
+        [CN_fin_single, CD0_fric_single, CD0_wave_single] = AerodynCoefFins_new(alpha, vlauncher, vsound, be, Se, q, Aref, cmac, delta_le, lambda_le, b, tmac);
     
         CN_fins_tot = Nfins * CN_fin_single;
         CD0_fins_tot = Nfins * (CD0_fric_single + CD0_wave_single);
@@ -168,7 +168,7 @@ for k = 1:length(alpha_deg_cases)
         CN_tot = CN_body_val + CN_fins_tot;
         CA_tot = CA_body_val + CA_fins_tot;
     
-        [~, CD_val] = calculate_CL_CD(CN_tot, CA_tot, alpha);
+        [~, CD_val] = calculate_CL_CD(CN_tot, CA_tot, rad2deg(alpha));
     
         CD_tot_mach(z, k) = CD_val;
     end
@@ -185,7 +185,7 @@ grid on;
 hold on;
 xlabel('\alpha [deg]');
 ylabel('C_L^{tot}');
-title('Total lift coefficient vs \alpha (body + fins)');
+title('Total lift coefficient vs \alpha (body + fins) - slender body theory');
 leg_str = arrayfun(@(Mval) sprintf('M = %.1f', Mval), M_cases, 'UniformOutput', false);
 legend(leg_str, 'Location', 'best');
 
@@ -203,3 +203,19 @@ legend(leg_str2, 'Location', 'best');
 
 
 end
+
+
+
+
+
+% -------------------------------- COMMENTI -------------------------------
+%
+% - "slender–body + crossflow" (Allen–Jørgensen / Fleeman model) per il
+%   calcolo del CN e CA del body (valido solo per M<=5)
+%
+% - Contributo delle alette per il calcolo del CN e CA (valido per ogni
+%   regime)
+% 
+% - Complessivamente il modello è valido solo per M <= 5
+%
+%--------------------------------------------------------------------------
