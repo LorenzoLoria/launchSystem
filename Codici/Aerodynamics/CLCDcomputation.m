@@ -143,6 +143,13 @@ CN_crossflow = eta .* Cdn .* Ap_over_A .* (sin(alpha).^2);
 
 % Somma totale
 CNbody = CN_slender + CN_crossflow;
+% 2) se M > 5 aggiungo contributo Newtoniano del blunt nose
+if Mach > 5
+    % area windward efficace del nose (~ Aref o Anose)
+    S_nose_wind = Aref;
+    CN_nose_newt = CN_newton_blunt(alpha, Mach, 1.4, S_nose_wind, Aref);
+    CNbody  = CNbody + CN_nose_newt;
+end
 
 %--------------------------------------------------------------------------
 %------------------------------FINS----------------------------------------
