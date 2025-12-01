@@ -38,7 +38,4 @@ mission.aerodynamics.finsInfo.rho = 1.225;
 mission.aerodynamics.finsInfo.vsound = 340;
 
 
-
-gasProp.gamma = 1.4;
-
 [CL,CD] = CLCDcomputation(2,deg2rad(3),283220,1,mission)

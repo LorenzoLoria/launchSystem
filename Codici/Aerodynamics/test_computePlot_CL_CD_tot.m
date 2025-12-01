@@ -4,10 +4,10 @@ clc;
 
 %% dati
 
-vector.M = 2;
-vector.M_cases = 2;
-vector.alpha_deg = 3;
-vector.alpha_deg_cases = [3];
+vector.M = 0.1:0.1:5;
+vector.M_cases = [0.8 2 3 4];
+vector.alpha_deg = linspace(-3,3,100);
+vector.alpha_deg_cases = [-3 0 3];
 
 
 
