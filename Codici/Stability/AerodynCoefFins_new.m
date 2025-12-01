@@ -23,6 +23,13 @@ function [CN_surf, CD0_surf_friction, CD0_surf_wave] = AerodynCoefFins_new(alpha
     A = be^2/Se;
     M_ale = M * cosd(lambda_le);
 
+    %Data SaturnV 
+    A = 3.2;
+    Se = 20.6;
+    delta_le = 20.6;
+    lambda_le = 36.9;
+
+
     % --- Normal force coefficient
     if M > sqrt(1 + (8/(pi*A))^2)
         CN_surf = ((4*abs(sin(alpha_p)*cos(alpha_p)) / sqrt(M^2 - 1)) + 2*sin(alpha_p)^2) * Se / Sref;

@@ -19,8 +19,8 @@ function Xcp = computeFlareXcp( lc1, lc2, lco, d, hf, db)
 
     % Compute center of pressure
     
-    l = lco + lc2 + lc1;
-    Xcp_over_d = (2/3)*(hf/d)*(S/Sb) + (1 - S/Sb)*(l/d) - (hf/d)*((dm^2)/(d^2) - 1)*(S/Sb);
+    l = lco + lc2 + lc1 + hf;
+    Xcp_over_d = (2/3)*(lco/d)*(S/Sb) + (1 - S/Sb)*(l/d) - (hf/d)*((dm^2)/(d^2) - 1)*(S/Sb);
 
     
     Xcp = Xcp_over_d * d;
