@@ -1,11 +1,7 @@
 
-alt = linspace(0,80e3,1000);
+function [soundspeed] = soundSpeedFun(h)
 
-lat=0;lon=0;
-for i = 1:length(alt)
-    h = alt(i);
-
-[Temperature,Dens] =  atmosnrlmsise00(h,lat,lon,2025,1,1);
+[Temperature,Dens] =  atmosnrlmsise00(h,0,0,2025,1,1);
 
 Temp   = Temperature(2);
 n.HE = Dens(1);
@@ -87,19 +83,9 @@ cp.N     = R.N /(gamma.N- 1) + R.N;
 
 cpMix      = massFrac.HE * cp.HE + massFrac.O * cp.O + massFrac.N2 * cp.N2 + massFrac.O2 * cp.O2 + massFrac.Ar * cp.Ar + massFrac.H * cp.H + massFrac.N * cp.N;
 cvMix      = massFrac.HE * cv.HE + massFrac.O * cv.O + massFrac.N2 * cv.N2 + massFrac.O2 * cv.O2 + massFrac.Ar * cv.Ar + massFrac.H * cv.H + massFrac.N * cv.N;
-gammaMix(i)   = cpMix/cvMix;
-massMolMix(i) = massFrac.HE * massMol.HE + massFrac.O * massMol.O + massFrac.N2 * massMol.N2 + massFrac.O2 * massMol.O2 + massFrac.Ar * massMol.Ar + massFrac.H * massMol.H + massFrac.N * massMol.N;
-RMix(i)       = 8314/massMolMix(i);
+gammaMix   = cpMix/cvMix;
+massMolMix = massFrac.HE * massMol.HE + massFrac.O * massMol.O + massFrac.N2 * massMol.N2 + massFrac.O2 * massMol.O2 + massFrac.Ar * massMol.Ar + massFrac.H * massMol.H + massFrac.N * massMol.N;
+RMix       = 8314/massMolMix;
 
-soundspeed(i)= sqrt(Temp*RMix(i)*gammaMix(i));
-
+soundspeed= sqrt(Temp*RMix*gammaMix);
 end
-
-figure
-plot(alt,gammaMix,'k')
-figure
-plot(alt,massMolMix,'k')
-figure
-plot(alt,RMix,'k')
-figure
-plot(alt,soundspeed,'k')
