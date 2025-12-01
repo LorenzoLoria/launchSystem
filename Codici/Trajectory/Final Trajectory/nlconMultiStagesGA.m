@@ -1,8 +1,8 @@
-function[cin,ceq] = nlconMultiStagesGA(x,mission,opt)
+function[cin,ceq] = nlconMultiStagesGA(x,mission,opt,option2D)
 
 thrustDataVec = x;
 
-[timeCollocation,stateCollocation] = totalTrajectory(mission,opt,thrustDataVec);
+[timeCollocation,stateCollocation] = totalTrajectory(mission,opt,thrustDataVec,option2D);
 
 A  = mission.capsule.Area;
 cD = mission.capsule.supersonicCD;

@@ -1,4 +1,4 @@
-function [timeCollocation, stateCollocation] = totalTrajectory(mission,opt,thrustDataVec)
+function [timeCollocation, stateCollocation] = totalTrajectory(mission,opt,thrustDataVec,option2D)
 
 persistent thrustDataVecPrev timeCollocationPrev stateCollocationPrev
 
@@ -25,7 +25,12 @@ timeCollocation = zeros(nDeval,nStages+1);
 
 latInitial = mission.launchBase.latInitial;
 lonInitial = mission.launchBase.lonInitial;
-omega = mission.target.omega ;
+
+if option2D == 1
+    omega =0;
+else
+    omega = mission.target.omega ;
+end
 vxInitial = - omega * mission.environment.rEarth * cos(latInitial) * sin(lonInitial) ;
 vyInitial = omega * mission.environment.rEarth * cos(latInitial) * cos(lonInitial) ;
 
@@ -43,7 +48,6 @@ for i = 1:nStages
         end
 
 
-
    tf = opt.stage{i}.mProp * (length(thrustDataVec(:,1,i))-1)* opt.stage{i}.Isp * mission.environment.g0 * 2 ;
    tf = tf / (opt.stage{i}.nEngines *opt.stage{i}.engine.thrust) / (2*sum(thrustDataVec(:,1,i)) - thrustDataVec(1,1,i) - thrustDataVec(end,1,i)) ;
    tSpan = [t0 t0+tf]; %da rivedere nel caso i tempi non vadano bene
@@ -54,7 +58,7 @@ for i = 1:nStages
 
     opt.m0Tot = m0;
     
-    [tt,xx] = launcherTrajectory(x0,mission,thrustData,tSpan,nDeval,i,opt);
+    [tt,xx] = launcherTrajectory(x0,mission,thrustData,tSpan,nDeval,i,opt,option2D);
     
     stateCollocation(:,:,i) = xx;
     timeCollocation(:,i) = tt;

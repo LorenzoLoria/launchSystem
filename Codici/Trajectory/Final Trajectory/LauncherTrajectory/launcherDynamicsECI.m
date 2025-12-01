@@ -1,5 +1,5 @@
 
-function dsdt = launcherDynamicsECI(t, x,thrustData, mission,stageNumber,opt)
+function dsdt = launcherDynamicsECI(t, x,thrustData, mission,stageNumber,opt,option2D)
 
 % LAUNCHERDYNAMICS  3D launcher equations of motion.
 %   This function computes the time derivative of the state vector for a 
@@ -51,10 +51,17 @@ function dsdt = launcherDynamicsECI(t, x,thrustData, mission,stageNumber,opt)
     
     optVar = thrustData(t); % thrustdata dovrebbe essere una funzione vettoriale con Tx,Ty,Tz
     
-   
+
+if option2D == 1
+    gammaGimball =deg2rad(optVar(2)) ;
+    thetaGimball =0;
+else
+    gammaGimball =deg2rad(optVar(2));
+    thetaGimball =deg2rad(optVar(3));
+end
+
 percVec = optVar(1);
-gammaGimball =deg2rad(optVar(2));
-thetaGimball =deg2rad(optVar(3));
+
 
 
 ThrustBRF = percVec * opt.stage{stageNumber}.nEngines *opt.stage{stageNumber}.engine.thrust* [cos(thetaGimball)*cos(gammaGimball); cos(thetaGimball)*sin(gammaGimball); sin(thetaGimball)];

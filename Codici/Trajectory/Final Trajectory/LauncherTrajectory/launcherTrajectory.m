@@ -1,4 +1,4 @@
-function [tt,xx] = launcherTrajectory(x0,mission,thrustData,tSpan,nDeval,stageNumber,opt)
+function [tt,xx] = launcherTrajectory(x0,mission,thrustData,tSpan,nDeval,stageNumber,opt,option2D)
 
 %persistent copyThrustData copytt copyxx
 
@@ -18,7 +18,7 @@ function [tt,xx] = launcherTrajectory(x0,mission,thrustData,tSpan,nDeval,stageNu
 
 options = odeset('RelTol',1e-6,'AbsTol',1e-2 ,'Events',@(t,x) propEvent(t,x, mission,opt.stage{stageNumber}.mProp,opt,stageNumber));
 
-solution = ode113(@(t,x) launcherDynamicsECI(t, x,thrustData, mission,stageNumber,opt), tSpan, x0,options);
+solution = ode113(@(t,x) launcherDynamicsECI(t, x,thrustData, mission,stageNumber,opt,option2D), tSpan, x0,options);
 
 tt = linspace(solution.x(1),solution.x(end),nDeval);
 

@@ -160,7 +160,7 @@ T0 = reshape(x_ga,mission.optimisation.GA.variables,3,2);
 %%
 thrustData = X ;
 
-[timeCollocation, stateCollocation] = totalTrajectory(mission,opt,thrustData);
+[timeCollocation, stateCollocation] = totalTrajectory(mission,opt,thrustData,0);
 figure(1)
 
 EarthPlot(mission.environment.rEarth)
@@ -220,3 +220,8 @@ title("Angle2")
 % plot(h)
 
 save('ThrustData','X')
+
+
+%%
+
+[q,an,at,T,D,angle,gamma] = externalLoads(timeCollocation,stateCollocation,mission,opt,thrustData);

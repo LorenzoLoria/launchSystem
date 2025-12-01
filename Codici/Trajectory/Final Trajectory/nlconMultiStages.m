@@ -1,13 +1,17 @@
-function[cin,ceq] = nlconMultiStages(x,mission,opt)
+function[cin,ceq] = nlconMultiStages(x,mission,opt,option2D)
 
 thrustDataVec = x;
 
-[timeCollocation,stateCollocation] = totalTrajectory(mission,opt,thrustDataVec);
+[timeCollocation,stateCollocation] = totalTrajectory(mission,opt,thrustDataVec,option2D);
 
 latInitial = mission.target.latInitial ;
 latFinal = latInitial ;
 lonInitial = mission.target.lonInitial ;
+if option2D == 1
+    omega = 0;
+else
 omega = mission.target.omega ;
+end
 lonFinal = lonInitial + omega * timeCollocation(end,end) ;
 targetFinalPos = 6371000*[cos(latFinal)*cos(lonFinal); cos(latFinal)*sin(lonFinal); sin(latFinal) ];
 
@@ -23,6 +27,6 @@ end
 accMax = max(accMaxStage);
 %cin = [(accMax-6*mission.environment.g0)/mission.environment.g0 ; (norm(stateCollocation(1:3,end,end) - targetFinalPos) - 5e3)/1e3];
 %ceq = norm(stateCollocation(1:3,end,end) - targetFinalPos);
-cin = [(accMax-6*mission.environment.g0)/mission.environment.g0 ; norm(stateCollocation(1:3,end,end) - targetFinalPos) - 2e3];
-ceq = [];
+cin = [(accMax-6*mission.environment.g0)/mission.environment.g0 ;];
+ceq = [ norm(stateCollocation(1:3,end,end) - targetFinalPos) ];
 end
