@@ -21,7 +21,7 @@ thrustData(:,:,2) =    [0.6357   80.9894   44.2025
 [timeCollocation, stateCollocation] = totalTrajectory(mission,opt,thrustData,1);
 alpha = deg2rad(3.5);
 
-[q,aCC_qMax,F,D,angle,gamma, mQmax,g, vQmax] = externalLoads(timeCollocation,stateCollocation,mission,opt,thrustData, alpha);
+[q,aCC_qMax,F,D,angle,gamma, mQmax,g, vQmax] = externalLoads(timeCollocation,stateCollocation,mission,opt,thrustData, deg2rad(3.5));
 
 nComponents = 8;
 nPointsPerComponent = 100;
