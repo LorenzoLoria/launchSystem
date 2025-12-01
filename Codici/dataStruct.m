@@ -163,7 +163,7 @@ optimisation.stage{2}.Isp = mission.launcher.engines{3}.isp;
 mission.aerodynamics.bodyGeom.l = 3;
 mission.aerodynamics.bodyGeom.d = 0.3;
 mission.aerodynamics.bodyGeom.Lnose = 0.6;
-mission.aerodynamics.bodyGeom.Aref = pi*(bodyGeom.d/2)^2; 
+mission.aerodynamics.bodyGeom.Aref = pi*(mission.aerodynamics.bodyGeom.d/2)^2; 
 mission.aerodynamics.bodyGeom.Anose = mission.aerodynamics.bodyGeom.Aref;
 mission.aerodynamics.bodyGeom.Abase = mission.aerodynamics.bodyGeom.Aref;
 mission.aerodynamics.bodyGeom.Aexit = 0;  
@@ -184,7 +184,7 @@ mission.aerodynamics.finsGeom.cmac = (2/3) * cr;       % mean aerodynamic chord 
 mission.aerodynamics.finsGeom.delta_le = 45;
 mission.aerodynamics.finsGeom.lambda_le = 0;
 mission.aerodynamics.finsGeom.b = 2 * cr;
-mission.aerodynamics.finsGeom.tmac = 0.08 * finsGeom.cmac;    
+mission.aerodynamics.finsGeom.tmac = 0.08 * mission.aerodynamics.finsGeom.cmac;    
 
 
 

@@ -37,10 +37,10 @@ function dsdt = launcherDynamicsECI(t, x,thrustData, mission,stageNumber,opt,opt
     r     = x(1:3);
     v     = x(4:6);
     m     = x(7);
-   
+
     
     A   = mission.capsule.Area;
-    Cd  = mission.capsule.supersonicCD;
+
     g0  = mission.environment.g0; 
     GM  = mission.environment.GM;
 
@@ -48,7 +48,10 @@ function dsdt = launcherDynamicsECI(t, x,thrustData, mission,stageNumber,opt,opt
     h   = norm(r)-mission.environment.rEarth;  
     %rho = interp1(mission.environment.altRange, mission.environment.rho, h, 'linear', 'extrap');
     rho = mission.environment.rhoFun(h);
+    dynamicPressure = 0.5 * rho * norm(v)^2;
     
+   [CL,CD,CN,CA] = CLCDcomputation(Mach,0,dynamicPressure,1,mission)
+   Cd  = mission.capsule.supersonicCD;
     optVar = thrustData(t); % thrustdata dovrebbe essere una funzione vettoriale con Tx,Ty,Tz
     
 

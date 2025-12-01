@@ -46,20 +46,4 @@ T(idx5) = 270.65;
 % Velocità del suono: a = sqrt(gamma * R * T)
 a = sqrt(gamma * R .* T);    % [m/s]
 
-% Plot
-figure;
-plot(h_range/1000, a, 'LineWidth', 1.5);
-grid on;
-hold on;
-xline(11, '--k', 'LineWidth', 1.5);
-xline(20, '--k', 'LineWidth', 1.5);
-xline(32, '--k', 'LineWidth', 1.5);
-xline(47, '--k', 'LineWidth', 1.5);
-xlabel('Altitude "h" [km]');
-ylabel('Sound speed "a" [m/s]');
-ylim([250 400])
-xlim([0 50])
-legend('Sound speed [m/s]', '11 km', '20 km', '32 km', '47 km');
-title('Sound speed variation in standard atmosphere (0–50 km)');
-
 end
