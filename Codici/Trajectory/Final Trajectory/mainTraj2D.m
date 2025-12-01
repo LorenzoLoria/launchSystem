@@ -120,3 +120,7 @@ title("Angle2")
 % plot(h)
 
 save('ThrustData','X')
+
+%%
+alpha = deg2rad(2);
+[q,aCC,T,DQmax,angle,gamma, mQmax,g, vQmax] = externalLoads(timeCollocation,stateCollocation,mission,opt,thrustData,alpha)

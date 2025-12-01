@@ -1,7 +1,7 @@
-function [q,aCC,T,DQmax,angle,gamma, mQmax,g, vQmax] = externalLoads(timeCollocation,stateCollocation,mission,opt,thrustData)
+function [q,dMaxQ,lMaxQ,aMaxQ,tMaxQ,g] = externalLoads(timeCollocation,stateCollocation,mission,opt,thrustData,alpha)
 
 vel = stateCollocation(4:6,:,1:end-1)-stateCollocation(4:6,1,1);
-vel = vel(1:3,:);
+vel = mission.Rfinal* vel(1:3,:);
 absVel = sqrt ( vel(1,:).^2+ vel(2,:).^2 + vel(3,:).^2 );
 
 normRocket = vel./absVel ;
@@ -20,57 +20,42 @@ q = 0.5*rhoVec.*(absVel).^2;
 timeStage = timeCollocation(:,1:end-1);
 timeStage = timeStage(:);
 
-% aCCVec = [diff(vel(1,:)) ; diff(vel(2,:));diff(vel(3,:))]./diff(timeStage)';
 
-ThrustTotal = zeros(3,size(vel,2));
-for i = 1:opt.nStages
+acc = [diff(vel(1,:))'./diff(timeStage),diff(vel(2,:))'./diff(timeStage),diff(vel(3,:))'./diff(timeStage)]';
 
-    t0 = timeCollocation(1,i);
-    tf = timeCollocation(end,i);
-    tSpan = [t0 t0+tf]; %da rivedere nel caso i tempi non vadano bene
-    
-    tVec = linspace(tSpan(1),tSpan(end),size(thrustData,1));    
-    fThrust = griddedInterpolant(tVec, thrustData(:,:,i), 'linear', 'none'); 
-    thrustFunction= @(t) fThrust(t).';
 
-    optVar = thrustFunction(timeCollocation(:,i));
-    absThrust = optVar(1,:) .* opt.stage{i}.nEngines .*opt.stage{i}.engine.thrust;
-    ThrustBRF = [absThrust;absThrust;absThrust].* [cos( deg2rad (optVar(3,:) )).*cos(deg2rad (optVar(2,:))); cos(deg2rad (optVar(3,:))).*sin(deg2rad (optVar(2,:))); sin(deg2rad (optVar(3,:)))];
-    ThrustIRF = mission.Rfinal'*ThrustBRF;
-    ThrustTotal(:,(i-1)*100+1: i*100) = ThrustIRF;
-end    
+[maxq,idx] = max(q);
 
-absThrust2 = sqrt ( ThrustTotal(1,:).^2+ ThrustTotal(2,:).^2 + ThrustTotal(3,:).^2 );
-angle = acos(dot(vel,ThrustTotal)./(absThrust2.*absVel) );
-T = absThrust2;
+vMaxQ = vel(:,idx);
+aMaxQ = acc(:,idx);
 
-[qmax,index] = max(q);
-ThrustIRFQmax = ThrustIRF(:,index);
+v1 = vMaxQ/norm(vMaxQ);
 
-T = T(index);
-angle = angle(index);
-rho = rhoVec(index);
-vQmax = absVel(index);
-mQmax = mass(index);
-g = mission.environment.GM * pos(:, index) / norm(pos(:, index))^3;
-% aQmax = aCCVec(:, index);
+v3 = [0;0;1];
 
-D = - q * mission.capsule.supersonicCD* mission.capsule.Area .* vel(:,:)/norm(vel(:,:));
-DQmax = D(:, index);
+v2 = cross(v3,v1)/norm(cross(v3,v1));
 
-aCC = (ThrustIRFQmax + DQmax)./mQmax + g;
-% aCC_qMax = aCC(:, index);
+rot = [v1,v2,v3];
 
-% an = dot(aCC,normRocket(:,:));
-% aTan = cross(aCC,normRocket(:,:));  % sbagliato
-% at = sqrt ( aTan(1,:).^2+ aTan(2,:).^2 + aTan(3,:).^2 );
-% an = an(index);
-% at = at(index);
+rot2 = [cos(alpha),-sin(alpha),0; sin(alpha),cos(alpha),0;0,0,1];
 
-distmaxq = pos(:,:,1);
+rot3 = rot2*rot;
 
-rVectorBoh = distmaxq(:,index);
+vMaxQ = rot3'*vMaxQ;     %check
+aMaxQ = rot3'*aMaxQ;
+massMaxQ = mass(idx);
+posMaxQ = pos(:,idx);
+%dsdt(4:6) = (ThrustIRF + D ) / m + G;  
 
-gamma = acos ( dot(-rVectorBoh,vel(:,index))/(norm(rVectorBoh)*norm(vel(:,index))) )-pi/2 ;
+Cl = 0;
+dMaxQ = -rot2*maxq * mission.capsule.supersonicCD*mission.capsule.Area* [1;0;0];
+lMaxQ = -rot2*maxq * Cl*mission.capsule.Area * [0;-1;0];
+g = -rot3'*mission.Rfinal* mission.environment.GM * posMaxQ /norm(posMaxQ)^3;
+
+tMaxQ = (aMaxQ - g)*massMaxQ - dMaxQ-lMaxQ;
+
+
+
+
 
 end
