@@ -21,7 +21,7 @@ thrustData(:,:,2) =    [0.6357   80.9894   44.2025
 [timeCollocation, stateCollocation] = totalTrajectory(mission,opt,thrustData);
 
 [q,aCC_qMax,F,D,angle,gamma, mQmax,g, vQmax] = externalLoads(timeCollocation,stateCollocation,mission,opt,thrustData);
-%%
+
 nComponents = 8;
 nPointsPerComponent = 100;
 m1Stage = mQmax - mission.capsule.weigth - opt.stage{2}.mStage;
@@ -32,7 +32,7 @@ launcher.lift = 0;
 % launcher.accelerationNormal = at;
 launcher.gamma = gamma;
 launcher.alpha = 0;
-launcher.g0 = mission.environment.g0;
+launcher.g0 = g;
 launcher.elementLength = [4,2,3,10,11,10,3,12];
 launcher.dragFins = 0;
 launcher.liftFins = 0;
