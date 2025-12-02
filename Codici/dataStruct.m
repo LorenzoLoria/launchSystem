@@ -45,7 +45,7 @@ mission.launcher.engines{3}.fuelDens = 71;
 mission.launcher.engines{3}.effAreaZero = 2.30^2/4*pi;
 mission.launcher.engines{3}.effAreaVac = 2.30^2/4*pi;
 
-mission.capsule.weigth = 8600;
+mission.capsule.weigth = 9600;
 mission.capsule.Area = 4^2*pi/4;
 mission.capsule.supersonicCD = 1.23;
 mission.capsule.subsonicCD = 0.45;
@@ -134,7 +134,7 @@ optimisation.nStages = 2;
 optimisation.stage{1}.engine = mission.launcher.engines{1};
 optimisation.stage{2}.engine = mission.launcher.engines{3};
 
-optimisation.stage{1}.nEngines = 5;
+optimisation.stage{1}.nEngines = 4;
 optimisation.stage{2}.nEngines = 1;
 
 mProp1 = optimisation.stage{1}.nEngines*optimisation.stage{1}.engine.thrust/9.81*0.5;
