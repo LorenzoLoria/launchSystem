@@ -24,6 +24,7 @@ tSpan = [0 500];
 
 %%
 
+
 % Initial Guess using GA
 obj_ga = @(x) objFunMultiStagesGA( reshape(x,mission.optimisation.GA.variables,2,2), mission,opt,1);
 nonlcon_ga = @(x) nlconMultiStagesGA( reshape(x,mission.optimisation.GA.variables,2,2), mission,opt,1);
@@ -134,8 +135,19 @@ figure
 plot([X(:,2,1);X(:,2,2)])
 title("Angle1")
 
-save('ThrustData','X')
+X = [X(:,1,1) ; X(:,2,1) ; X(:,1,2) ;  X(:,2,2)] ;
 
-%%
-alpha = deg2rad(2);
-[q,aCC,T,DQmax,angle,gamma, mQmax,g, vQmax] = externalLoads(timeCollocation,stateCollocation,mission,opt,thrustData,alpha)
+
+
+
+if norm(stateCollocation(1:3,end,end) - mission.target.initialPointECI) < 2000
+    
+    filename = 'ThrustData.mat';
+    if isfile(filename)
+    result = load(filename,"X");
+    X = [result.X,X];
+    end
+    % Risalvo tutto
+    save(filename, 'X');
+    
+end

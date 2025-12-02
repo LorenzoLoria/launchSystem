@@ -9,11 +9,10 @@ h =norm(x(1:3))-mission.environment.rEarth;
 rho = mission.environment.rhoFun(h);
 
 v = x(4:6) ;
-%dynamicPressure = 0.5 * rho * norm(v)^2;
-%[soundspeed] = soundSpeedFun(h);
-%Mach = norm(v)/soundspeed;
-%[CL,Cd,~,~] = CLCDcomputation(Mach,0,dynamicPressure,0,mission);
-Cd = mission.capsule.supersonicCD;
+
+[soundspeed] = mission.aerodynamics.soundspeedFun(h);
+Mach = norm(v)/soundspeed;
+Cd = Cd_CrewDragon(Mach);
 aeroForce = - 0.5 .* rho .* norm((v)) .* v .* mission.capsule.Area .* Cd ;
 
 % Initialize right-hand-side
