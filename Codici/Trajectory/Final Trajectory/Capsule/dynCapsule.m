@@ -9,10 +9,10 @@ h =norm(x(1:3))-mission.environment.rEarth;
 rho = mission.environment.rhoFun(h);
 
 v = x(4:6) ;
-dynamicPressure = 0.5 * rho * norm(v)^2;
-[soundspeed] = soundSpeedFun(h);
-Mach = norm(v)/soundspeed;
-[CL,Cd,~,~] = CLCDcomputation(Mach,0,dynamicPressure,0,mission);
+%dynamicPressure = 0.5 * rho * norm(v)^2;
+%[soundspeed] = soundSpeedFun(h);
+%Mach = norm(v)/soundspeed;
+%[CL,Cd,~,~] = CLCDcomputation(Mach,0,dynamicPressure,0,mission);
 Cd = mission.capsule.supersonicCD;
 aeroForce = - 0.5 .* rho .* norm((v)) .* v .* mission.capsule.Area .* Cd ;
 
