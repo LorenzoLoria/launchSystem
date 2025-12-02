@@ -42,17 +42,7 @@ M              = mission.structure.M; % Bending Moment [Nm] (from loadFinder) (V
 
 % ============================ SOLUTION ===================================
 
-% --- Associate the load to the correct component: the LV is divided into
-% payload, interstage between payload and II stage, II stage (pressurized),
-% interstage (II and I stage) and I stage (pressurized).
-
-payloadN = N(4);
-payloadT = T(4);
-payloadM = M(4);
-
-interstageN = N(4);
-interstageT = T(4);
-interstageM = M(4);
+% --- Associate the load to the correct component 
 
 t = zeros(nComponents, 1);
 mStruct = zeros(nComponents, 1);

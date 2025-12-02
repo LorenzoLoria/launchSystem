@@ -1,4 +1,5 @@
-function Xcp = computeXcp(l, d, h, hf, db)
+function Xcp = computeXcp(mission, opt)
+
 % Calculates the center of pressure of the launcher
 % Inputs:
 %   l   : total length of the launcher, [m]
@@ -10,15 +11,25 @@ function Xcp = computeXcp(l, d, h, hf, db)
 % Output:
 %   Xcp : center of pressure location (from top), [m]
 
-    S = pi*d^2/4; %reference surface area [m^2]
-    Sb = pi*db^2/4; %base surface area for volume normalization [m^2]
-  
-    % --- Compute nondimensional slender-body volume term v/(Sb*d)
-    volumeTerm = (l/d) - (2/3)*(h/d) + (1/3)*(hf/d)*( 2 - (db^2/d^2) - (db/d) )*(S/Sb);
+% =========================== DATA CONVERSION =============================
+l = mission.launcherLength;
+d = mission.diameter;
+h = mission.capsule.height;
+hf = 0;
+db = mission.diameter;
 
-    % --- Compute nondimensional center of pressure Xcp/d
-    Xcp_over_d = l/d - volumeTerm;
+% ========================== SOLUTION =====================================
 
-    % --- Convert to dimensional Xcp
-    Xcp = Xcp_over_d * d;
+S = pi*d^2/4; %reference surface area [m^2]
+Sb = pi*db^2/4; %base surface area for volume normalization [m^2]
+
+% --- Compute nondimensional slender-body volume term v/(Sb*d)
+volumeTerm = (l/d) - (2/3)*(h/d) + (1/3)*(hf/d)*( 2 - (db^2/d^2) - (db/d) )*(S/Sb);
+
+% --- Compute nondimensional center of pressure Xcp/d
+Xcp_over_d = l/d - volumeTerm;
+
+% --- Convert to dimensional Xcp
+Xcp = Xcp_over_d * d;
+
 end

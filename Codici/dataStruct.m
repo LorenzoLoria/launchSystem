@@ -45,10 +45,11 @@ mission.launcher.engines{3}.fuelDens = 71;
 mission.launcher.engines{3}.effAreaZero = 2.30^2/4*pi;
 mission.launcher.engines{3}.effAreaVac = 2.30^2/4*pi;
 
-mission.capsule.weigth = 9600;
+mission.capsule.weigth = 8600;
 mission.capsule.Area = 4^2*pi/4;
 mission.capsule.supersonicCD = 1.23;
 mission.capsule.subsonicCD = 0.45;
+mission.capsule.height = 2.9;
 
 mission.environment.altRange = (-1000:100:1000000);
 rhoVal = zeros(length(mission.environment.altRange),1);
@@ -264,9 +265,6 @@ mission.structure.diameter           = ones(8,1) * 4;
 
 % ========================= Structures ====================================
 
-mission.structure.nComponents = 8;
-mission.structure.elementLength = [4,2,3,10,11,10,3,12]; % da modificare con funzione constance
-
 mission.structure.SF = 2.5; % da verificare
 
 % Al2219 - cryogenic tanks and primary structures for 1st/2nd stage
@@ -276,8 +274,29 @@ mission.structure.yield    = 390e6;
 mission.structure.ultimate = 480e6;
 
 % Pressurizzazione serbatoi
-mission.structure.tankPressure       = [0, 0, 0, 3.4e5, 3.4e5, 3.4e5, 3.4e5, 0];
+mission.structure.tankPressure = [0, 0, 0, 3.4e5, 3.4e5, 3.4e5, 3.4e5, 0];
 
 % Dimensions 
-mission.structure.diameter           = ones(8,1) * 4;
+mission.structure.diameter = ones(mission.structure.nComponents,1) * 4;
+
+% Interstages
+mission.structure{1}.mInterstage = 480;
+mission.structure{2}.mInterstage = 480;
+mission.structure{3}.mInterstage = 480;
+
+mission.structure{1}.lengthInterstage = 3.5;
+mission.structure{2}.lengthInterstage = 3.5;
+mission.structure{3}.lengthInterstage = 3.5;
+
+% h = [xcp, h_pay/2-xcp, h_pay/2, 
+xcp = 1.2; % from the nose
+xcp_a = 5; % from the end
+mission.structure.elementLength = [xcp,mission.capsule.height/2-xcp,mission.capsule.height/2];
+
+for ii = opt.nStages:-1:1
+    mission.structure.elementLength = [ mission.structure.elementLength, mission.structure{ii}.lengthInterstage/2, mission.structure{ii}.lengthInterstage/2, optimisation.stage{ii}.length/2,optimisation.stage{ii}.length/2]; % da modificare con funzione constance
+end
+
+mission.structure.elementLength(end) = optimisation.stage{1}.length / 2 - xcp_a;
+mission.structure.elementLength(end+1) = xcp_a;
 end

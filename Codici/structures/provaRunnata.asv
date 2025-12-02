@@ -12,7 +12,6 @@ thrustData(:, :, 1) =     [0.992951743036793	26.174503353658913
 0.949721966745758	4.816713623391522
 0.917770387441014	73.262523254569814
 0.962817207168307	42.233780805019514];
-
 thrustData(:, :, 2) =    [0.609126028473365	8.838970511617315
 0.949237174404871	70.435231583491500
 0.702233911900803	1.003603356352884e+02
@@ -24,20 +23,8 @@ alpha = deg2rad(0);
 
 
 [mission] = externalLoads(timeCollocation,stateCollocation,mission,opt,thrustData, alpha);
-
-if opt.nStages == 1
-    mission.structure.nComponents = 8;
-elseif opt.nStages == 2
-    mission.structure.nComponents = 12;
-elseif opt.nStages == 3
-    mission.structure.nComponents = 16;
-end
-
-mission.structure.nNodes = mission.structure.nComponents + 1;
-
-% Nodes
-mission.structure.loadNodes = [2,3:2:mission.structure.nNodes-1,mission.structure.nNodes-1];
-
+if opt.
+mission.structure.loads
 [mission] = loadsFinder(mission, opt);
 
 N = mission.structure.N;
@@ -59,13 +46,13 @@ N_all = [];
 T_all = [];
 M_all = [];
 
-x_coordinates = cumsum([0, mission.structure.elementLength]); % defines the coordinates of
+x_coordinates = cumsum([0, launcher.elementLength]); % defines the coordinates of
 % start and finish of each component
 
 % Required for interpolation
 M_end_values = [M(2:end); 0];
 
-for i = 1:mission.structure.nComponents
+for i = 1:nComponents
     
     x_start = x_coordinates(i);
     x_end   = x_coordinates(i+1);

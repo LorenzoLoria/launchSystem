@@ -54,6 +54,8 @@ gMaxQ = -rot3'*mission.Rfinal* mission.environment.GM * posMaxQ /norm(posMaxQ)^3
 
 tMaxQ = (aMaxQ - gMaxQ)*massMaxQ - dMaxQ-lMaxQ;
 
+m1Stage = massMaxQ - mission.capsule.weigth - opt.stage{2}.mStage;
+
 % ==================== STRUCTURE DA ESTRARRE ==============================
 
 mission.structure.dynamicPressure   = maxq;
@@ -64,15 +66,10 @@ mission.structure.tMaxQ             = tMaxQ;
 mission.structure.massMaxQ          = massMaxQ;
 mission.structure.gMaxQ             = gMaxQ;
 
-m1Stage = opt.stage{1}.mStage + massMaxQ - opt.m0Tot;
-
 mission.structure.massMaxQ = [mission.capsule.weigth];
-
-for ii = opt.nStages:-1:1
-    mission.structure.massMaxQ = [mission.structure.massMaxQ, mission.structure{ii}.mInterstage, opt.stage{ii}.mStage];
+for ii = opt.nStages:2
+    mission.structure.massMaxQ = [mission.structure.massMaxQ, m1Stage];
 end
-
-mission.structure.massMaxQ(end) = m1Stage;
 
 % --- DA MODIFICARE
 mission.structure.dragFinsMaxQ = [0 0];
