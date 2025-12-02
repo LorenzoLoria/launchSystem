@@ -1,4 +1,4 @@
-function Xcp = computeXcp(mission, opt)
+function Xcp = computeXcp(mission)
 
 % Calculates the center of pressure of the launcher
 % Inputs:
