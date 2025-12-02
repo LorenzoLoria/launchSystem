@@ -7,36 +7,33 @@ close all
 % ==========================  DATI ========================================
 [mission, opt] = dataStruct;
 
-thrustData(:,:,1) =     [0.9880  -17.5905    3.0108
-    0.9617   24.7776    6.2794
-    0.9691    2.4299    9.6882
-    0.9000   -8.2757   34.2836
-    0.9253    5.9692   59.8887];
-thrustData(:,:,2) =    [0.6357   80.9894   44.2025
-    0.6141   -5.6012   77.1215
-    0.8019   30.9378   72.1261
-    0.6585   10.2303   85.1640
-    0.3508   29.7187   66.9287];
+thrustData(:, :, 1) =     [0.992951743036793	26.174503353658913
+0.918245484987595	5.524888452757455
+0.949721966745758	4.816713623391522
+0.917770387441014	73.262523254569814
+0.962817207168307	42.233780805019514];
+thrustData(:, :, 2) =    [0.609126028473365	8.838970511617315
+0.949237174404871	70.435231583491500
+0.702233911900803	1.003603356352884e+02
+0.845617612957625	52.146897489107950
+0.413941032471940	99.388409631182256];
     
 [timeCollocation, stateCollocation] = totalTrajectory(mission,opt,thrustData,1);
-alpha = deg2rad(3.5);
+alpha = deg2rad(0);
 
-[q,aCC_qMax,F,D,angle,gamma, mQmax,g, vQmax] = externalLoads(timeCollocation,stateCollocation,mission,opt,thrustData, alpha);
+[q,dMaxQ,lMaxQ,aMaxQ,tMaxQ, massMaxQ, g] = externalLoads(timeCollocation,stateCollocation,mission,opt,thrustData, alpha);
 
 nComponents = 8;
 nPointsPerComponent = 100;
-m1Stage = mQmax - mission.capsule.weigth - opt.stage{2}.mStage;
+m1Stage = massMaxQ - mission.capsule.weigth - opt.stage{2}.mStage;
 launcher.mass = [mission.capsule.weigth, opt.stage{2}.mStage, m1Stage];
-launcher.drag = D;
-launcher.lift = 0;
-% launcher.accelerationAxial = an;
-% launcher.accelerationNormal = at;
-launcher.gamma = gamma;
-launcher.alpha = 0;
+launcher.drag = dMaxQ;
+launcher.lift = lMaxQ;
+launcher.acceleration = aMaxQ;
 launcher.g0 = g;
 launcher.elementLength = [4,2,3,10,11,10,3,12];
-launcher.dragFins = 0;
-launcher.liftFins = 0;
+launcher.dragFins = [0 0];
+launcher.liftFins = [0 0];
 
 [N, T, M, A] = loadsFinder(nComponents, launcher);
 
