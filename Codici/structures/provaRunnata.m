@@ -21,7 +21,13 @@ thrustData(:, :, 2) =    [0.609126028473365	8.838970511617315
     
 [timeCollocation, stateCollocation] = totalTrajectory(mission,opt,thrustData,1);
 alpha = deg2rad(0);
-
+%% 
+plot3(stateCollocation(1,:,1), stateCollocation(2,:,1), stateCollocation(3,:,1))
+hold on
+plot3(stateCollocation(1,:,2), stateCollocation(2,:,2), stateCollocation(3,:,2))
+axis equal
+grid on
+%%
 
 [mission] = externalLoads(timeCollocation,stateCollocation,mission,opt,thrustData, alpha);
 

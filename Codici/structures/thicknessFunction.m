@@ -46,13 +46,29 @@ M              = mission.structure.M; % Bending Moment [Nm] (from loadFinder) (V
 % payload, interstage between payload and II stage, II stage (pressurized),
 % interstage (II and I stage) and I stage (pressurized).
 
+% --- Re-Definition of the loads
 payloadN = N(4);
 payloadT = T(4);
 payloadM = M(4);
 
-interstageN = N(4);
-interstageT = T(4);
-interstageM = M(4);
+interN = [];
+interT = [];
+interM = [];
+
+for ii=6:2:size(N)-3
+    interN = [interN, N(ii)];
+    interT = [interT, T(ii)];
+    interM = [interM, M(ii)];
+end
+
+firstStageN = N(end);
+firstStageT = T(end);
+firstStageM = M(end);
+
+newN = [payloadN, interN, firstStageN];
+newT = [payloadT, interT, firstStageT];
+newM = [payloadM, interM, firstStageM];
+
 
 t = zeros(nComponents, 1);
 mStruct = zeros(nComponents, 1);
@@ -60,10 +76,6 @@ stressMatrix = zeros(nComponents, 6);
 
 for i = 1 : nComponents
     if p(i) ~= 0
-        % % Loads
-        % longitudinalLoad = nx .* M * g0; % longitudinal load vector
-        % lateralLoad = nz .* M .* g0; % lateral force vector
-        % bendingMoment = lateralLoad .* hCM; % bending moment vector
         
         % Minimum Allowable Thicknesses
         tAxial = abs(- N(i) / (2 * pi * r(i)) - M(i) / (pi * r(i)^2) + p(i) * r(i) / 2 + rhoOX * nx * g0 * r(i) * h(i) / 2) / ultimateStress * SF;
