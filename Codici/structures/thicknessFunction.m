@@ -1,4 +1,4 @@
-function [mStruct, t, stressMatrix] = thicknessFunction(mission, nComponents)
+function [mission] = thicknessFunction(mission, ii)
 
 % Function required to size the launcher thickess of all the different 
 % components of the LV. Evaluation must be done in the most
@@ -18,24 +18,27 @@ function [mStruct, t, stressMatrix] = thicknessFunction(mission, nComponents)
 
 
 % ============================== DATA =====================================
-% M            = mission.launcher.mass; % total mass of the element considered [kg]
-r              = mission.launcher.diameter / 2; % radius of cylindrical section [m] (VECTOR)
-h              = mission.launcher.length; % length of the cylinder [m] (VECTOR)
-% hCM          = mission.launcher.hCM; % position of the center of mass [m] 
-nx             = mission.launcher.nx; % longitudinal load factor 
-% nz           = launcher.nz; % lateral load factor
+nComponents    = mission.structure.nComponents;
+
+r              = mission.structure.diameter / 2; % radius of cylindrical section of each body [m] (VECTOR)
+h              = mission.structure.elementLength; % length of each body [m] (VECTOR)
+a              = mission.structure.aMaxQ;
 g0             = mission.environment.g0; 
-SF             = mission.launcher.structures.SF; % safety factor
-ultimateStress = mission.launcher.structures.ultimate; % ultimate stress for chosen material [Pa]
-E              = mission.launcher.structures.E; % Young Modulus for chosen material [Pa]
+nx             = a(1) / g0; 
+SF             = mission.structure.SF; % safety factor
+
+ultimateStress = mission.structure.ultimate; % ultimate stress for chosen material [Pa]
+E              = mission.structure.E; % Young Modulus for chosen material [Pa]
 shearAllowable = ultimateStress / 2; % ultimate shear stress for chosen material [Pa]
-rhoOX          = mission.launcher.engines.oxDens; % density of the oxidizer [kg/m^3]
-% rhoFu        = mission.launcher.engines{ii}.fuDens; % density of the fuel [kg/m^3]
-rhoMaterial    = mission.launcher.structures.rho; % density of the chosen material [kg/m^3] 
-p              = mission.launcher.tankPressure; % pressure of component [Pa] (VECTOR)
-N              = mission.launcher.structures.N; % Axial Load [N] (from loadFinder) (VECTOR)
-T              = mission.launcher.structures.T; % Shear Load [N] (from loadFinder) (VECTOR)
-Mb             = mission.launcher.structures.Mb; % Bending Moment [Nm] (from loadFinder) (VECTOR)
+rhoMaterial    = mission.structure.rho; % density of the chosen material [kg/m^3] 
+
+rhoOX          = mission.launcher.engines{ii}.oxDens; % density of the oxidizer [kg/m^3]
+rhoFu          = mission.launcher.engines{ii}.fuelDens; % density of the fuel [kg/m^3]
+
+p              = mission.structure.tankPressure; % pressure of component [Pa] [nComponents x 1]
+N              = mission.structure.N(2:end-1); % Axial Load [N] (from loadFinder) (VECTOR)
+T              = mission.structure.T(2:end-1); % Shear Load [N] (from loadFinder) (VECTOR)
+Mb             = mission.structure.M(2:end-1); % Bending Moment [Nm] (from loadFinder) (VECTOR)
 
 % ============================ Solution ===================================
 
@@ -43,7 +46,7 @@ t = zeros(nComponents, 1);
 mStruct = zeros(nComponents, 1);
 stressMatrix = zeros(nComponents, 6);
 
-for i = 1 : nComponents
+for i = 1 : nComponents-1
     if p(i) ~= 0
         % % Loads
         % longitudinalLoad = nx .* M * g0; % longitudinal load vector
@@ -141,21 +144,12 @@ for i = 1 : nComponents
         mStruct(i) = volume .* rhoMaterial;
     end
 end
+
+% =========================== ESTRAZIONE ==================================
+
+mission.structure.mStruct = mStruct;
+mission.structure.thickness = t;
+mission.structure.stressMatrix = stressMatrix;
+
 end
 
-% --- Data
-% mass = 50000;
-% height = 8;
-% hCM = height / 2;
-% radius = 2.5 / 2;
-% thickness = 1e-3;
-% loadFactorX = 2.5; % depends on the most critical load condition
-% loadFactorZ = 0.2; % depends on the most critical load condition
-% g0 = 9.81;
-% safeyFactor = 1.25; % typically between 1.1 and 1.5
-% sigmaAllowableSteel = 1034e6;
-% sigmaAllowableAl = 448e6;
-% shearAllowableSteel = sigmaAllowableSteel / 2;
-% shearAllowableAl = sigmaAllowableAl / 2;
-% stiffnessSteel = 207e9;
-% stiffnessAl = 69e9;

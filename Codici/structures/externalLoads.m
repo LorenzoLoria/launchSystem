@@ -1,4 +1,4 @@
-function [q,dMaxQ,lMaxQ,aMaxQ,tMaxQ,massMaxQ,g] = externalLoads(timeCollocation,stateCollocation,mission,opt,thrustData,alpha)
+function [mission] = externalLoads(timeCollocation,stateCollocation,mission,opt,thrustData,alpha)
 
 vel = stateCollocation(4:6,:,1:end-1)-stateCollocation(4:6,1,1);
 vel = mission.Rfinal* vel(1:3,:);
@@ -50,12 +50,26 @@ posMaxQ = pos(:,idx);
 Cl = 0;
 dMaxQ = -rot2*maxq * mission.capsule.supersonicCD*mission.capsule.Area* [1;0;0];
 lMaxQ = -rot2*maxq * Cl*mission.capsule.Area * [0;-1;0];
-g = -rot3'*mission.Rfinal* mission.environment.GM * posMaxQ /norm(posMaxQ)^3;
+gMaxQ = -rot3'*mission.Rfinal* mission.environment.GM * posMaxQ /norm(posMaxQ)^3;
 
-tMaxQ = (aMaxQ - g)*massMaxQ - dMaxQ-lMaxQ;
+tMaxQ = (aMaxQ - gMaxQ)*massMaxQ - dMaxQ-lMaxQ;
 
+m1Stage = massMaxQ - mission.capsule.weigth - opt.stage{2}.mStage;
 
+% ==================== STRUCTURE DA ESTRARRE ==============================
 
+mission.structure.dynamicPressure   = maxq;
+mission.structure.dMaxQ             = dMaxQ;
+mission.structure.lMaxQ             = lMaxQ;
+mission.structure.aMaxQ             = aMaxQ;
+mission.structure.tMaxQ             = tMaxQ;
+mission.structure.massMaxQ          = massMaxQ;
+mission.structure.gMaxQ             = gMaxQ;
+mission.structure.massMaxQ = [mission.capsule.weigth, opt.stage{2}.mStage, m1Stage];
+
+% --- DA MODIFICARE
+mission.structure.dragFinsMaxQ = [0 0];
+mission.structure.liftFinsMaxQ = [0 0];
 
 
 end

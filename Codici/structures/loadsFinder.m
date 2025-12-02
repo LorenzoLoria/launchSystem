@@ -1,4 +1,4 @@
-function [N, T, M, A] = loadsFinder(nComponents, launcher)
+function [mission] = loadsFinder(mission, opt)
 
 % Builds matrix A required to solve the linear system Ax = b where:
 % A = matrix that encodes the equilibrium equations
@@ -10,41 +10,44 @@ function [N, T, M, A] = loadsFinder(nComponents, launcher)
 % mission: struct containing the data needed
 % ======================== DATA CONVERSION ================================
 
-m       = launcher.mass;    
+nComponents = mission.structure.nComponents;
+nStages      = opt.nStages;
+
+m       = mission.structure.massMaxQ;    
 mPay    = m(1); % payload mass
 m2      = m(2); % second stage
 m1      = m(3); % first  stage
 
 % Drag
-drag    = launcher.drag;
+drag    = mission.structure.dMaxQ;
 dragN = drag(1);
 dragT = drag(2);
 
 % Lift
-lift    = launcher.lift;   
+lift    = mission.structure.lMaxQ;   
 liftN   = lift(1);
 liftT   = lift(2);
 
 % Gravity
-g0      = launcher.g0;
+g0      = mission.structure.gMaxQ;
 gN      = g0(1);
 gT      = g0(2);
 
 % Acceleration
-a       = launcher.acceleration;
+a       = mission.structure.aMaxQ;
 aN      = a(1); 
 aT      = a(2);    
 
 % Element of the elements
-h       = launcher.elementLength;
+h       = mission.structure.elementLength;
 
 % Fins' Lift
-liftFins = launcher.liftFins;
+liftFins  = mission.structure.liftFinsMaxQ;
 liftFinsN = liftFins(1);
 liftFinsT = liftFins(2);
 
 % Fins' Drag
-dragFins = launcher.dragFins;
+dragFins  = mission.structure.dragFinsMaxQ;
 dragFinsN = dragFins(1);
 dragFinsT = dragFins(2);
 
@@ -101,56 +104,116 @@ end
 % ==================== CREATION OF LOAD VECTOR b ==========================
 b = zeros(3 * nNodes, 1);
 
-% Node 1
-b(1) = 0;
-b(2) = 0;
-b(3) = 0;
+if nStages == 2
+    % Node 1
+    b(1) = 0;
+    b(2) = 0;
+    b(3) = 0;
+    
+    % Node 2
+    b(4) = dragN + liftN;
+    b(5) = dragT + liftT;
+    b(6) = 0;
+    
+    % Node 3
+    b(7) = mPay * (gN - aN);
+    b(8) = mPay * (gT - aT);
+    b(9) = 0;
+    
+    % Node 4
+    b(10) = 0;
+    b(11) = 0;
+    b(12) = 0;
+    
+    % Node 5 
+    b(13) = m2 * (gN - aN);
+    b(14) = m2 * (gT - aT);
+    b(15) = 0;
+    
+    % Node 6
+    b(16) = 0;
+    b(17) = 0;
+    b(18) = 0;
+    
+    % Node 7
+    b(19) = m1 * (gN - aN);
+    b(20) = m1 * (gT - aT);
+    b(21) = 0;
+    
+    % Node 8
+    b(22) = dragFinsN + liftFinsN;
+    b(23) = dragFinsT + liftFinsT;
+    b(24) = 0; 
+    
+    % Node 9
+    b(25) = 0;
+    b(26) = 0;
+    b(27) = 0;
 
-% Node 2
-b(4) = dragN + liftN;
-b(5) = dragT + liftT;
-b(6) = 0;
+else if nStages == 3
+    
+    % Node 1
+    b(1) = 0;
+    b(2) = 0;
+    b(3) = 0;
+    
+    % Node 2
+    b(4) = dragN + liftN;
+    b(5) = dragT + liftT;
+    b(6) = 0;
+    
+    % Node 3
+    b(7) = mPay * (gN - aN);
+    b(8) = mPay * (gT - aT);
+    b(9) = 0;
+    
+    % Node 4
+    b(10) = 0;
+    b(11) = 0;
+    b(12) = 0;
+    
+    % Node 5 
+    b(13) = m3 * (gN - aN);
+    b(14) = m3 * (gT - aT);
+    b(15) = 0;
+    
+    % Node 6
+    b(16) = 0;
+    b(17) = 0;
+    b(18) = 0;
+    
+    % Node 7 
+    b(19) = m2 * (gN - aN);
+    b(20) = m2 * (gT - aT);
+    b(21) = 0;
 
-% Node 3
-b(7) = mPay * (gN - aN);
-b(8) = mPay * (gT - aT);
-b(9) = 0;
-
-% Node 4
-b(10) = 0;
-b(11) = 0;
-b(12) = 0;
-
-% Node5 
-b(13) = m2 * (gN - aN);
-b(14) = m2 * (gT - aT);
-b(15) = 0;
-
-% Node 6
-b(16) = 0;
-b(17) = 0;
-b(18) = 0;
-
-% Node 7
-b(19) = m1 * (gN - aN);
-b(20) = m1 * (gT - aT);
-b(21) = 0;
-
-% Node 8
-b(22) = dragFinsN + liftFinsN;
-b(23) = dragFinsT + liftFinsT;
-b(24) = 0; 
-
-% Node 9
-b(25) = 0;
-b(26) = 0;
-b(27) = 0;
+    % Node 8
+    b(22) = 0;
+    b(23) = 0;
+    b(24) = 0;
+    
+    % Node 9
+    b(25) = m1 * (gN - aN);
+    b(26) = m1 * (gT - aT);
+    b(27) = 0;
+    
+    % Node 10
+    b(28) = dragFinsN + liftFinsN;
+    b(29) = dragFinsT + liftFinsT;
+    b(30) = 0; 
+    
+    % Node 11
+    b(31) = 0;
+    b(32) = 0;
+    b(33) = 0;
+end
+end
 
 % =========================== SOLUTION ====================================
 loads = A \ b;
 
-N = loads(1:3:end);
-T = loads(2:3:end);
-M = loads(3:3:end);
+mission.structure.N = loads(1:3:end);
+mission.structure.T = loads(2:3:end);
+mission.structure.M = loads(3:3:end);
 
 end

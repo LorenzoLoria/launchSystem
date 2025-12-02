@@ -21,23 +21,23 @@ thrustData(:, :, 2) =    [0.609126028473365	8.838970511617315
 [timeCollocation, stateCollocation] = totalTrajectory(mission,opt,thrustData,1);
 alpha = deg2rad(0);
 
-[q,dMaxQ,lMaxQ,aMaxQ,tMaxQ, massMaxQ, g] = externalLoads(timeCollocation,stateCollocation,mission,opt,thrustData, alpha);
+[mission] = externalLoads(timeCollocation,stateCollocation,mission,opt,thrustData, alpha);
 
-nComponents = 8;
+[mission] = loadsFinder(mission, opt);
+
+N = mission.structure.N;
+T = mission.structure.T;
+M = mission.structure.M;
+
+
+%% ============================== Thickness ================================
+
+engineUsed = 1;
+mission    = thicknessFunction(mission, engineUsed);
+
+%% ============================== PLOTS ===================================
+
 nPointsPerComponent = 100;
-m1Stage = massMaxQ - mission.capsule.weigth - opt.stage{2}.mStage;
-launcher.mass = [mission.capsule.weigth, opt.stage{2}.mStage, m1Stage];
-launcher.drag = dMaxQ;
-launcher.lift = lMaxQ;
-launcher.acceleration = aMaxQ;
-launcher.g0 = g;
-launcher.elementLength = [4,2,3,10,11,10,3,12];
-launcher.dragFins = [0 0];
-launcher.liftFins = [0 0];
-
-[N, T, M, A] = loadsFinder(nComponents, launcher);
-
-%% ============================== PLOTS ====================================
 
 x_all = [];
 N_all = [];
@@ -73,29 +73,48 @@ for i = 1:nComponents
     M_all = [M_all, M_current];
 end
 
+% --- Figura 1: Axial Load ---
 figure(1); 
-plot(x_all, N_all, 'LineWidth', 1.5, 'Color', 'b');
+ar1 = area(x_all, N_all); 
+% Proprietà grafiche
+ar1.FaceColor = 'b';       % Colore riempimento (blu)
+ar1.FaceAlpha = 0.3;       % Trasparenza (0 = invisibile, 1 = solido)
+ar1.EdgeColor = 'b';       % Colore della linea superiore
+ar1.LineWidth = 1.0;       % Spessore linea (meno spessa di 1.5)
+
 hold on
-yline(0, 'LineWidth', 1.5)
+yline(0, 'LineWidth', 1.5, 'Color', 'k') % Linea zero nera per contrasto
 grid on;
 xlabel('x [m]');
 ylabel('Axial Load [N]');
-xlim([0,x_all(end)])
+xlim([0, x_all(end)])
 
+% --- Figura 2: Shear Load ---
 figure(2); 
-plot(x_all, T_all, 'LineWidth', 1.5, 'Color', 'b');
+ar2 = area(x_all, T_all);
+ar2.FaceColor = 'b';
+ar2.FaceAlpha = 0.3;
+ar2.EdgeColor = 'b';
+ar2.LineWidth = 1.0;
+
 hold on
-yline(0, 'LineWidth', 1.5)
+yline(0, 'LineWidth', 1.5, 'Color', 'k')
 grid on;
 xlabel('x [m]');
 ylabel('Shear Load [N]');
-xlim([0,x_all(end)])
+xlim([0, x_all(end)])
 
-figure; 
-plot(x_all, M_all, 'LineWidth', 1.5, 'Color', 'b');
+% --- Figura 3: Bending Moment ---
+figure(3); 
+ar3 = area(x_all, M_all);
+ar3.FaceColor = 'b';
+ar3.FaceAlpha = 0.3;
+ar3.EdgeColor = 'b';
+ar3.LineWidth = 1.0;
+
 hold on
-yline(0, 'LineWidth', 1)
+yline(0, 'LineWidth', 1.5, 'Color', 'k')
 grid on;
 xlabel('x [m]');
 ylabel('Bending Moment [Nm]');
-xlim([0,x_all(end)])
+xlim([0, x_all(end)])

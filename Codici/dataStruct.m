@@ -261,4 +261,23 @@ mission.structure.tankPressure       = [0, 0, 0, 3.4e5, 3.4e5, 3.4e5, 3.4e5, 0];
 % Dimensions 
 mission.structure.diameter           = ones(8,1) * 4;
 
+
+% ========================= Structures ====================================
+
+mission.structure.nComponents = 8;
+mission.structure.elementLength = [4,2,3,10,11,10,3,12]; % da modificare con funzione constance
+
+mission.structure.SF = 2.5; % da verificare
+
+% Al2219 - cryogenic tanks and primary structures for 1st/2nd stage
+mission.structure.rho      = 2840;
+mission.structure.E        = 72e9;
+mission.structure.yield    = 390e6;
+mission.structure.ultimate = 480e6;
+
+% Pressurizzazione serbatoi
+mission.structure.tankPressure       = [0, 0, 0, 3.4e5, 3.4e5, 3.4e5, 3.4e5, 0];
+
+% Dimensions 
+mission.structure.diameter           = ones(8,1) * 4;
 end
