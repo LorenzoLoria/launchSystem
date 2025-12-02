@@ -1,17 +1,16 @@
-function [CN_surf, CD0_surf_friction, CD0_surf_wave] = AerodynCoefFins_new(alpha_p, vlauncher, vsound, be, Se, q, Sref, cmac, delta_le, lambda_le, b, tmac)
+function [CN_surf, CD0_surf_friction, CD0_surf_wave] = AerodynCoefFins_new(alpha_p,A, vlauncher, vsound, Se, q, Sref, cmac, delta_le, lambda_le,b, tmac)
 % Calculates aerodynamic coefficients for fins
 % Inputs:
-%   alpha_p    : angle of attack [rad]
+%   alpha_p    : local angle of attack [rad]
 %   vlauncher  : speed of launcher at time t [m/s]
 %   vsound     : speed of sound at time t [m/s]
-%   be         : equivalent span of the fin [m]
+%   b          : span of the fins [m]
 %   q          : dynamic pressure at time t [Pa]
 %   Se         : surface of the fin [m^2]
 %   Sref       : reference surface [m^2]
 %   cmac       : mean aerodynamic chord of fin [m]
 %   delta_le   : leading edge sweep [deg]
 %   lambda_le  : fin base angle [deg]
-%   b          : 2*length of base of fin [m]
 %   tmac       : max thickness of MAC [m]
 %
 % Outputs:
@@ -20,14 +19,13 @@ function [CN_surf, CD0_surf_friction, CD0_surf_wave] = AerodynCoefFins_new(alpha
 %   CD0_surf_wave     : wave drag coefficient
 
     M = vlauncher/vsound;
-    A = be^2/Se;
     M_ale = M * cosd(lambda_le);
 
-    %Data SaturnV 
-    A = 3.2;
-    Se = 20.6;
-    delta_le = 20.6;
-    lambda_le = 36.9;
+    %Data proportional SaturnV 
+    % A = 5.3;
+    % Se = be^2*0.1875;
+    % delta_le = 20.6;
+    % lambda_le = 36.9;
 
 
     % --- Normal force coefficient
