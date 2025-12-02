@@ -1,4 +1,4 @@
-function [q,dMaxQ,lMaxQ,aMaxQ,tMaxQ,g] = externalLoads(timeCollocation,stateCollocation,mission,opt,thrustData,alpha)
+function [q,dMaxQ,lMaxQ,aMaxQ,tMaxQ,massMaxQ,g] = externalLoads(timeCollocation,stateCollocation,mission,opt,thrustData,alpha)
 
 vel = stateCollocation(4:6,:,1:end-1)-stateCollocation(4:6,1,1);
 vel = mission.Rfinal* vel(1:3,:);

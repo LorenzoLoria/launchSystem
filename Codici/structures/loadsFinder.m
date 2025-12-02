@@ -9,20 +9,46 @@ function [N, T, M, A] = loadsFinder(nComponents, launcher)
 % nComponents: number of components in which the LV is discretized;
 % mission: struct containing the data needed
 % ======================== DATA CONVERSION ================================
+
 m       = launcher.mass;    
 mPay    = m(1); % payload mass
 m2      = m(2); % second stage
 m1      = m(3); % first  stage
-drag    = launcher.drag;         
-aN      = launcher.accelerationAxial; 
-aT      = launcher.accelerationNormal;
-gamma   = launcher.gamma;        
-alpha   = launcher.alpha;      
-lift    = launcher.lift;         
+
+% Drag
+drag    = launcher.drag;
+dragN = drag(1);
+dragT = drag(2);
+
+% Lift
+lift    = launcher.lift;   
+liftN   = lift(1);
+liftT   = lift(2);
+
+% Gravity
 g0      = launcher.g0;
-h       = launcher.elementLength; % length of the element
+gN      = g0(1);
+gT      = g0(2);
+
+% Acceleration
+a       = launcher.acceleration;
+aN      = a(1); 
+aT      = a(2);    
+
+% Element of the elements
+h       = launcher.elementLength;
+
+% Fins' Lift
 liftFins = launcher.liftFins;
+liftFinsN = liftFins(1);
+liftFinsT = liftFins(2);
+
+% Fins' Drag
 dragFins = launcher.dragFins;
+dragFinsN = dragFins(1);
+dragFinsT = dragFins(2);
+
+% Number of nodes
 nNodes  = nComponents + 1;
 
 % ===================== Creation of A Matrix ==============================
@@ -81,13 +107,13 @@ b(2) = 0;
 b(3) = 0;
 
 % Node 2
-b(4) = - drag * cos(alpha) - lift * sin(alpha);
-b(5) = - drag * sin(alpha) + lift * cos(alpha);
+b(4) = dragN + liftN;
+b(5) = dragT + liftT;
 b(6) = 0;
 
 % Node 3
-b(7) = - mPay * (g0 * sin(gamma) + aN);
-b(8) = - mPay * (g0 * cos(gamma) + aT);
+b(7) = mPay * (gN - aN);
+b(8) = mPay * (gT - aT);
 b(9) = 0;
 
 % Node 4
@@ -96,8 +122,8 @@ b(11) = 0;
 b(12) = 0;
 
 % Node5 
-b(13) = -m2 * (aN + g0 * sin(gamma));
-b(14) = -m2 * (aT + g0 * cos(gamma));
+b(13) = m2 * (gN - aN);
+b(14) = m2 * (gT - aT);
 b(15) = 0;
 
 % Node 6
@@ -106,13 +132,13 @@ b(17) = 0;
 b(18) = 0;
 
 % Node 7
-b(19) = - m1 * (aN + g0 * sin(gamma));
-b(20) = - m1 * (aT + g0 * cos(gamma));
+b(19) = m1 * (gN - aN);
+b(20) = m1 * (gT - aT);
 b(21) = 0;
 
 % Node 8
-b(22) = - dragFins * cos(alpha) - liftFins * sin(alpha);
-b(23) = liftFins * cos(alpha) - dragFins * sin(alpha);
+b(22) = dragFinsN + liftFinsN;
+b(23) = dragFinsT + liftFinsT;
 b(24) = 0; 
 
 % Node 9
