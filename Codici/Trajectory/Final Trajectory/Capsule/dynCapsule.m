@@ -7,17 +7,14 @@ function [dxdt] = dynCapsule(~, x,mission, windDirection)
 GM = mission.environment.GM;
 h =norm(x(1:3))-mission.environment.rEarth; 
 rho = mission.environment.rhoFun(h);
-%Modello vento preso da MIMP
 
-
-h = norm(x(1:3)) / 1e3 - mission.environment.rEarth / 1e3; %[km]
-windIntensity = (6.9288 * h + 9.144).*(h<9.6) + 76.2 .* (h>=9.6 && h<14) +...
-                (76.2-8.9474 * (h-14)) .* (h>=14 && h<20) + 24.384 .* (h>=20) ; 
-windIntensity = 0;
-
-windVelocity = x(4:6) - windIntensity * windDirection ;
-
-aeroForce = - 0.5 .* rho .* norm((windVelocity)) .* windVelocity .* mission.capsule.Area .* mission.capsule.supersonicCD ;
+v = x(4:6) ;
+dynamicPressure = 0.5 * rho * norm(v)^2;
+[soundspeed] = soundSpeedFun(h);
+Mach = norm(v)/soundspeed;
+[CL,Cd,~,~] = CLCDcomputation(Mach,0,dynamicPressure,0,mission);
+Cd = mission.capsule.supersonicCD;
+aeroForce = - 0.5 .* rho .* norm((v)) .* v .* mission.capsule.Area .* Cd ;
 
 % Initialize right-hand-side
 dxdt = zeros(6,1);

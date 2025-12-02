@@ -45,13 +45,18 @@ function dsdt = launcherDynamicsECI(t, x,thrustData, mission,stageNumber,opt,opt
     GM  = mission.environment.GM;
 
     % Interpolate air density based on current altitude
+    warning off
     h   = norm(r)-mission.environment.rEarth;  
     %rho = interp1(mission.environment.altRange, mission.environment.rho, h, 'linear', 'extrap');
     rho = mission.environment.rhoFun(h);
     dynamicPressure = 0.5 * rho * norm(v)^2;
-    
-   [CL,CD,CN,CA] = CLCDcomputation(Mach,0,dynamicPressure,1,mission)
-   Cd  = mission.capsule.supersonicCD;
+    [soundspeed] = mission.aerodynamics.soundspeedFun(h);
+    Mach = norm(v)/soundspeed;
+    if Mach == 0
+        Cd = 0.01;
+    else
+    [~,Cd,~,~] = CLCDcomputation(Mach,0,dynamicPressure,1,mission);
+    end
     optVar = thrustData(t); % thrustdata dovrebbe essere una funzione vettoriale con Tx,Ty,Tz
     
 

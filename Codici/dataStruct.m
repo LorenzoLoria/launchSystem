@@ -198,5 +198,9 @@ mission.aerodynamics.bodyInfo.Cdn = 1.2;
 mission.aerodynamics.finsInfo.rho = 1.225;
 mission.aerodynamics.finsInfo.vsound = 340;
 
+alt = linspace(0,500000,100);
+soundSpeedVec = load("soundspeed.mat");
+soundSpeedVec = linspace(soundSpeedVec.soundspeed(1),soundSpeedVec.soundspeed(end),100);
+mission.aerodynamics.soundspeedFun = @(h) interp1(alt,soundSpeedVec,h,"linear","extrap");
 
 end

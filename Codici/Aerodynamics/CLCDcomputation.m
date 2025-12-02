@@ -109,12 +109,15 @@ end
 % -----------------------------
 % (C_A)_f ≈ 0.091 * (L/d) * ( M / (q * L) )^0.2
 % q = pressione dinamica [Pa], L in [m]
-
-CA_f = 0.091 * lambda .* ( Mach ./ (q * l) ).^0.2;
-
+if Mach ==0
+    CA_f = 0;
+else
+    CA_f = 0.091 * lambda .* ( Mach ./ (q * l) ).^0.2;
+end
 % -----------------------------
 % 4) C_A,alpha=0 e dipendenza in alpha
 % -----------------------------
+
 CA0 = CAW + CA_B + CA_f;
 
 % C_A,body(M, alpha) = C_A,alpha=0(M) * cos^2(alpha)
