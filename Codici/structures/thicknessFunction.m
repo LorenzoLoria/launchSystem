@@ -35,7 +35,7 @@ rhoMaterial    = mission.structure.rho; % density of the chosen material [kg/m^3
 rhoOX          = mission.launcher.engines{ii}.oxDens; % density of the oxidizer [kg/m^3]
 rhoFu          = mission.launcher.engines{ii}.fuelDens; % density of the fuel [kg/m^3]
 
-p              = mission.structure.tankPressure; % pressure of component [Pa] [nComponents x 1]
+p              = mission.structure.tankPressure; % pressure of component [Pa] [partsNumber x 1]
 N              = mission.structure.N; % Axial Load [N] (from loadFinder) (VECTOR)
 T              = mission.structure.T; % Shear Load [N] (from loadFinder) (VECTOR)
 M              = mission.structure.M; % Bending Moment [Nm] (from loadFinder) (VECTOR)
@@ -65,16 +65,17 @@ firstStageN = N(end);
 firstStageT = T(end);
 firstStageM = M(end);
 
-newN = [payloadN, interN, firstStageN];
-newT = [payloadT, interT, firstStageT];
-newM = [payloadM, interM, firstStageM];
+N = [payloadN, interN, firstStageN]';
+T = [payloadT, interT, firstStageT]';
+M = [payloadM, interM, firstStageM]';
 
+partsNumber = size(N, 1);
 
-t = zeros(nComponents, 1);
-mStruct = zeros(nComponents, 1);
-stressMatrix = zeros(nComponents, 6);
+t = zeros(partsNumber, 1);
+mStruct = zeros(partsNumber, 1);
+stressMatrix = zeros(partsNumber, 6);
 
-for i = 1 : nComponents
+for i = 1 : partsNumber
     if p(i) ~= 0
         
         % Minimum Allowable Thicknesses
