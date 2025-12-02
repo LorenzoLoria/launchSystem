@@ -175,7 +175,9 @@ optimisation.stage{2}.structuralMass = mS2;
 %optimisation.stage{2}.ispVac = mission.launcher.engines{2}.ispVac;
 
 
-
+optimisation.stage{1}.length = 30;
+optimisation.stage{2}.length = 15;
+optimisation.stage{3}.length = 10;
 
 
 
@@ -280,21 +282,22 @@ mission.structure.tankPressure = [0, 0, 0, 3.4e5, 3.4e5, 3.4e5, 3.4e5, 0];
 mission.structure.diameter = ones(mission.structure.nComponents,1) * 4;
 
 % Interstages
-mission.structure{1}.mInterstage = 480;
-mission.structure{2}.mInterstage = 480;
-mission.structure{3}.mInterstage = 480;
+mission.structures{1}.mInterstage = 480;
+mission.structures{2}.mInterstage = 480;
+mission.structures{3}.mInterstage = 480;
 
-mission.structure{1}.lengthInterstage = 3.5;
-mission.structure{2}.lengthInterstage = 3.5;
-mission.structure{3}.lengthInterstage = 3.5;
+mission.structures{1}.lengthInterstage = 3.5;
+mission.structures{2}.lengthInterstage = 3.5;
+mission.structures{3}.lengthInterstage = 3.5;
 
-% h = [xcp, h_pay/2-xcp, h_pay/2, 
+% h = [xcp, h_pay/2-xcp, h_pay/2, h_inter/2, h_inter/2, h_stage/2,
+% h_stage/2]
 xcp = 1.2; % from the nose
 xcp_a = 5; % from the end
 mission.structure.elementLength = [xcp,mission.capsule.height/2-xcp,mission.capsule.height/2];
 
-for ii = opt.nStages:-1:1
-    mission.structure.elementLength = [ mission.structure.elementLength, mission.structure{ii}.lengthInterstage/2, mission.structure{ii}.lengthInterstage/2, optimisation.stage{ii}.length/2,optimisation.stage{ii}.length/2]; % da modificare con funzione constance
+for ii = optimisation.nStages:-1:1
+    mission.structure.elementLength = [ mission.structure.elementLength, mission.structures{ii}.lengthInterstage/2, mission.structures{ii}.lengthInterstage/2, optimisation.stage{ii}.length/2,optimisation.stage{ii}.length/2]; % da modificare con funzione constance
 end
 
 mission.structure.elementLength(end) = optimisation.stage{1}.length / 2 - xcp_a;

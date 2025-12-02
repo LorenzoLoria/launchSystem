@@ -69,7 +69,7 @@ m1Stage = opt.stage{1}.mStage + massMaxQ - opt.m0Tot;
 mission.structure.massMaxQ = [mission.capsule.weigth];
 
 for ii = opt.nStages:-1:1
-    mission.structure.massMaxQ = [mission.structure.massMaxQ, mission.structure{ii}.mInterstage, opt.stage{ii}.mStage];
+    mission.structure.massMaxQ = [mission.structure.massMaxQ, mission.structures{ii}.mInterstage, opt.stage{ii}.mStage];
 end
 
 mission.structure.massMaxQ(end) = m1Stage;
