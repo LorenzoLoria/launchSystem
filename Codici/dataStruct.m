@@ -7,6 +7,10 @@ mission.launcher.engines{1}.name = 'Merlin1D' ;
 mission.launcher.engines{2}.name = 'Raptor' ;
 mission.launcher.engines{3}.name = 'RS-25' ;
 
+mission.launcher.engines{1}.couple = 'RP1-LOX' ;
+mission.launcher.engines{2}.couple = 'CH4-LOX' ;
+mission.launcher.engines{3}.couple = 'LH2-LOX' ;
+
 mission.launcher.engines{1}.ispZero = 283;
 mission.launcher.engines{1}.ispVac = 311;
 
