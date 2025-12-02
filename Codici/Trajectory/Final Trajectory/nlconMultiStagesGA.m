@@ -20,12 +20,15 @@ for i = 1:opt.nStages
     time      = linspace(timeCollocation(1,i),timeCollocation(end,i),length(timeCollocation)-1);
     v         = stateCollocation(4:6,:,i);
     vNorm     = sqrt( stateCollocation(4,:,i).^2 + stateCollocation(5,:,i).^2 +stateCollocation(6,:,i).^2 );
-    acc       = diff(vNorm)./(time(2)-time(1));
+    accx      = diff(v(1,:))./(time(2)-time(1));
+    accy      = diff(v(2,:))./(time(2)-time(1));
+    accz      = diff(v(3,:))./(time(2)-time(1));
+    acc       = sqrt( accx.^2 + accy.^2 + accz.^2);
     accMaxStage(i) = max(acc);
 end
 accMax = max(accMaxStage);
 
-cin = [accMax-5*mission.environment.g0 ];% [norm(stateCollocation(1:3,end,end) - mission.target) , accMax-8*mission.environment.g0];
+cin = [accMax-6*mission.environment.g0 ];% [norm(stateCollocation(1:3,end,end) - mission.target) , accMax-8*mission.environment.g0];
 ceq = [];
 
 end
