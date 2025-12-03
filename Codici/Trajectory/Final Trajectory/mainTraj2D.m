@@ -29,10 +29,10 @@ tSpan = [0 500];
 obj_ga = @(x) objFunMultiStagesGA( reshape(x,mission.optimisation.GA.variables,2,2), mission,opt,1);
 nonlcon_ga = @(x) nlconMultiStagesGA( reshape(x,mission.optimisation.GA.variables,2,2), mission,opt,1);
 
-lbFmincon(:,:,1) = [0.9*ones(mission.optimisation.GA.variables,1);0*ones(mission.optimisation.GA.variables,1)];
+lbFmincon(:,:,1) = [0.1*ones(mission.optimisation.GA.variables,1);0*ones(mission.optimisation.GA.variables,1)];
 ubFmincon(:,:,1) = [ones(mission.optimisation.GA.variables,1);90*ones(mission.optimisation.GA.variables,1)];
 
-lbFmincon(:,:,2) = [0.4*ones(mission.optimisation.GA.variables,1);0*ones(mission.optimisation.GA.variables,1)];
+lbFmincon(:,:,2) = [0.1*ones(mission.optimisation.GA.variables,1);0*ones(mission.optimisation.GA.variables,1)];
 ubFmincon(:,:,2) = [ones(mission.optimisation.GA.variables,1);120*ones(mission.optimisation.GA.variables,1)];
 
 lbGA = lbFmincon(:);
@@ -87,7 +87,7 @@ thrustData = X ;
 
 [timeCollocation, stateCollocation] = totalTrajectory(mission,opt,thrustData,1);
 figure(1)
-
+%%
 EarthPlot(mission.environment.rEarth)
 hold on
 plot3(stateCollocation(1,:,1),stateCollocation(2,:,1),stateCollocation(3,:,1),'r')
@@ -105,10 +105,12 @@ hold off
 %%
 
 figure
-plot(timeCollocation(:),[stateCollocation(7,:,1),stateCollocation(7,:,2) ,stateCollocation(7,:,3)]/1000)
+plot(timeCollocation(1:200),[stateCollocation(7,:,1),stateCollocation(7,:,2)]/1000,'b','LineWidth',2)
 title("Mass")
+grid on
+axis equal
 
-
+%%
 figure
 plot(diff([stateCollocation(7,:,1),stateCollocation(7,:,2) ,stateCollocation(7,:,3)]))
 title("Mass flow rate")
@@ -130,12 +132,12 @@ title("Accelerations")
 
 
 figure
-plot([X(:,1,1);X(:,1,2)])
+plot([thrustData(:,1,1);thrustData(:,1,2)])
 title("Throttling")
 
 
 figure
-plot([X(:,2,1);X(:,2,2)])
+plot([thrustData(:,2,1);thrustData(:,2,2)])
 title("Angle1")
 
 X = [X(:,1,1) ; X(:,2,1) ; X(:,1,2) ;  X(:,2,2)] ;
@@ -143,7 +145,7 @@ X = [X(:,1,1) ; X(:,2,1) ; X(:,1,2) ;  X(:,2,2)] ;
 
 
 
-if norm(stateCollocation(1:3,end,end) - mission.target.initialPointECI) < 2000
+if norm(stateCollocation(1:3,end,end) - mission.target.initialPointECI) < 2000 && timeCollocation(end,end)<4500
     
     filename = 'ThrustData.mat';
     if isfile(filename)
@@ -154,3 +156,4 @@ if norm(stateCollocation(1:3,end,end) - mission.target.initialPointECI) < 2000
     save(filename, 'X');
     
 end
+

@@ -19,7 +19,7 @@ thrustDataVecPrev = thrustDataVec ;
 nStages = opt.nStages;
 m0Tot = opt.m0Tot;
  
-nDeval = 100;
+nDeval = opt.nDeval;
 stateCollocation = zeros(7,nDeval,nStages+1);
 timeCollocation = zeros(nDeval,nStages+1);
 
@@ -47,7 +47,7 @@ for i = 1:nStages
             m0 = m0-opt.stage{i-1}.mStage;
             x0 = [stateCollocation(1:3,end,i-1); stateCollocation(4:6,end,i-1); m0];
             t0 = timeCollocation(end,i-1);
-             tf = opt.stage{i}.mProp * (length(thrustDataVec(:,1,i))-1)* opt.stage{i}.engine.ispVac * mission.environment.g0 * 2 ;
+            tf = opt.stage{i}.mProp * (length(thrustDataVec(:,1,i))-1)* opt.stage{i}.engine.ispVac * mission.environment.g0 * 2 ;
 
         end
 

@@ -57,7 +57,7 @@ function dsdt = launcherDynamicsECI(t, x,thrustData, mission,stageNumber,opt,opt
     else
     [~,Cd,~,~] = CLCDcomputation(Mach,0,dynamicPressure,1,mission);
     end
-    optVar = thrustData(t); % thrustdata dovrebbe essere una funzione vettoriale con Tx,Ty,Tz
+    optVar = thrustData(t); 
     
 
 if option2D == 1
@@ -105,5 +105,5 @@ ThrustIRF = mission.Rfinal'*ThrustBRF;
     % Mass derivative
     dsdt(7) = mDot; 
 
-  
+
 end

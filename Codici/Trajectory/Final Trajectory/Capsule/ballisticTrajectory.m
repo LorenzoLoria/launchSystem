@@ -11,7 +11,7 @@ tt = copyttCaps;
 xx = copyxxCaps;
 else 
 
-tSpan = [t0 3*24*3600];
+tSpan = [t0 3*3600];
 
 options = odeset('RelTol',1e-6,'AbsTol',1e-2,'Events',@groundEvent);
 
