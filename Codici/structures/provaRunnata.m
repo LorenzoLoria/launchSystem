@@ -21,13 +21,6 @@ thrustData(:, :, 2) =    [0.609126028473365	8.838970511617315
     
 [timeCollocation, stateCollocation] = totalTrajectory(mission,opt,thrustData,1);
 alpha = deg2rad(0);
-%% 
-plot3(stateCollocation(1,:,1), stateCollocation(2,:,1), stateCollocation(3,:,1))
-hold on
-plot3(stateCollocation(1,:,2), stateCollocation(2,:,2), stateCollocation(3,:,2))
-axis equal
-grid on
-%%
 
 [mission] = externalLoads(timeCollocation,stateCollocation,mission,opt,thrustData, alpha);
 
@@ -44,17 +37,55 @@ mission.structure.nNodes = mission.structure.nComponents + 1;
 % Nodes
 mission.structure.loadNodes = [2,3:2:mission.structure.nNodes-1,mission.structure.nNodes-1];
 
-[mission] = loadsFinder(mission, opt);
+% Length of the components of the LV
+mission.structure.componentLength = [mission.capsule.height];
+
+for ii = opt.nStages:-1:1
+    mission.structure.componentLength = [ mission.structure.componentLength, mission.structures{ii}.lengthInterstage, opt.stage{ii}.length];
+end
+
+% Computation of position of xCp and xCp_a (fins)
+mission.launcherLength = cumsum(mission.structure.componentLength);
+mission.launcherLength = mission.launcherLength(end);
+
+mission.diameter = mission.structure.diameter;
+xcp = computeXcp(mission);
+%% 
+
+
+xcp_a = 5; % from the end
+
+% Length of the element used for structural analysis
+mission.structure.elementLength = [xcp,mission.capsule.height/2-xcp,mission.capsule.height/2];
+
+for ii = opt.nStages:-1:1
+    mission.structure.elementLength = [ mission.structure.elementLength, mission.structures{ii}.lengthInterstage/2, mission.structures{ii}.lengthInterstage/2, opt.stage{ii}.length/2,opt.stage{ii}.length/2];
+end
+
+mission.structure.elementLength(end) = opt.stage{1}.length / 2 - xcp_a;
+mission.structure.elementLength(end+1) = xcp_a;
+
+% ====================== CALCOLO AZIONI INTERNE ===========================
+[mission] = loadsFinder(mission);
 
 N = mission.structure.N;
 T = mission.structure.T;
 M = mission.structure.M;
 
 
-%% ============================== Thickness ================================
+% ==================== SPESSORE E MASSA STRUTTURA =========================
 
 engineUsed = 1;
 mission    = thicknessFunction(mission, engineUsed);
+
+thick_mm = mission.structure.thickness * 1e3;   % [mm]
+fprintf('Thicknesses of the structures starting from the nose are:\n');
+fprintf('  %.3f mm\n', thick_mm);  % stampa un valore per riga
+mStruct_ton = mission.structure.mStruct * 1e-3; % [ton]
+fprintf('Masses of the structures starting from the nose are:\n');
+fprintf('  %.3f tons\n', mStruct_ton);
+
+
 
 %% ============================== PLOTS ===================================
 
