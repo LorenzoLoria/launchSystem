@@ -1,4 +1,4 @@
-function Xcp_total = computetotalFinXcp(N, alpha, lc1, lc2, lco, vlauncher, vsound, cmac, be, Se, Sref)
+function Xcp_total = computetotalFinXcp(opt, mission, vlauncher, vsound, be, Se, Sref)
 % computeTotalFinXcp Computes the total center of pressure of the vehicle including fins
 %
 % Inputs:
@@ -8,7 +8,6 @@ function Xcp_total = computetotalFinXcp(N, alpha, lc1, lc2, lco, vlauncher, vsou
 %   lco       : cone length [m]
 %   vlauncher : launcher speed [m/s]
 %   vsound    : speed of sound [m/s]
-%   cmac      : fin mean chord [m]
 %   be        : fin axial base [m]
 %   Se        : fin surface area [m^2]
 %   Sref      : vehicle reference area [m^2]
@@ -16,8 +15,11 @@ function Xcp_total = computetotalFinXcp(N, alpha, lc1, lc2, lco, vlauncher, vsou
 % Output:
 %   Xcp_total : combined center of pressure [m]
 
+    N     = opt.nStages;
+    cmac = mission.aerodynamics.finsGeom.cmac ;
+
     % --- Body CP
-    Xcp_body = computeXcp(N, alpha, lc1, lc2, lco);
+    Xcp_body = computeXcpcomputeXcp(mission, opt);
 
     % --- If stage 1, include fins
     if N == 2
@@ -25,11 +27,17 @@ function Xcp_total = computetotalFinXcp(N, alpha, lc1, lc2, lco, vlauncher, vsou
         Xcp_fin = computeFinXcp(vlauncher, vsound, cmac, be, Se);
 
         % Estimate fin normal force coefficient
-        alpha_p = alpha;        % small angle, in radians
-        b       = be/2;         % fin span
-        delta_le = 20;          % example leading edge sweep [deg]
-        lambda_le = 36.9;       % example base angle [deg]
-        tmac = 0.1*cmac;        % max thickness
+        alpha_p = mission.alpha;    % small angle, in radians
+        b       = be/2;             % fin span
+      % b = mission.aerodynamics.finsGeom.b ;
+        delta_le = 20;              % example leading edge sweep [deg]
+      % delta_le = mission.aerodynamics.finsGeom.delta_le ;
+        lambda_le = 36.9;           % example base angle [deg]
+      % lambda_le = mission.aerodynamics.finsGeom.lambda_le
+      
+        tmac = 0.1*cmac;            % max thickness
+      % tmac = mission.aerodynamics.finsGeom.tmac ;
+      
         q = 0.5*1.225*vlauncher^2;  % dynamic pressure, rho=1.225 kg/m3
 
         [CN_fin, ~, ~] = AerodynCoefFins_new(alpha_p, be^2/Se, vlauncher, vsound, Se, q, Sref, cmac, delta_le, lambda_le, b, tmac);

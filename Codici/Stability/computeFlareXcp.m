@@ -1,4 +1,4 @@
-function Xcp = computeFlareXcp( lc1, lc2, lco, d, hf, db)
+function Xcp = computeFlareXcp( mission, opt, d, hf, db)
 % Calculates the center of pressure of the launcher with a single flare at
 % the end
 % Inputs:
@@ -11,6 +11,11 @@ function Xcp = computeFlareXcp( lc1, lc2, lco, d, hf, db)
 %
 % Output:
 %   Xcp  : center of pressure location (from top), [m]
+
+    lco = mission.capsule.height;
+    lc1 = opt.stage{1}.length;
+    lc2 = opt.stage{2}.length;
+    lc3 = opt.stage{3}.length;
 
     % Reference areas
     S  = pi*d^2/4;   % reference surface area [m^2]

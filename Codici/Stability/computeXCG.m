@@ -1,5 +1,6 @@
-function Xcg = computeXCG(N, lc1, lc2, lco, m, mc2, mco)
+function Xcg = computeXCG(mission, opt, m)
 % Computes the center of gravity Xcg of a two-stage launcher with a nose cone
+% Assumption: Uniform Weight Distribution 
 %
 % Inputs:
 %   N        : number of stages 
@@ -12,25 +13,57 @@ function Xcg = computeXCG(N, lc1, lc2, lco, m, mc2, mco)
 % Output:
 %   Xcg      : center of gravity measured from the top of the launcher
 
-% Stage 1
-if N == 2
-    m1 = m-mc2-mco;
-    X1 = lco + lc2 + lc1/2;
-    m2 = mc2;
-    X2 = lco + lc2/2;
-elseif N == 1
-    m1 = 0;
-    X1 = 0;
-    m2 = m - mco; 
-    X2 = lco + lc2/2;
-else
-    m1 = 0;
-    X1 = 0;
-    m2 = 0;
-    X2 = 0;
-end
+    N = opt.nStages;
+    
+    % Payload Data
+    lco = mission.capsule.height;
+    mco = mission.capsule.weigth;
+    Xco = lco / 2; 
 
-% CG calculation
-Xcg = (m1*X1 + m2*X2 + mco*lco/2) / m;
+    
+    if N == 3
+        mc3 = opt.stage{3}.engine; 
+        mc2 = opt.stage{2}.engine; 
+        lc3 = opt.stage{3}.length;
+        lc2 = opt.stage{2}.length;
+        lc1 = opt.stage{1}.length;
+      
+        m3 = mc3; 
+        m2 = mc2;
+        m1 = m - mc3 - mc2 - mco; 
+
+        X3 = lco + lc3/2;               
+        X2 = lco + lc3 + lc2/2;         
+        X1 = lco + lc3 + lc2 + lc1/2;   
+        
+        momentSum = (m1*X1) + (m2*X2) + (m3*X3);
+
+    elseif N == 2
+        mc2 = opt.stage{2}.engine; 
+        lc2 = opt.stage{2}.length;
+        lc1 = opt.stage{1}.length;
+        
+      
+        m2 = mc2;
+        m1 = m - m2 - mco;
+        
+        X2 = lco + lc2/2;
+        X1 = lco + lc2 + lc1/2;
+        
+        momentSum = (m1*X1) + (m2*X2);
+
+    elseif N == 1
+    
+        lc1 = opt.stage{1}.length;
+        
+        m1 = m - mco;
+        
+        X1 = lco + lc1/2;
+        
+        momentSum = (m1*X1);
+        
+    end
+
+    Xcg = (momentSum + mco*Xco) / m;
 
 end
