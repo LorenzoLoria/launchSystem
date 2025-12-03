@@ -20,9 +20,9 @@ thrustData(:, :, 2) =    [0.609126028473365	8.838970511617315
 0.413941032471940	99.388409631182256];
     
 [timeCollocation, stateCollocation] = totalTrajectory(mission,opt,thrustData,1);
-alpha = deg2rad(0);
+mission.alpha = deg2rad(0);
 
-[mission] = externalLoads(timeCollocation,stateCollocation,mission,opt,thrustData, alpha);
+[mission] = externalLoads(timeCollocation,stateCollocation,mission,opt,thrustData, mission.alpha);
 
 if opt.nStages == 1
     mission.structure.nComponents = 8;
@@ -49,11 +49,10 @@ mission.launcherLength = cumsum(mission.structure.componentLength);
 mission.launcherLength = mission.launcherLength(end);
 
 mission.diameter = mission.structure.diameter;
-xcp = computeXcp(mission);
-%% 
+xcp = computeXcp(mission, opt);
+xcp_a = computeFinXcp(mission);
 
-
-xcp_a = 5; % from the end
+%%
 
 % Length of the element used for structural analysis
 mission.structure.elementLength = [xcp,mission.capsule.height/2-xcp,mission.capsule.height/2];

@@ -202,17 +202,17 @@ mission.aerodynamics.bodyGeom.Ap = mission.aerodynamics.bodyGeom.l * mission.aer
 
 
 
-cr   = 0.35;                      % root chord [m]
-ct   = 0.0;                       % tip chord [m] (triangolo puro)
-s    = 0.20;                      % semispan [m]
+mission.aerodynamics.rootChord   = 1.81;                      % root chord [m]
+mission.aerodynamics.tipChord   = 0.45;                       % tip chord [m] (triangolo puro)
+mission.aerodynamics.semispan    = 1.81;                      % semispan [m]
 
 mission.aerodynamics.finsGeom.Nfins = 1;
-mission.aerodynamics.finsGeom.be = s;                  % span equivalente ~ semispan reale
-mission.aerodynamics.finsGeom.Se = 0.5 * cr * s;       % area della fin [m^2]
-mission.aerodynamics.finsGeom.cmac = (2/3) * cr;       % mean aerodynamic chord [m]
+mission.aerodynamics.finsGeom.be = mission.aerodynamics.semispan;                  % span equivalente ~ semispan reale
+mission.aerodynamics.finsGeom.Se = 0.5 * mission.aerodynamics.rootChord * mission.aerodynamics.semispan;       % area della fin [m^2]
+mission.aerodynamics.finsGeom.cmac = (2/3) * mission.aerodynamics.rootChord;       % mean aerodynamic chord [m]
 mission.aerodynamics.finsGeom.delta_le = 45;
 mission.aerodynamics.finsGeom.lambda_le = 0;
-mission.aerodynamics.finsGeom.b = 2 * cr;
+mission.aerodynamics.finsGeom.b = 2 * mission.aerodynamics.rootChord;
 mission.aerodynamics.finsGeom.tmac = 0.08 * mission.aerodynamics.finsGeom.cmac;    
 
 
