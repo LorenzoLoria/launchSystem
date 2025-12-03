@@ -1,4 +1,4 @@
-function [mission] = loadsFinder(mission, opt)
+function [mission] = loadsFinder(mission)
 
 % Builds matrix A required to solve the linear system Ax = b where:
 % A = matrix that encodes the equilibrium equations
@@ -93,7 +93,7 @@ for i = 1:nComponents
     
     A(rM, cM_down) =  1;   % + M(i+1)
     A(rM, cM_up)   = -1;   % - M(i)
-    A(rM, cT_down)   = h(i);   % T(i+1) * lunghezza
+    A(rM, cT_down) = h(i);   % T(i+1) * lunghezza
     
 end
 

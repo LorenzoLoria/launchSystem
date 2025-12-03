@@ -1,35 +1,38 @@
-function Xcp = computeXcp(mission)
-
+function Xcp = computeXcp(mission, opt)
 % Calculates the center of pressure of the launcher
 % Inputs:
-%   l   : total length of the launcher, [m]
-%   d   : reference diameter of launcher, [m]
-%   h   : cone length (head of the launcher), [m]
-%   hf  : flare length (0 if no flare), [m]
-%   db  : flare base diameter, [m]
-%
+%   N : number of stage (variable, depends on flight condition)
+%   alpha   : angle of attack [deg]
+%   lc1, lc2, lc3   : length of stages 1, 2 and 3, [m]
+%   li1, li2, li3   : length of interstages 1, 2 and 3 [m]
+%   lco   : length of cone, [m]
 % Output:
 %   Xcp : center of pressure location (from top), [m]
 
-% =========================== DATA CONVERSION =============================
-l = mission.launcherLength;
-d = mission.diameter;
-h = mission.capsule.height;
-hf = 0;
-db = mission.diameter;
 
-% ========================== SOLUTION =====================================
+% ========================== DATA CONVERSION ==============================
+N = opt.nStages;
+alpha = mission.alpha;
+lco = mission.capsule.height;
+lc1 = opt.stage{1}.length;
+lc2 = opt.stage{2}.length;
+lc3 = opt.stage{3}.length;
+li1 = mission.structures{1}.lengthInterstage;
+li2 = mission.structures{2}.lengthInterstage;
+li3 = mission.structures{3}.lengthInterstage;
 
-S = pi*d^2/4; %reference surface area [m^2]
-Sb = pi*db^2/4; %base surface area for volume normalization [m^2]
+% ============================ SOLUTION ===================================
+if N == 3
+    l = lco + li3 + lc3 + li2 + lc2  + li1 + lc1; 
+elseif N == 2
+    l = lco + li2 + lc2 + li1 + lc1;
+elseif N == 1
+    l = lco + + li2 + lc2;
+else
+    l = lco;
+end
 
-% --- Compute nondimensional slender-body volume term v/(Sb*d)
-volumeTerm = (l/d) - (2/3)*(h/d) + (1/3)*(hf/d)*( 2 - (db^2/d^2) - (db/d) )*(S/Sb);
-
-% --- Compute nondimensional center of pressure Xcp/d
-Xcp_over_d = l/d - volumeTerm;
-
-% --- Convert to dimensional Xcp
-Xcp = Xcp_over_d * d;
+Xcp_over_l = 0.63*(1-(sin(alpha))^2)+ 0.5*l/lco*(sin(alpha))^2;
+Xcp = Xcp_over_l*lco;
 
 end
