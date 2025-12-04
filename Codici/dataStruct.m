@@ -187,7 +187,7 @@ optimisation.stage{3}.length = 10;
 optimisation.nDeval = 100;
 
 
-% Aerodynamics
+% ============================ Aerodynamics ===============================
 
 mission.aerodynamics.bodyGeom.l = 3;
 mission.aerodynamics.bodyGeom.d = 0.3;
