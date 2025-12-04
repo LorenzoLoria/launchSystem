@@ -1,0 +1,1 @@
+function  [objective] = objFunGlobalGA(x,mission,opt,option2D)

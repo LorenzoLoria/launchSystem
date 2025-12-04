@@ -42,17 +42,17 @@ for i = 1:nStages
             x0 = [mission.launchBase.initialPointECI'; vxInitial; vyInitial; 0;  m0];
             t0 = 0;
             tf = opt.stage{i}.mProp * (length(thrustDataVec(:,1,i))-1)* opt.stage{i}.engine.ispZero * mission.environment.g0 * 2 ;
-
+            thrustValue = opt.stage{i}.engine.thrustZero;
         else
             m0 = m0-opt.stage{i-1}.mStage;
             x0 = [stateCollocation(1:3,end,i-1); stateCollocation(4:6,end,i-1); m0];
             t0 = timeCollocation(end,i-1);
             tf = opt.stage{i}.mProp * (length(thrustDataVec(:,1,i))-1)* opt.stage{i}.engine.ispVac * mission.environment.g0 * 2 ;
-
+            thrustValue = opt.stage{i}.engine.thrustVacum;
         end
 
 
-     tf = tf / (opt.stage{i}.nEngines *opt.stage{i}.engine.thrust) / (2*sum(thrustDataVec(:,1,i)) - thrustDataVec(1,1,i) - thrustDataVec(end,1,i)) ;
+     tf = tf / (opt.stage{i}.nEngines * thrustValue) / (2*sum(thrustDataVec(:,1,i)) - thrustDataVec(1,1,i) - thrustDataVec(end,1,i)) ;
      tSpan = [t0 t0+tf]; %da rivedere nel caso i tempi non vadano bene
     
     tVec = linspace(tSpan(1),tSpan(end),size(thrustDataVec,1));    

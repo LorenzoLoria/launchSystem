@@ -5,16 +5,20 @@ mission = struct();
 
 mission.launcher.engines{1}.name = 'Merlin1D' ;
 mission.launcher.engines{2}.name = 'Raptor' ;
-mission.launcher.engines{3}.name = 'RS-25' ;
+mission.launcher.engines{3}.name = 'Vinci' ;
+mission.launcher.engines{4}.name = 'RS-25' ;
 
 mission.launcher.engines{1}.couple = 'RP1-LOX' ;
 mission.launcher.engines{2}.couple = 'CH4-LOX' ;
 mission.launcher.engines{3}.couple = 'LH2-LOX' ;
+mission.launcher.engines{4}.couple = 'LH2-LOX' ;
+
 
 mission.launcher.engines{1}.ispZero = 283;
 mission.launcher.engines{1}.ispVac = 311;
 
-mission.launcher.engines{1}.thrust = 854*1e3;
+mission.launcher.engines{1}.thrustZero = 854*1e3;
+mission.launcher.engines{1}.thrustVacum = 981*1e3;
 mission.launcher.engines{1}.weight = 470;
 mission.launcher.engines{1}.OF = 2.36;
 mission.launcher.engines{1}.oxDens = 1143;
@@ -31,7 +35,8 @@ mission.launcher.engines{1}.m0 =208e3;% mission.launcher.engines{1}.mPropellant1
 
 mission.launcher.engines{2}.ispZero = 350;
 mission.launcher.engines{2}.ispVac = 380;
-mission.launcher.engines{2}.thrust = 2750*1e3;
+mission.launcher.engines{2}.thrustZero = 2750*1e3;
+mission.launcher.engines{2}.thrustVacum = 2986 *1e3;
 mission.launcher.engines{2}.weight = 1525;
 mission.launcher.engines{2}.OF = 3.6;
 mission.launcher.engines{2}.oxDens = 1143;
@@ -39,15 +44,28 @@ mission.launcher.engines{2}.fuelDens = 423;
 mission.launcher.engines{2}.effAreaZero = 1.3^2/4*pi;
 mission.launcher.engines{2}.effAreaVac = 3.09^2/4*pi;
 
-mission.launcher.engines{3}.ispZero = 366;
-mission.launcher.engines{3}.ispVac = 452;
-mission.launcher.engines{3}.thrust = 1860*1e3;
-mission.launcher.engines{3}.weight = 3526;
-mission.launcher.engines{3}.OF = 6;
+mission.launcher.engines{3}.ispZero = 270;
+mission.launcher.engines{3}.ispVac = 457.2;
+mission.launcher.engines{3}.thrustZero = 270/458.2 * 180 *1e3;
+mission.launcher.engines{3}.thrustVacum = 180 *1e3;
+mission.launcher.engines{3}.weight = 550;
+mission.launcher.engines{3}.OF = 6.1;
 mission.launcher.engines{3}.oxDens = 1143;
 mission.launcher.engines{3}.fuelDens = 71;
-mission.launcher.engines{3}.effAreaZero = 2.30^2/4*pi;
-mission.launcher.engines{3}.effAreaVac = 2.30^2/4*pi;
+mission.launcher.engines{3}.effAreaZero = 1.84^2/4*pi;
+mission.launcher.engines{3}.effAreaVac = 1.84^2/4*pi;
+
+mission.launcher.engines{4}.ispZero = 366;
+mission.launcher.engines{4}.ispVac = 452;
+mission.launcher.engines{4}.thrustZero = 1860*1e3;
+mission.launcher.engines{4}.thrustVacum = 2279*1e3;
+mission.launcher.engines{4}.weight = 3526;
+mission.launcher.engines{3}.OF = 6;
+mission.launcher.engines{4}.oxDens = 1143;
+mission.launcher.engines{4}.fuelDens = 71;
+mission.launcher.engines{4}.effAreaZero = 2.3^2/4*pi;
+mission.launcher.engines{4}.effAreaVac = 2.3^2/4*pi;
+
 
 mission.capsule.weigth = 8600;
 mission.capsule.Area = 4^2*pi/4;
@@ -137,15 +155,15 @@ rot = [ex,ey,ez]';
 optimisation = struct();
 optimisation.nStages = 2;
 optimisation.stage{1}.engine = mission.launcher.engines{1};
-optimisation.stage{2}.engine = mission.launcher.engines{3};
+optimisation.stage{2}.engine = mission.launcher.engines{4};
 
 optimisation.stage{1}.nEngines = 4;
 optimisation.stage{2}.nEngines = 1;
 
-mProp1 = optimisation.stage{1}.nEngines*optimisation.stage{1}.engine.thrust/9.81*0.5;
+mProp1 = optimisation.stage{1}.nEngines*optimisation.stage{1}.engine.thrustZero/9.81*0.5;
 epsS1 = 0.05;
 
-mProp2 = optimisation.stage{2}.nEngines*optimisation.stage{2}.engine.thrust/9.81*0.3;
+mProp2 = optimisation.stage{2}.nEngines*optimisation.stage{2}.engine.thrustZero/9.81*0.3;
 epsS2 = 0.06;
 
 mS1 = epsS1/(1-epsS1)*mProp1;

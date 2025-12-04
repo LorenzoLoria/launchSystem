@@ -1,4 +1,4 @@
-function[objective] = objFunMultiStagesGA(x,mission,opt,option2D)
+function [objective] = objFunMultiStagesGA(x,mission,opt,option2D)
 
 thrustDataVec = x;
 %thrustDataVec is the variable containing informations about the
