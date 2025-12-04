@@ -1,4 +1,4 @@
-function[cin,ceq] = nlconMultiStages(x,mission,opt,option2D)
+function [cin,ceq] = nlconMultiStages(x,mission,opt,option2D)
 
 thrustDataVec = x;
 

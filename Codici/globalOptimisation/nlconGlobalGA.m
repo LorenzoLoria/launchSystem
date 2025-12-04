@@ -1,0 +1,1 @@
+function [cin,ceq] = nlconGlobalGA(x,mission,opt,option2D)

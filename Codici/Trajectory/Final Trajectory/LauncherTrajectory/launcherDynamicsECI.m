@@ -73,12 +73,14 @@ percVec = optVar(1);
 if stageNumber == 1
     staticContribution = (101325-mission.environment.pressure(h))*opt.stage{stageNumber}.engine.effAreaZero;
     isp = opt.stage{stageNumber}.engine.ispZero;
+    thrustValue = opt.stage{stageNumber}.engine.thrustZero;
 else
     staticContribution = 0;
     isp = opt.stage{stageNumber}.engine.ispVac;
+    thrustValue = opt.stage{stageNumber}.engine.thrustVacum;
 end
 
-ThrustBRF = percVec * opt.stage{stageNumber}.nEngines *(opt.stage{stageNumber}.engine.thrust+staticContribution)* [cos(thetaGimball)*cos(gammaGimball); cos(thetaGimball)*sin(gammaGimball); sin(thetaGimball)];
+ThrustBRF = percVec * opt.stage{stageNumber}.nEngines *(thrustValue+staticContribution)* [cos(thetaGimball)*cos(gammaGimball); cos(thetaGimball)*sin(gammaGimball); sin(thetaGimball)];
 ThrustIRF = mission.Rfinal'*ThrustBRF;
 
 
@@ -89,7 +91,7 @@ ThrustIRF = mission.Rfinal'*ThrustBRF;
     G = - GM * r /norm(r)^3;
 
     % mass flow rate
-    mDot = - norm( percVec *opt.stage{stageNumber}.engine.thrust* opt.stage{stageNumber}.nEngines) / (g0 * isp); 
+    mDot = - norm( percVec *thrustValue* opt.stage{stageNumber}.nEngines) / (g0 * isp); 
 
     % Equation of motion
     dsdt = zeros(7,1);
