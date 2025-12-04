@@ -84,7 +84,7 @@ mission.structure.massMaxQVec(end) = m1Stage;
 
 % --- DA MODIFICARE
 
-mission.structure.dragFinsMaxQ = -rot2*maxq * finsCD * mission.capsule.Area * [1;0;0];
-mission.structure.liftFinsMaxQ = -rot2*maxq * finsCL * mission.capsule.Area * [0;-1;0];
+mission.structure.dragFinsMaxQ = -rot2*maxq * finsCD * mission.aerodynamics.finsGeom.Se * [1;0;0];
+mission.structure.liftFinsMaxQ = -rot2*maxq * finsCL * mission.aerodynamics.finsGeom.Se * [0;-1;0];
 
 end

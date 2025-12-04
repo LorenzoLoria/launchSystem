@@ -16,8 +16,7 @@ function Xcg = computeXCG(mission, opt)
 N = opt.nStages;
 
 % Payload Data
-m = cumsum([0,mission.structure.massMaxQ]);
-m = m(end);
+% m = massMaxQ;
 lco = mission.capsule.height;
 mco = mission.capsule.weigth;
 Xco = lco / 2; 
@@ -48,6 +47,8 @@ if N == 3
     
     momentSum = m1*X1 + mi1*X2 + m2*X3 + mi2*X4 + m3*X5 + mi3*X6;
 
+    Xcg = (momentSum + mco*Xco) / (m1 + m2 + m3 + mi1 + mi2 + mi3 + mco);
+
 elseif N == 2
 
     lc2 = opt.stage{2}.length;
@@ -66,6 +67,8 @@ elseif N == 2
     X1 = lco + li2 + lc2 + li1 + lc1 / 2;
     
     momentSum = m1*X1 + mi1*X2 + m2*X3 + mi2*X4;
+    
+    Xcg = (momentSum + mco*Xco) / (m1 + m2 + mi1 + mi2 + mco);
 
 elseif N == 1
 
@@ -80,8 +83,9 @@ elseif N == 1
     
     momentSum = m1*X1 + mi1*X2;
     
+    Xcg = (momentSum + mco*Xco) / (m1 + mi1 + mco)
 end
 
-Xcg = (momentSum + mco*Xco) / m;
+
 
 end
