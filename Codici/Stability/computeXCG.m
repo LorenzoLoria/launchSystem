@@ -1,5 +1,5 @@
-function Xcg = computeXCG(mission, opt, m)
-% Computes the center of gravity Xcg of a two-stage launcher with a nose cone
+function Xcg = computeXCG(mission, opt)
+% Computes the center of gravity Xcg of a three-stage launcher with a nose cone
 % Assumption: Uniform Weight Distribution 
 %
 % Inputs:
@@ -13,57 +13,75 @@ function Xcg = computeXCG(mission, opt, m)
 % Output:
 %   Xcg      : center of gravity measured from the top of the launcher
 
-    N = opt.nStages;
+N = opt.nStages;
+
+% Payload Data
+m = cumsum([0,mission.structure.massMaxQ]);
+m = m(end);
+lco = mission.capsule.height;
+mco = mission.capsule.weigth;
+Xco = lco / 2; 
+
+
+if N == 3
+     
+    lc3 = opt.stage{3}.length;
+    lc2 = opt.stage{2}.length;
+    lc1 = opt.stage{1}.length;
+    li1 = mission.structures{1}.lengthInterstage;
+    li2 = mission.structures{2}.lengthInterstage;
+    li3 = mission.structures{3}.lengthInterstage;
+  
+    m3 = opt.stage{3}.mStage; 
+    m2 = opt.stage{2}.mStage;
+    m1 = opt.stage{1}.mStage + mission.structure.massMaxQ - opt.m0Tot;
+    mi1 = mission.structures{1}.mInterstage;
+    mi2 = mission.structures{2}.mInterstage;
+    mi3 = mission.structures{3}.mInterstage;
     
-    % Payload Data
-    lco = mission.capsule.height;
-    mco = mission.capsule.weigth;
-    Xco = lco / 2; 
-
+    X6 = lco + li3/2;
+    X5 = lco + li3 + lc3/3;               
+    X4 = lco + li3 + lc3 + li2/2;
+    X3 = lco + li3 + lc3 + li2 + lc2 / 2;
+    X2 = lco + li3 + lc3 + li2 + lc2 + li1 / 2;
+    X1 = lco + li3 + lc3 + li2 + lc2 + li1 + lc1 / 2;  
     
-    if N == 3
-        mc3 = opt.stage{3}.engine; 
-        mc2 = opt.stage{2}.engine; 
-        lc3 = opt.stage{3}.length;
-        lc2 = opt.stage{2}.length;
-        lc1 = opt.stage{1}.length;
-      
-        m3 = mc3; 
-        m2 = mc2;
-        m1 = m - mc3 - mc2 - mco; 
+    momentSum = m1*X1 + mi1*X2 + m2*X3 + mi2*X4 + m3*X5 + mi3*X6;
 
-        X3 = lco + lc3/2;               
-        X2 = lco + lc3 + lc2/2;         
-        X1 = lco + lc3 + lc2 + lc1/2;   
-        
-        momentSum = (m1*X1) + (m2*X2) + (m3*X3);
+elseif N == 2
 
-    elseif N == 2
-        mc2 = opt.stage{2}.engine; 
-        lc2 = opt.stage{2}.length;
-        lc1 = opt.stage{1}.length;
-        
-      
-        m2 = mc2;
-        m1 = m - m2 - mco;
-        
-        X2 = lco + lc2/2;
-        X1 = lco + lc2 + lc1/2;
-        
-        momentSum = (m1*X1) + (m2*X2);
-
-    elseif N == 1
+    lc2 = opt.stage{2}.length;
+    lc1 = opt.stage{1}.length;
+    li1 = mission.structures{1}.lengthInterstage;
+    li2 = mission.structures{2}.lengthInterstage;
+  
+    m2 = opt.stage{2}.mStage;
+    m1 = opt.stage{1}.mStage + mission.structure.massMaxQ - opt.m0Tot;
+    mi1 = mission.structures{1}.mInterstage;
+    mi2 = mission.structures{2}.mInterstage;
+                 
+    X4 = lco + li2/2;
+    X3 = lco + li2 + lc2 / 2;
+    X2 = lco + li2 + lc2 + li1 / 2;
+    X1 = lco + li2 + lc2 + li1 + lc1 / 2;
     
-        lc1 = opt.stage{1}.length;
-        
-        m1 = m - mco;
-        
-        X1 = lco + lc1/2;
-        
-        momentSum = (m1*X1);
-        
-    end
+    momentSum = m1*X1 + mi1*X2 + m2*X3 + mi2*X4;
 
-    Xcg = (momentSum + mco*Xco) / m;
+elseif N == 1
+
+    lc1 = opt.stage{1}.length;
+    li1 = mission.structures{1}.lengthInterstage;
+  
+    m1 = opt.stage{1}.mStage + mission.structure.massMaxQ - opt.m0Tot;
+    mi1 = mission.structures{1}.mInterstage;
+                 
+    X2 = lco + li1 / 2;
+    X1 = lco + li1 + lc1 / 2;
+    
+    momentSum = m1*X1 + mi1*X2;
+    
+end
+
+Xcg = (momentSum + mco*Xco) / m;
 
 end

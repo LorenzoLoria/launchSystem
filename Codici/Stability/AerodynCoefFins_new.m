@@ -1,4 +1,4 @@
-function [CN_surf, CD0_surf_friction, CD0_surf_wave] = AerodynCoefFins_new(alpha_p,A, vlauncher, vsound, Se, q, Sref, cmac, delta_le, lambda_le,b, tmac)
+function [CN_surf, CD0_surf_friction, CD0_surf_wave] = AerodynCoefFins_new(mission, A)
 % Calculates aerodynamic coefficients for fins
 % Inputs:
 %   alpha_p    : local angle of attack [rad]
@@ -18,32 +18,48 @@ function [CN_surf, CD0_surf_friction, CD0_surf_wave] = AerodynCoefFins_new(alpha
 %   CD0_surf_friction : surface friction drag coefficient
 %   CD0_surf_wave     : wave drag coefficient
 
-    M = vlauncher/vsound;
-    M_ale = M * cosd(lambda_le);
 
-    %Data proportional SaturnV 
-    % A = 5.3;
-    % Se = be^2*0.1875;
-    % delta_le = 20.6;
-    % lambda_le = 36.9;
+% ======================== DATA CONVERSION ================================
+
+alpha_p = mission.structure.alphaQmax;
+b    = mission.aerodynamics.finsGeom.b;
+cmac = mission.aerodynamics.finsGeom.cmac;
+soundSpeed = mission.aerodynamics.soundspeedFun(mission.structure.hMaxQ);
+launcherSpeed = norm(mission.structure.vMaxQ);
+lambda_le = mission.aerodynamics.finsGeom.lambda_le;
+q = mission.structure.dynamicPressure;
+Se = mission.aerodynamics.finsGeom.Se;
+Sref = mission.aerodynamics.bodyGeom.Aref;
+delta_le = mission.aerodynamics.finsGeom.delta_le;
+tmac = mission.aerodynamics.finsGeom.tmac;
+
+% =============================== SOLUTION ================================
+Mach = launcherSpeed/soundSpeed;
+M_ale = Mach * cosd(lambda_le);
+
+%Data proportional SaturnV 
+% A = 5.3;
+% Se = be^2*0.1875;
+% delta_le = 20.6;
+% lambda_le = 36.9;
 
 
-    % --- Normal force coefficient
-    if M > sqrt(1 + (8/(pi*A))^2)
-        CN_surf = ((4*abs(sin(alpha_p)*cos(alpha_p)) / sqrt(M^2 - 1)) + 2*sin(alpha_p)^2) * Se / Sref;
-    else
-        CN_surf = ((pi*A/2*abs(sin(alpha_p)*cos(alpha_p)) + 2*sin(alpha_p)^2) * Se / Sref);
-    end
+% --- Normal force coefficient
+if Mach > sqrt(1 + (8/(pi*A))^2)
+    CN_surf = ((4*abs(sin(alpha_p)*cos(alpha_p)) / sqrt(Mach^2 - 1)) + 2*sin(alpha_p)^2) * Se / Sref;
+else
+    CN_surf = ((pi*A/2*abs(sin(alpha_p)*cos(alpha_p)) + 2*sin(alpha_p)^2) * Se / Sref);
+end
 
-    % --- CD0 surface friction
-    CD0_surf_friction = 0.0133 * (M / (q*cmac))^0.2 * 2 * Se / Sref;
+% --- CD0 surface friction
+CD0_surf_friction = 0.0133 * (Mach / (q*cmac))^0.2 * 2 * Se / Sref;
 
-    % --- CD0 surface wave
+% --- CD0 surface wave
 
-    if M_ale < 1
-        CD0_surf_wave = 0;
-    else
-        CD0_surf_wave = (1.429 / M_ale^2) * ((1.2*M_ale^2)^3.5 * (2.4/(2.8*M_ale^2 - 0.4))^2.5 - 1) * (sin(deg2rad(delta_le))^2 * cos(deg2rad(lambda_le)) * tmac * b) / Sref;
-    end
+if M_ale < 1
+    CD0_surf_wave = 0;
+else
+    CD0_surf_wave = (1.429 / M_ale^2) * ((1.2*M_ale^2)^3.5 * (2.4/(2.8*M_ale^2 - 0.4))^2.5 - 1) * (sin(deg2rad(delta_le))^2 * cos(deg2rad(lambda_le)) * tmac * b) / Sref;
+end
     
 end

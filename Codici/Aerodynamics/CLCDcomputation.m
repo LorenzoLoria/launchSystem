@@ -1,4 +1,4 @@
-function[CL,CD,CN,CA] = CLCDcomputation(Mach,alpha,dynamicPressure,isPoweredFlag,mission)
+function[CL,CD,CN,CA, mainbodyCL, mainbodyCD, finsCL, finsCD] = CLCDcomputation(Mach,alpha,dynamicPressure,isPoweredFlag,mission)
 
 
 % Estrazione parametri geometrici
@@ -179,10 +179,18 @@ CA_fins_tot = CD0_fins_tot * cos(alpha)^2;
 % Somma totali
 CN = CNbody + CN_fins_tot;
 CA = CAbody + CA_fins_tot;
+
 % Calcola il coefficiente di lift (C_L)
 CL = CN * cos(alpha) - CA * sin(alpha);
 
 % Calcola il coefficiente di drag (C_D)
 CD = CA * cos(alpha) + CN * sin(alpha);
 
+% CL, CD Main Body
+mainbodyCL = CNbody * cos(alpha) - CAbody * sin(alpha);
+mainbodyCD = CAbody * cos(alpha) + CNbody * sin(alpha);
+
+% CL, CD Fins
+finsCL = CN_fins_tot * cos(alpha) - CA_fins_tot * sin(alpha);
+finsCD = CA_fins_tot * cos(alpha) + CN_fins_tot * sin(alpha);
 end

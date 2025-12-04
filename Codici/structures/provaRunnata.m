@@ -7,6 +7,7 @@ close all
 % ==========================  DATI ========================================
 
 addpath(genpath('..\..\'))
+%%
 [mission, opt] = dataStruct;
 
 thrustData(:, :, 1) =     [0.992951743036793	26.174503353658913
@@ -22,9 +23,9 @@ thrustData(:, :, 2) =    [0.609126028473365	8.838970511617315
 0.413941032471940	99.388409631182256];
     
 [timeCollocation, stateCollocation] = totalTrajectory(mission,opt,thrustData,1);
-mission.alpha = deg2rad(0);
+mission.structure.alphaQmax = deg2rad(3.4);
 
-[mission] = externalLoads(timeCollocation,stateCollocation,mission,opt,thrustData, mission.alpha);
+[mission] = externalLoads(timeCollocation,stateCollocation,mission,opt,thrustData, mission.structure.alphaQmax);
 
 if opt.nStages == 1
     mission.structure.nComponents = 8;
@@ -47,14 +48,12 @@ for ii = opt.nStages:-1:1
 end
 
 % Computation of position of xCp and xCp_a (fins)
-mission.launcherLength = cumsum(mission.structure.componentLength);
-mission.launcherLength = mission.launcherLength(end);
+mission.structure.launcherLength = cumsum(mission.structure.componentLength);
+mission.structure.launcherLength = mission.structure.launcherLength(end);
 
 mission.diameter = mission.structure.diameter;
 xcp = computeXcp(mission, opt);
-xcp_a = computeFinXcp(mission);
-
-%%
+xcp_a = mission.aerodynamics.rootChord - computeFinXcp(mission);
 
 % Length of the element used for structural analysis
 mission.structure.elementLength = [xcp,mission.capsule.height/2-xcp,mission.capsule.height/2];
@@ -86,6 +85,20 @@ mStruct_ton = mission.structure.mStruct * 1e-3; % [ton]
 fprintf('Masses of the structures starting from the nose are:\n');
 fprintf('  %.3f tons\n', mStruct_ton);
 
+%%
+xcg = computeXCG(mission, opt);
+equatMoment = @(alphafins) mission.structure.tMaxQ(2) * (mission.structure.launcherLength - ...
+    xcg) + (mission.structure.dMaxQ(2)+mission.structure.lMaxQ(2)) * (xcg - ...
+    xcp_a) + (norm(mission.structure.liftFinsMaxQ) * cos(alphafins) - ...
+    norm(mission.structure.dragFinsMaxQ) * sin(alphafins)) * (xcp_a - xcg); 
+sol = fsolve(equatMoment, mission.structure.alphaQmax)
+
+%%
+% Rapido check grafico
+alphas = deg2rad(linspace(-20, 20, 400)); % in gradi per esempio
+plot(alphas, equatMoment(alphas)), grid on
+xlabel('\alpha_{fins} [deg]')
+ylabel('M(\alpha)')
 
 
 %% ============================== PLOTS ===================================

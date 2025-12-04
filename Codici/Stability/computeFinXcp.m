@@ -9,7 +9,7 @@ function Xcp = computeFinXcp(mission)
 %   Se        : 2*fin surface [m^2]
 %
 % Output:
-%   Xcp : center of pressure of fin [m]
+%   Xcp : center of pressure of fin [m]     
 
 
 
@@ -20,17 +20,23 @@ Se   = mission.aerodynamics.finsGeom.Se;
 soundSpeed = mission.aerodynamics.soundspeedFun(mission.structure.hMaxQ);
 launcherSpeed = norm(mission.structure.vMaxQ);
 
+% ========================= SOLUTION ======================================
+
 Mach = launcherSpeed / soundSpeed;  
 
 A = be^2 / Se;            
 
+Mach0 = 0.7;    Xcp_sub = 0.25;
+Mach1 = 2.0;    Xcp_sup = (A*sqrt(Mach1^2 - 1) - 0.67)/(2*A*sqrt(Mach1^2 - 1) - 1);
+Machmid = 1.3;  Xmid = 0.44; % midpoint for smooth curve
 
-Xcp_sub = 0.25;
+Aeq = [Mach0^2, Mach0, 1;
+       Mach1^2, Mach1, 1;
+       Machmid^2, Machmid, 1];
+Beq = [Xcp_sub; Xcp_sup; Xmid];
 
-Xcp_sup = (A*sqrt(Mach^2-1) - 0.67) / (2*A*sqrt(Mach^2-1) - 1);
+coeff = Aeq\Beq;
 
-
-coeff = Xcpfinscurve(A);  
 a = coeff(1); b = coeff(2); c = coeff(3);
 
 

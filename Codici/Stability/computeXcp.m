@@ -12,7 +12,7 @@ function Xcp = computeXcp(mission, opt)
 
 % ========================== DATA CONVERSION ==============================
 N = opt.nStages;
-alpha = mission.alpha;
+alpha = mission.structure.alphaQmax;
 lco = mission.capsule.height;
 lc1 = opt.stage{1}.length;
 lc2 = opt.stage{2}.length;

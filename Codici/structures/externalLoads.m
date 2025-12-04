@@ -45,16 +45,20 @@ vMaxQ = rot3'*vMaxQ;     %check
 aMaxQ = rot3'*aMaxQ;
 massMaxQ = mass(idx);
 posMaxQ = pos(:,idx);
+hMaxQ = absH(idx);
 %dsdt(4:6) = (ThrustIRF + D ) / m + G;  
 
-Cl = 0;
-dMaxQ = -rot2*maxq * mission.capsule.supersonicCD*mission.capsule.Area* [1;0;0];
-lMaxQ = -rot2*maxq * Cl*mission.capsule.Area * [0;-1;0];
+soundSpeed = mission.aerodynamics.soundspeedFun(hMaxQ);
+
+machNumber = norm(vMaxQ) / soundSpeed;
+
+[~,~,~,~, mainbodyCL, mainbodyCD, finsCL, finsCD] = CLCDcomputation(machNumber,alpha,maxq,1,mission);
+
+dMaxQ = -rot2*maxq * mainbodyCD *mission.capsule.Area* [1;0;0];
+lMaxQ = -rot2*maxq * mainbodyCL *mission.capsule.Area * [0;-1;0];
 gMaxQ = -rot3'*mission.Rfinal* mission.environment.GM * posMaxQ /norm(posMaxQ)^3;
 
 tMaxQ = (aMaxQ - gMaxQ)*massMaxQ - dMaxQ-lMaxQ;
-
-hMaxQ = absH(idx);
 
 % ==================== STRUCTURE DA ESTRARRE ==============================
 
@@ -70,17 +74,17 @@ mission.structure.vMaxQ             = vMaxQ;
 
 m1Stage = opt.stage{1}.mStage + massMaxQ - opt.m0Tot;
 
-mission.structure.massMaxQ = [mission.capsule.weigth];
+mission.structure.massMaxQVec = [mission.capsule.weigth];
 
 for ii = opt.nStages:-1:1
-    mission.structure.massMaxQ = [mission.structure.massMaxQ, mission.structures{ii}.mInterstage, opt.stage{ii}.mStage];
+    mission.structure.massMaxQVec = [mission.structure.massMaxQVec, mission.structures{ii}.mInterstage, opt.stage{ii}.mStage];
 end
 
-mission.structure.massMaxQ(end) = m1Stage;
+mission.structure.massMaxQVec(end) = m1Stage;
 
 % --- DA MODIFICARE
-mission.structure.dragFinsMaxQ = [0 0];
-mission.structure.liftFinsMaxQ = [0 0];
 
+mission.structure.dragFinsMaxQ = -rot2*maxq * finsCD * mission.capsule.Area * [1;0;0];
+mission.structure.liftFinsMaxQ = -rot2*maxq * finsCL * mission.capsule.Area * [0;-1;0];
 
 end

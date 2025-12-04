@@ -251,8 +251,7 @@ mission.environment.pressure= griddedInterpolant( ...
 
 % ========================= Structures ====================================
 
-mission.structure.nComponents = 8;
-mission.structure.elementLength = [4,2,3,10,11,10,3,12]; % da modificare con funzione constance
+mission.structure.nComponents = 8; % da modificare con funzione constance
 
 mission.structure.SF = 2.5; % da verificare
 
@@ -288,9 +287,9 @@ mission.structure.tankPressure = [0, 0, 3.4e5, 0, 3.4e5];
 mission.structure.diameter = 4;
 
 % Interstages
-mission.structures{1}.mInterstage = 480;
-mission.structures{2}.mInterstage = 480;
-mission.structures{3}.mInterstage = 480;
+mission.structures{1}.mInterstage = 150;
+mission.structures{2}.mInterstage = 150;
+mission.structures{3}.mInterstage = 150;
 
 mission.structures{1}.lengthInterstage = 3.5;
 mission.structures{2}.lengthInterstage = 3.5;

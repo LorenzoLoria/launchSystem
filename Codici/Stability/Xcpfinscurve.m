@@ -34,14 +34,14 @@ coeff = Aeq\Beq;  % [a; b; c]
 Xcp_trans = coeff(1)*M_trans.^2 + coeff(2)*M_trans + coeff(3);
 
 % Plot the full curve
-figure;
-plot(M_sub, Xcp_sub, 'b-', 'LineWidth', 2); hold on;
-plot(M_trans, Xcp_trans, 'r-', 'LineWidth', 2);
-plot(M_sup, Xcp_sup, 'g-', 'LineWidth', 2);
-xlabel('Mach number');
-ylabel('X_{cp} / cmac');
-title('Fin Center of Pressure vs Mach');
-grid on;
-legend('Subsonic (M<0.7)', 'Transonic (0.7 ≤ M ≤ 2)', 'Supersonic (M>2)', 'Location', 'best');
+% figure;
+% plot(M_sub, Xcp_sub, 'b-', 'LineWidth', 2); hold on;
+% plot(M_trans, Xcp_trans, 'r-', 'LineWidth', 2);
+% plot(M_sup, Xcp_sup, 'g-', 'LineWidth', 2);
+% xlabel('Mach number');
+% ylabel('X_{cp} / cmac');
+% title('Fin Center of Pressure vs Mach');
+% grid on;
+% legend('Subsonic (M<0.7)', 'Transonic (0.7 ≤ M ≤ 2)', 'Supersonic (M>2)', 'Location', 'best');
 
 end

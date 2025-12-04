@@ -11,7 +11,7 @@ function [mission] = loadsFinder(mission)
 % ======================== DATA CONVERSION ================================
 
 nComponents = mission.structure.nComponents;
-m       = mission.structure.massMaxQ;   
+m       = mission.structure.massMaxQVec;   
 
 % Drag
 drag    = mission.structure.dMaxQ;
