@@ -1,42 +1,38 @@
-function xCP = computeFinXcp(mission)
-% computeFinXcp   Computes the new center of pressure (xCP) for a 
-%                 fin-stabilized launch vehicle.
+function Xcp = computeFinXcp(vlauncher, vsound, cmac, be, Se)
+% computeFinXcp Computes the center of pressure (xCP) for a fin-stabilized launch vehicle
 %
 % Inputs:
-%   l   : total length of vehicle [m]
-%   d   : reference body diameter [m]
-%   h   : cone length [m]
-%   hf  : fin axial extent (flare length) [m]
-%   dm  : outer diameter at fin base (flare diameter) [m]
-%   S   : reference area (usually pi*d^2/4) [m^2]
-%   Sb  : base area for normalization [m^2]
-%   Kf  : fin correction factor (default 1/2)
+%   vlauncher : launcher speed [m/s]
+%   vsound    : speed of sound [m/s]
+%   cmac      : fin mean chord [m]
+%   be        : 2*fin axial base [m]
+%   Se        : 2*fin surface [m^2]
 %
 % Output:
-%   xCP : center of pressure from nose tip [m]
+%   Xcp : center of pressure of fin [m]
+
+    M = vlauncher / vsound;  
+    A = be^2 / Se;            
 
 
+    Xcp_sub = 0.25;
 
-% =========================== DATA CONVERSION =============================
-l = mission.launcherLength;
-d = mission.diameter;
-h = mission.capsule.height;
-hf = mission.aerodynamics.rootChord;
-ct = mission.aerodynamics.tipChord;
-s = mission.aerodynamics.semispan;
-dm = mission.diameter;
-S = pi / 4 * d^2;
-Sb = pi / 4 * dm^2; 
+    Xcp_sup = (A*sqrt(M^2-1) - 0.67) / (2*A*sqrt(M^2-1) - 1);
 
+  
+    coeff = Xcpfinscurve(A);  
+    a = coeff(1); b = coeff(2); c = coeff(3);
 
-% Default Kf if not provided (typical missile assumption)
-if nargin < 8 || isempty(Kf)
-    Kf = 1/2;
-end
+  
+    if M < 0.7
+        Xcp_on_cmac = Xcp_sub;
+    elseif M > 2
+        Xcp_on_cmac = Xcp_sup;
+    else
+        Xcp_on_cmac = a*M^2 + b*M + c;
+    end
 
-% --- Non-dimensional xCP/d expression ---
-xCP_over_d = ((2/3)*(h/d)*(S/Sb)+ (Kf + 1 - S/Sb)*(l/d) - (hf/d)*( (dm^2)/(d^2) - 1 )*(S/Sb)) / (1 + Kf);
+    
+    Xcp = Xcp_on_cmac * cmac;
 
-% Convert nondimensional → dimensional
-xCP = xCP_over_d * d;
 end
