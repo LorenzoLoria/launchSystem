@@ -245,7 +245,7 @@ settings.nOptPointsTraj = 5 ;
 settings.nEvalPointsTraj = 100 ;
 
 settings.intconGlobalGA = [1 2 3 4];
-settings.globalGAoption2D = 1;
+settings.trajectoryOption2D = 1;
 
 
 
