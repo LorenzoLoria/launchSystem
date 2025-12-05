@@ -4,28 +4,32 @@ function [dxdt] = dynCapsule(~, x,mission, windDirection)
 %   x is the state
 
 
-GM = mission.environment.GM;
-h =norm(x(1:3))-mission.environment.rEarth; 
-rho = mission.environment.rhoFun(h);
+% Vettori Stato
+rr = x(1:3);
+v  = x(4:6); 
+    
+% Calcoli della Norma (Fatti SOLO UNA volta)
+rMag = norm(rr); 
+vMag = norm(v);
 
-v = x(4:6) ;
+GM = mission.environment.GM;
+h =rMag-mission.environment.rEarth; 
+%rho = mission.environment.rhoFun(h);
+rho = 1.29*exp(-h/8433);
 
 [soundspeed] = mission.aerodynamics.soundspeedFun(h);
-Mach = norm(v)/soundspeed;
+Mach = vMag/soundspeed;
 Cd = Cd_CrewDragon(Mach);
-aeroForce = - 0.5 .* rho .* norm((v)) .* v .* mission.capsule.Area .* Cd ;
+aeroForce = - 0.5 .* rho .* vMag .* v .* mission.capsule.Area .* Cd ;
 
 % Initialize right-hand-side
 dxdt = zeros(6,1);
-
-% Extract positions
-rr = x(1:3);
 
 % Position detivative is object's velocity
 dxdt(1:3) = x(4:6);   
 
 % Compute the gravitational acceleration using Newton's law + air drag
-dxdt(4:6) = - GM * rr /(dot(rr, rr)^(3/2)) + aeroForce./mission.capsule.weight;
+dxdt(4:6) = - GM * rr /(rMag^3) + aeroForce./mission.capsule.weight;
 
 end
 

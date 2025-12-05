@@ -49,8 +49,9 @@ function dsdt = launcherDynamicsECI(t, x,thrustData, mission,stageNumber,opt,opt
 
     % Interpolate air density based on current altitude
     h   = rMag-mission.environment.rEarth;  
-    rho = mission.environment.rhoFun(h);
-   
+    %rho = mission.environment.rhoFun(h);
+    rho = 1.29*exp(-h/8433);
+
     dynamicPressure = 0.5 * rho * vMag^2;
     [soundspeed] = mission.aerodynamics.soundspeedFun(h);
     Mach = vMag/soundspeed;
@@ -65,11 +66,11 @@ function dsdt = launcherDynamicsECI(t, x,thrustData, mission,stageNumber,opt,opt
     
 
 if option2D == 1
-    gammaGimball =deg2rad(optVar(2)) ;
+    gammaGimball =optVar(2)*pi/180 ;
     thetaGimball =0;
 else
-    gammaGimball =deg2rad(optVar(2));
-    thetaGimball =deg2rad(optVar(3));
+    gammaGimball =optVar(2)*pi/180;
+    thetaGimball =optVar(3)*pi/180;
 end
 
 percVec = optVar(1);
