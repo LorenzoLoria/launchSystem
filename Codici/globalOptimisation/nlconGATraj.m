@@ -1,12 +1,14 @@
-function[cin,ceq] = nlconGATraj(x,mission,opt,launcher,option2D)
+function[cin,ceq] = nlconGATraj(x,launcher,opt,mission,settings)
 
 thrustDataVec = x;
 
-[timeCollocation,stateCollocation] = totalTrajectoryGlobalGA(mission,opt,launcher,thrustDataVec,option2D);
+[timeCollocation,stateCollocation] = totalTrajectoryGlobalGA(launcher,opt,mission,settings,thrustDataVec);
 
 latInitial = mission.target.latInitial ;
 latFinal = latInitial ;
 lonInitial = mission.target.lonInitial ;
+
+
 if option2D == 1
     omega = 0;
 
@@ -14,6 +16,8 @@ else
     omega = mission.target.omega ;
     
 end
+
+
 lonFinal = lonInitial + omega * timeCollocation(end,end) ;
 targetFinalPos = 6371000*[cos(latFinal)*cos(lonFinal); cos(latFinal)*sin(lonFinal); sin(latFinal) ];
 
@@ -39,7 +43,7 @@ for i = 1:launcher(1)
     thrustValue = opt.stage{i}.engine.thrustVacum;
     end
     if option2D == 1
-    thetaGimball = zeros(1,opt.nDeval);
+    thetaGimball = zeros(1,settings.nDeval);
     else
     thetaGimballFun = griddedInterpolant(time2,thrustDataVec(:,3,i),'linear','linear');
     thetaGimball = thetaGimballFun(timeCollocation(:,i)) ;

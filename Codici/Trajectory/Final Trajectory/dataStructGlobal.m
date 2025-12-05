@@ -27,6 +27,9 @@ mission.engines{1}.oxDens = 1143;
 mission.engines{1}.fuelDens = 835;   
 mission.engines{1}.effAreaZero = 0.9;
 mission.engines{1}.effAreaVac = 4.9;
+mission.engines{1}.chamberRadius = 0.609/2;
+mission.engines{1}.length = 2.69;
+
 
 mission.engines{2}.ispZero = 350;
 mission.engines{2}.ispVac = 380;
@@ -38,6 +41,9 @@ mission.engines{2}.oxDens = 1143;
 mission.engines{2}.fuelDens = 423;
 mission.engines{2}.effAreaZero = 1.3^2/4*pi;
 mission.engines{2}.effAreaVac = 3.09^2/4*pi;
+mission.engines{2}.chamberRadius = 1.3/2;
+mission.engines{2}.length = 3.1;
+
 
 mission.engines{3}.ispZero = 270;
 mission.engines{3}.ispVac = 457.2;
@@ -49,22 +55,27 @@ mission.engines{3}.oxDens = 1143;
 mission.engines{3}.fuelDens = 71;
 mission.engines{3}.effAreaZero = 1.84^2/4*pi;
 mission.engines{3}.effAreaVac = 1.84^2/4*pi;
+mission.engines{3}.chamberRadius = 0.7/2;
+mission.engines{3}.length = 3.22;
+
 
 mission.engines{4}.ispZero = 366;
 mission.engines{4}.ispVac = 452;
 mission.engines{4}.thrustZero = 1860*1e3;
 mission.engines{4}.thrustVacum = 2279*1e3;
 mission.engines{4}.weight = 3526;
-mission.engines{3}.OF = 6;
+mission.engines{4}.OF = 6;
 mission.engines{4}.oxDens = 1143;
 mission.engines{4}.fuelDens = 71;
 mission.engines{4}.effAreaZero = 2.3^2/4*pi;
 mission.engines{4}.effAreaVac = 2.3^2/4*pi;
-
+mission.engines{4}.chamberRadius = 0.45/2;
+mission.engines{4}.length = 4.3;
 % ============================ Capsule ===============================
 
 mission.capsule.weight = 8600;
 mission.capsule.Area = 4^2*pi/4;
+mission.capsule.radius = 2;
 mission.capsule.supersonicCD = 1.23;
 mission.capsule.subsonicCD = 0.45;
 mission.capsule.height = 2.9;
@@ -201,8 +212,8 @@ settings.lowerBoundsGA = settings.lowerBoundsFMC(:);
 settings.upperBoundsGA = settings.upperBoundsFMC(:);
 
 
-settings.lowerBoundsGlobalGA = [1,1,1,1,0.2,0.2,0.2];
-settings.upperBoundsGlobalGA = [3,4,4,4,1,1,1];
+settings.lowerBoundsGlobalGA = [2,1,4,4,0.4,0.4,0.4];
+settings.upperBoundsGlobalGA = [2,1,4,4,0.7,0.7,0.7];
 
 
 % ============================ Function options ===============================

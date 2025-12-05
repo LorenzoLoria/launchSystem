@@ -1,4 +1,4 @@
-function [cin,ceq] = nlconFMCTraj(x,launcher,mission,opt,option2D)
+function [cin,ceq] = nlconFMCTraj(x,launcher,opt,mission,option2D)
 
 thrustDataVec = x;
 

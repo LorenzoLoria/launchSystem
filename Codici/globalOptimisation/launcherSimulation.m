@@ -1,4 +1,4 @@
-function [output] = launcherSimulation(launcher,mission,opt,settings,option2D,nlconFlag)
+function [output] = launcherSimulation(launcher,mission,settings,nlconFlag)
 
 persistent previousLauncher 
 
@@ -10,22 +10,19 @@ if launcher([1,2:launcher(1)+1,5:4+launcher(1)]) == previousLauncher([1,2:launch
 
 else
 
-
-[mer,staging] = initialMassEstimation(mission,opt,settings,launcher);
-
-initialMassGuess= mission.capsule.weigth;
-opt.m0Tot = initialMassGuess;
-
-        for i = 1:launcher(1)
-            initialMassGuess = initialMassGuess +staging{i}.mStage;
-        end    
+% retrive launcher engines 
+for i = 1:launcher(1)
+    configuration.stage{i}.engine = mission.engines{launcher(1+i)};
+end
 
 
+[mer,~,configuration] = initialMassEstimation(mission,configuration,settings,launcher);
 
-[xGATraj, fvalGATraj] = ga( @(x) objFunGATraj( reshape(x,settings.TrajOptimisationPoints,2,launcher(1)),launcher, mission,opt,option2D), ...
-                        launcher(1)*2*settings.TrajOptimisationPoints,...
+
+[xGATraj, fvalGATraj] = ga( @(x) objFunGATraj( reshape(x,settings.nOptPointsTraj,2,launcher(1)),launcher,configuration, mission,settings), ...
+                        launcher(1)*2*settings.nOptPointsTraj,...
                         [],[],[],[],settings.lowerBoundsGA,settings.upperBoundsGA, ...
-                        @(x) nlconGATraj( reshape(x,settings.TrajOptimisationPoints,2,launcher(1)), mission,opt,launcher,option2D),settings.gaTrajOptions);
+                        @(x) nlconGATraj( reshape(x,settings.nOptPointsTraj,2,launcher(1)),launcher,configuration, mission,settings),settings.gaTrajOptions);
 
 
 if fvalGATraj > 6000  
@@ -38,10 +35,10 @@ error = 101;
 
 while error > 100
 
-    [~,fvalFMCTraj] = fmincon ( @(x)objFunFMCTraj(x,launcher,mission,opt,1),...
+    [~,fvalFMCTraj] = fmincon ( @(x)objFunFMCTraj(x,launcher,configuration,mission),...
         xGATraj,[],[],[],[],...
         settings.lowerBoundsFMC-eps,settings.upperBoundsFMC+eps,...
-        @(x) nlconFMCTraj(x,launcher,mission,opt,1),...
+        @(x) nlconFMCTraj(x,launcher,configuration,mission,settings.trajectoryOption2D),...
         settings.fminconTrajOptions);
     error = 99;
 
@@ -49,21 +46,13 @@ end
 
 
 
-
-
 if nlconFlag
     output = [];
 else
-    totalMass = mission.capsule.weigth;
-
-        for i = 1:launcher(1)
-            totalMass = totalMass +staging{i}.mStage;
-        end    
-    output.launcherMass = totalMass;
+    
+    output.launcherMass = configuration.totalMass;
     output.tof = fvalFMCTraj; 
 
 end
-
-
 
 end

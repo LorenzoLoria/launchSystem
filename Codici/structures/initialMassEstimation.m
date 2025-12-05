@@ -1,4 +1,4 @@
-function [mer,staging] = initialMassEstimation(mission,opt,settings,launcher)
+function [mer,staging,opt] = initialMassEstimation(mission,opt,settings,launcher)
 
 nStages = launcher(1);
 lOverD = 5;
@@ -9,7 +9,7 @@ lOverD = 5;
         mer.stage{1}.avionics = avionics;
         mer.stage{1}.wiring = wiring;
         mer.stage{1}.battery = 20;
-        mer.stage{1}.payloadAttach = 0.0775*mission.capsule.weigth + 50;
+        mer.stage{1}.payloadAttach = 0.0775*mission.capsule.weight + 50;
     elseif nStages == 2
         mer.stage{1}.avionics = 0.2*avionics;
         mer.stage{2}.avionics = 0.8*avionics;
@@ -20,7 +20,7 @@ lOverD = 5;
         mer.stage{1}.battery = 20;
         mer.stage{2}.battery = 8;
 
-        mer.stage{2}.payloadAttach = 0.0775*mission.capsule.weigth + 50;        
+        mer.stage{2}.payloadAttach = 0.0775*mission.capsule.weight + 50;        
     else
         mer.stage{1}.avionics = 0.1*avionics;
         mer.stage{2}.avionics = 0.1*avionics;
@@ -34,11 +34,11 @@ lOverD = 5;
         mer.stage{2}.battery = 8;
         mer.stage{3}.battery = 8;
 
-        mer.stage{3}.payloadAttach = 0.0775*mission.capsule.weigth + 50;        
+        mer.stage{3}.payloadAttach = 0.0775*mission.capsule.weight + 50;        
     end
     
-    mStack = mission.capsule.weigth;
-
+    mStack = mission.capsule.weight;
+    totalMass = mission.capsule.weight;
     for i = nStages:-1:1
         couple = opt.stage{i}.engine.couple;
 
@@ -57,7 +57,7 @@ lOverD = 5;
         while twRatio < 1
             mStack = mStack-mStage;
             nEngine = nEngine+1;
-            mProp = nEngine * thrustValue/9.81 * launcher(3+i);
+            mProp = nEngine * thrustValue/9.81 * launcher(4+i);
 
             if strcmp(couple, 'RP1-LOX')
 
@@ -71,7 +71,7 @@ lOverD = 5;
                 volumeTankFuel = volumeFuel*1.055;
                 pressurantMass = 340000*(volumeTankLOX + volumeTankFuel)/(8314/4*200);
                 pressurantTankMass = 2*pressurantMass;
-                fun1 =@(x) [ volumeTankFuel-4/3*pi*x(1)^3 - pi*x(1)^2*x(2); volumeTankLOX-4/3*pi*x(1)^3 - pi*x(1)^2*x(3); 0.8*lOverD- (4*x(1) + x(2)+ x(3))/(2*x(1)) ];
+                fun1 =@(x) [ volumeTankFuel - pi*x(1)^2*x(2); volumeTankLOX-4/3*pi*x(1)^3 - pi*x(1)^2*x(3); 0.8*lOverD- (4*x(1) + x(2)+ x(3))/(2*x(1)) ];
                 x01 = [2;10;10];
                 
                 sol1 = fsolve(fun1,x01,settings.fsolveOptions);
@@ -102,7 +102,7 @@ lOverD = 5;
                 pressurantMass = 340000*(volumeTankLOX + volumeTankFuel)/(8314/4*200);
                 pressurantTankMass = 2*pressurantMass;
 
-                fun1 =@(x) [ volumeTankFuel-4/3*pi*x(1)^3 - pi*x(1)^2*x(2); volumeTankLOX-4/3*pi*x(1)^3 - pi*x(1)^2*x(3); 0.8*lOverD- (4*x(1) + x(2)+ x(3))/(2*x(1)) ];
+                fun1 =@(x) [ volumeTankFuel - pi*x(1)^2*x(2); volumeTankLOX-4/3*pi*x(1)^3 - pi*x(1)^2*x(3); 0.8*lOverD- (4*x(1) + x(2)+ x(3))/(2*x(1)) ];
                 x01 = [2;10;10];
                 sol1 = fsolve(fun1,x01,settings.fsolveOptions);
 
@@ -133,7 +133,7 @@ lOverD = 5;
                 pressurantMass = 340000*(volumeTankLOX + volumeTankFuel)/(8314/4*200);
                 pressurantTankMass = 2*pressurantMass;
 
-                fun1 =@(x) [ volumeTankFuel-4/3*pi*x(1)^3 - pi*x(1)^2*x(2); volumeTankLOX-4/3*pi*x(1)^3 - pi*x(1)^2*x(3); 0.8*lOverD- (4*x(1) + x(2)+ x(3))/(2*x(1)) ];
+                fun1 =@(x) [ volumeTankFuel - pi*x(1)^2*x(2); volumeTankLOX-4/3*pi*x(1)^3 - pi*x(1)^2*x(3); 0.8*lOverD- (4*x(1) + x(2)+ x(3))/(2*x(1)) ];
                 x01 = [2;10;10];
                 sol1 = fsolve(fun1,x01,settings.fsolveOptions);
 
@@ -161,13 +161,40 @@ lOverD = 5;
             mStack = mStack + mStage;
             twRatio = nEngine*thrustValue/mStack/9.81;
         end
-
+    
     staging{i}.mStage = mStage;
     staging{i}.mProp = mProp;
     staging{i}.mStruct = mStructure;
+    staging{i}.tow = twRatio;
+    opt.stage{i}.nEngines = nEngine;
+    opt.stage{i}.percentage = launcher(4+i);
+    opt.stage{i}.stucturalMass = mStructure;
+    opt.stage{i}.mProp = mProp;
+    opt.stage{i}.mStage = mStage;
 
+    lengthThrustFrame = abs(sol1(1) - opt.stage{i}.engine.chamberRadius*nEngine/pi)*tan(pi/4);
+    
+    opt.geometry.stage{i}.length = 2*sol1(1)+sol1(2)+sol1(3) + lengthThrustFrame + opt.stage{i}.engine.length;
+    opt.geometry.stage{i}.radius = sol1(1);
+    opt.geometry.stage{i}.thrustFrame = lengthThrustFrame;
+    opt.geometry.stage{i}.tanksLength = 2*sol1(1)+sol1(2)+sol1(3);
+    totalMass = totalMass + mStage;
+     end
+    opt.totalMass = totalMass;
+     
+   totalLength = mission.capsule.height;  
+   for i = nStages:-1:1
+        if i == nStages
+    opt.geometry.stage{i}.interstage.length = abs(opt.geometry.stage{i}.radius - mission.capsule.radius)*tan(pi/4);
+    opt.geometry.stage{i}.interstage.angle = 45;
+        else
+    opt.geometry.stage{i}.interstage.length = 1.1 * (opt.geometry.stage{i+1}.thrustFrame + opt.stage{i+1}.engine.length);
+    opt.geometry.stage{i}.interstage.angle  = atand(opt.geometry.stage{i}.interstage.length/abs(( opt.geometry.stage{i}.radius- opt.geometry.stage{i+1}.radius)));
+        end
+    totalLength = totalLength + opt.geometry.stage{i}.interstage.length + opt.geometry.stage{i}.tanksLength;
     end
-
-
-
+    
+opt.geometry.totalLength = totalLength;
+opt.geometry.totalLengthwEngine = totalLength + opt.stage{1}.engine.length;
+    
 end
