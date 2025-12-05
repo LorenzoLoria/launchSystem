@@ -1,6 +1,6 @@
-function [mer,staging] = initialMassEstimation(mission,opt)
+function [mer,staging] = initialMassEstimation(mission,opt,settings,launcher)
 
-nStages = opt.nStages;
+nStages = launcher(1);
 lOverD = 5;
     avionics =350; % 10 * (M0)^0.361; the previous was overyly conservative as per il libro che ho ciulato
     wiring = 10;
@@ -45,10 +45,19 @@ lOverD = 5;
         nEngine = 0;
         twRatio = 0;
         mStage = 0;
+
+        if i == 1
+            thrustValue = opt.stage{i}.engine.thrustZero;
+        else
+            thrustValue = opt.stage{i}.engine.thrustVacum;
+        end
+
+
+
         while twRatio < 1
             mStack = mStack-mStage;
             nEngine = nEngine+1;
-            mProp = nEngine * opt.stage{i}.engine.thrust/9.81 * opt.stage{i}.percentage;
+            mProp = nEngine * thrustValue/9.81 * launcher(3+i);
 
             if strcmp(couple, 'RP1-LOX')
 
@@ -64,7 +73,8 @@ lOverD = 5;
                 pressurantTankMass = 2*pressurantMass;
                 fun1 =@(x) [ volumeTankFuel-4/3*pi*x(1)^3 - pi*x(1)^2*x(2); volumeTankLOX-4/3*pi*x(1)^3 - pi*x(1)^2*x(3); 0.8*lOverD- (4*x(1) + x(2)+ x(3))/(2*x(1)) ];
                 x01 = [2;10;10];
-                sol1 = fsolve(fun1,x01);
+                
+                sol1 = fsolve(fun1,x01,settings.fsolveOptions);
 
                 areaTankLOX = 2*sol1(1)*pi*sol1(3) + 4*pi*sol1(1)^2;
                 areaTankFuel = 2*sol1(1)*pi*sol1(2) + 4*pi*sol1(1)^2;
@@ -74,7 +84,7 @@ lOverD = 5;
                 mer.stage{i}.pressurant = pressurantTankMass + pressurantMass;
                 mer.stage{i}.cryoInsuOx = 1.12 * areaTankLOX;
                 mer.stage{i}.cryoInsuFuel = 0*areaTankFuel;
-                mer.stage{i}.thrustFrame = 2.55e-4*nEngine * opt.stage{i}.engine.thrust;
+                mer.stage{i}.thrustFrame = 2.55e-4*nEngine * thrustValue;
                 mer.stage{i}.engineWeight = nEngine*opt.stage{i}.engine.weight;
                 mer.stage{i}.tvc = 0.12*nEngine*opt.stage{i}.engine.weight;
                 mer.stage{i}.interStage = 13.7*sol1(1)^2*pi;
@@ -94,7 +104,7 @@ lOverD = 5;
 
                 fun1 =@(x) [ volumeTankFuel-4/3*pi*x(1)^3 - pi*x(1)^2*x(2); volumeTankLOX-4/3*pi*x(1)^3 - pi*x(1)^2*x(3); 0.8*lOverD- (4*x(1) + x(2)+ x(3))/(2*x(1)) ];
                 x01 = [2;10;10];
-                sol1 = fsolve(fun1,x01);
+                sol1 = fsolve(fun1,x01,settings.fsolveOptions);
 
                 areaTankLOX = 2*sol1(1)*pi*sol1(3) + 4*pi*sol1(1)^2;
                 areaTankFuel = 2*sol1(1)*pi*sol1(2) + 4*pi*sol1(1)^2;
@@ -104,7 +114,7 @@ lOverD = 5;
                 mer.stage{i}.pressurant = pressurantTankMass + pressurantMass;
                 mer.stage{i}.cryoInsuOx = 1.12 * areaTankLOX;
                 mer.stage{i}.cryoInsuFuel = 1.12 * areaTankFuel;
-                mer.stage{i}.thrustFrame = 2.55e-4 *nEngine*opt.stage{i}.engine.thrust;
+                mer.stage{i}.thrustFrame = 2.55e-4 *nEngine*thrustValue;
                 mer.stage{i}.engineWeight = nEngine*opt.stage{i}.engine.weight;
                 mer.stage{i}.tvc = 0.12*nEngine*opt.stage{i}.engine.weight;   
                 mer.stage{i}.interStage = 13.7*sol1(1)^2*pi;
@@ -125,7 +135,7 @@ lOverD = 5;
 
                 fun1 =@(x) [ volumeTankFuel-4/3*pi*x(1)^3 - pi*x(1)^2*x(2); volumeTankLOX-4/3*pi*x(1)^3 - pi*x(1)^2*x(3); 0.8*lOverD- (4*x(1) + x(2)+ x(3))/(2*x(1)) ];
                 x01 = [2;10;10];
-                sol1 = fsolve(fun1,x01);
+                sol1 = fsolve(fun1,x01,settings.fsolveOptions);
 
                 areaTankLOX = 2*sol1(1)*pi*sol1(3) + 4*pi*sol1(1)^2;
                 areaTankFuel = 2*sol1(1)*pi*sol1(2) + 4*pi*sol1(1)^2;
@@ -135,7 +145,7 @@ lOverD = 5;
                 mer.stage{i}.pressurant = pressurantTankMass + pressurantMass;
                 mer.stage{i}.cryoInsuOx = 1.12 * areaTankLOX;
                 mer.stage{i}.cryoInsuFuel = 2.88 * areaTankFuel;
-                mer.stage{i}.thrustFrame = 2.55e-4*nEngine*opt.stage{i}.engine.thrust;
+                mer.stage{i}.thrustFrame = 2.55e-4*nEngine*thrustValue;
                 mer.stage{i}.engineWeight = nEngine*opt.stage{i}.engine.weight;
                 mer.stage{i}.tvc = 0.12*nEngine*opt.stage{i}.engine.weight;
                 mer.stage{i}.interStage = 13.7*sol1(1)^2*pi;                
@@ -149,7 +159,7 @@ lOverD = 5;
 
             mStage = mStructure + mProp ;
             mStack = mStack + mStage;
-            twRatio = nEngine*opt.stage{i}.engine.thrust/mStack/9.81;
+            twRatio = nEngine*thrustValue/mStack/9.81;
         end
 
     staging{i}.mStage = mStage;
