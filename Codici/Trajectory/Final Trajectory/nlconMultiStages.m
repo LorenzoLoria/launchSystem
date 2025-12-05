@@ -32,9 +32,11 @@ for i = 1:opt.nStages
     if i == 1
     staticContribution = (101325-mission.environment.pressure(h))*opt.stage{i}.engine.effAreaZero;
     isp = opt.stage{i}.engine.ispZero;
+    thrustValue = opt.stage{i}.engine.thrustZero;
     else
     staticContribution = 0;
     isp = opt.stage{i}.engine.ispVac;
+    thrustValue = opt.stage{i}.engine.thrustVacum;
     end
     if option2D == 1
     thetaGimball = zeros(1,opt.nDeval);
@@ -46,7 +48,7 @@ for i = 1:opt.nStages
     percThrustVec = percThrustFun(timeCollocation(:,i));
     gammaGimball = deg2rad(angleThrustFun(timeCollocation(:,i)));
 
-    ThrustBRF = percThrustVec' .* opt.stage{i}.nEngines .*(opt.stage{i}.engine.thrust+staticContribution).* [cos(thetaGimball).*cos(gammaGimball'); cos(thetaGimball).*sin(gammaGimball'); sin(thetaGimball)];
+    ThrustBRF = percThrustVec' .* opt.stage{i}.nEngines .*(thrustValue+staticContribution).* [cos(thetaGimball).*cos(gammaGimball'); cos(thetaGimball).*sin(gammaGimball'); sin(thetaGimball)];
     ThrustIRF = mission.Rfinal'*ThrustBRF;
     ThrustIRFNorm = sqrt(ThrustIRF(1,:).^2 + ThrustIRF(2,:).^2 + ThrustIRF(3,:).^2 );
     angleWrtVelMaxStage(i) = max(acosd(sum(ThrustIRF .* vel, 1)./ThrustIRFNorm./vNorm));
