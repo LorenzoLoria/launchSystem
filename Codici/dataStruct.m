@@ -1,5 +1,5 @@
 % data script
-function [mission,optimisation] = dataStruct
+function [mission,optimisation,settings] = dataStruct
 
 mission = struct();
 
@@ -155,15 +155,19 @@ rot = [ex,ey,ez]';
 optimisation = struct();
 optimisation.nStages = 2;
 optimisation.stage{1}.engine = mission.launcher.engines{1};
-optimisation.stage{2}.engine = mission.launcher.engines{4};
+optimisation.stage{2}.engine = mission.launcher.engines{3};
 
 optimisation.stage{1}.nEngines = 4;
-optimisation.stage{2}.nEngines = 1;
+optimisation.stage{2}.nEngines = 5;
+
+optimisation.stage{1}.percentage = 0.5;
+optimisation.stage{2}.percentage= 0.3;
+
 
 mProp1 = optimisation.stage{1}.nEngines*optimisation.stage{1}.engine.thrustZero/9.81*0.5;
 epsS1 = 0.05;
 
-mProp2 = optimisation.stage{2}.nEngines*optimisation.stage{2}.engine.thrustZero/9.81*0.3;
+mProp2 = optimisation.stage{2}.nEngines*optimisation.stage{2}.engine.thrustVacum/9.81*0.5;
 epsS2 = 0.06;
 
 mS1 = epsS1/(1-epsS1)*mProp1;
@@ -312,3 +316,68 @@ mission.structures{3}.mInterstage = 150;
 mission.structures{1}.lengthInterstage = 3.5;
 mission.structures{2}.lengthInterstage = 3.5;
 mission.structures{3}.lengthInterstage = 3.5;
+
+
+
+
+
+
+
+
+
+%% opt vere questa volta
+
+settings = struct();
+
+settings.lowerBoundsFMC(:,:,1) = [0.1*ones(mission.optimisation.GA.variables,1);...
+                        0*ones(mission.optimisation.GA.variables,1)];
+settings.lowerBoundsFMC(:,:,2) = [0.1*ones(mission.optimisation.GA.variables,1);...
+                        0*ones(mission.optimisation.GA.variables,1)];
+settings.lowerBoundsFMC(:,:,3) = [0.1*ones(mission.optimisation.GA.variables,1);...
+                        0*ones(mission.optimisation.GA.variables,1)];
+
+
+settings.upperBoundsFMC(:,:,1) = [ones(mission.optimisation.GA.variables,1);...
+                        90*ones(mission.optimisation.GA.variables,1)];
+settings.upperBoundsFMC(:,:,2) = [ones(mission.optimisation.GA.variables,1);...
+                        120*ones(mission.optimisation.GA.variables,1)];
+settings.upperBoundsFMC(:,:,3) = [ones(mission.optimisation.GA.variables,1);...
+                        150*ones(mission.optimisation.GA.variables,1)];
+
+
+settings.lowerBoundsGA = settings.lowerBoundsFMC(:);
+settings.upperBoundsGA = settings.upperBoundsFMC(:);
+
+
+settings.gaTrajOptions = optimoptions("ga", ...
+                        "Display","iter", ...
+                        "MaxGenerations",20, ...
+                        "PopulationSize",50,...
+                        "UseParallel",false,...
+                        "FunctionTolerance", 1e-4);
+
+
+settings.fminconTrajOptions = optimoptions("fmincon",...
+                                "Display","iter",...
+                                "MaxIterations",200,...
+                                'MaxFunctionEvaluations',10000,...
+                                'StepTolerance',1e-19,...
+                                'OptimalityTolerance',1e-6,...
+                                'FunctionTolerance',1e-15,...
+                                'ConstraintTolerance',1e-10, ...
+                                'EnableFeasibilityMode',true,...
+                                "UseParallel",false);
+
+settings.TrajOptimisationPoints = 5;
+
+settings.fsolveOptions = optimoptions('fsolve','Display','none');
+
+
+
+
+
+end
+
+
+
+
