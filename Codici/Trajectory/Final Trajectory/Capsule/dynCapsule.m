@@ -25,7 +25,7 @@ rr = x(1:3);
 dxdt(1:3) = x(4:6);   
 
 % Compute the gravitational acceleration using Newton's law + air drag
-dxdt(4:6) = - GM * rr /(dot(rr, rr)^(3/2)) + aeroForce./mission.capsule.weigth;
+dxdt(4:6) = - GM * rr /(dot(rr, rr)^(3/2)) + aeroForce./mission.capsule.weight;
 
 end
 

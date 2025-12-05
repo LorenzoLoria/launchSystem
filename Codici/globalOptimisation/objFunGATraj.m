@@ -12,7 +12,7 @@ thrustDataVec = x;
 latInitial = mission.target.latInitial ;
 latFinal = latInitial ;
 lonInitial = mission.target.lonInitial ;
-if option2D == 1
+if settings.trajectoryOption2D == 1
     omega = 0;
 else
 omega = mission.target.omega ;

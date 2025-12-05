@@ -9,7 +9,7 @@ latFinal = latInitial ;
 lonInitial = mission.target.lonInitial ;
 
 
-if option2D == 1
+if settings.trajectoryOption2D == 1
     omega = 0;
 
 else
@@ -42,8 +42,8 @@ for i = 1:launcher(1)
     isp = opt.stage{i}.engine.ispVac;
     thrustValue = opt.stage{i}.engine.thrustVacum;
     end
-    if option2D == 1
-    thetaGimball = zeros(1,settings.nDeval);
+    if settings.trajectoryOption2D == 1
+    thetaGimball = zeros(1,settings.nEvalPointsTraj);
     else
     thetaGimballFun = griddedInterpolant(time2,thrustDataVec(:,3,i),'linear','linear');
     thetaGimball = thetaGimballFun(timeCollocation(:,i)) ;
@@ -53,7 +53,7 @@ for i = 1:launcher(1)
     gammaGimball = deg2rad(angleThrustFun(timeCollocation(:,i)));
 
     ThrustBRF = percThrustVec' .* opt.stage{i}.nEngines .*(thrustValue+staticContribution).* [cos(thetaGimball).*cos(gammaGimball'); cos(thetaGimball).*sin(gammaGimball'); sin(thetaGimball)];
-    ThrustIRF = mission.Rfinal'*ThrustBRF;
+    ThrustIRF = mission.target.Rfinal'*ThrustBRF;
     ThrustIRFNorm = sqrt(ThrustIRF(1,:).^2 + ThrustIRF(2,:).^2 + ThrustIRF(3,:).^2 );
     angleWrtVelMaxStage(i) = max(abs(acosd(sum(ThrustIRF .* vel, 1)./ThrustIRFNorm./vNorm)));
 
