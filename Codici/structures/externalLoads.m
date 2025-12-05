@@ -1,7 +1,7 @@
 function [mission] = externalLoads(timeCollocation,stateCollocation,mission,opt,thrustData,alpha)
 
 vel = stateCollocation(4:6,:,1:end-1)-stateCollocation(4:6,1,1);
-vel = mission.Rfinal* vel(1:3,:);
+vel = mission.target.Rfinal* vel(1:3,:);
 absVel = sqrt ( vel(1,:).^2+ vel(2,:).^2 + vel(3,:).^2 );
 
 normRocket = vel./absVel ;

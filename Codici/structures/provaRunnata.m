@@ -7,8 +7,9 @@ close all
 % ==========================  DATI ========================================
 
 addpath(genpath('..\..\'))
-%%
-[mission, opt] = dataStruct;
+
+[mission, settings] = dataStructGlobal;
+[~, opt] = dataStruct;
 
 thrustData(:, :, 1) =     [0.992951743036793	26.174503353658913
 0.918245484987595	5.524888452757455
@@ -21,8 +22,12 @@ thrustData(:, :, 2) =    [0.609126028473365	8.838970511617315
 0.702233911900803	1.003603356352884e+02
 0.845617612957625	52.146897489107950
 0.413941032471940	99.388409631182256];
-    
-[timeCollocation, stateCollocation] = totalTrajectory(mission,opt,thrustData,1);
+
+launcher = [2];
+
+[timeCollocation, stateCollocation] = totalTrajectoryGlobalGA(launcher,opt,mission,settings,thrustData);
+
+%%
 mission.structure.alphaQmax = deg2rad(3.4);
 
 [mission] = externalLoads(timeCollocation,stateCollocation,mission,opt,thrustData, mission.structure.alphaQmax);

@@ -178,6 +178,7 @@ mStage2 = mProp2+mS2;
 
 
 optimisation.m0Tot = mStage1 + mStage2 + mission.capsule.weigth;
+optimisation.totalMass = mStage1 + mStage2 + mission.capsule.weigth;
 
 optimisation.stage{1}.mStage = mStage1;
 optimisation.stage{1}.mProp = mProp1;
