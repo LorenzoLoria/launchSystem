@@ -1,4 +1,4 @@
-function [objective] = objFunGATraj(x,launcher, opt,mission,settings)
+function [objective] = objFunGATraj(x,launcher, mission,opt,option2D)
 
 thrustDataVec = x;
 %thrustDataVec is the variable containing informations about the
@@ -7,7 +7,7 @@ thrustDataVec = x;
 %using a optVarNum x 2 x nStages matrix, since it will help in keeping the
 %code organised correctly.
 
-[timeCollocation,stateCollocation] = totalTrajectoryGlobalGA(launcher,opt,mission,settings,thrustDataVec);
+[timeCollocation,stateCollocation] = totalTrajectoryGlobalGA(mission,opt,launcher,thrustDataVec,option2D);
 
 latInitial = mission.target.latInitial ;
 latFinal = latInitial ;

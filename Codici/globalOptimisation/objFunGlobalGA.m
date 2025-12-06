@@ -1,8 +1,8 @@
-function  [objective] = objFunGlobalGA(launcher,mission,settings,option2D)
+function  [objective] = objFunGlobalGA(launcher,mission,opt,settings,option2D)
 
 nlconFlag = 0;
 
-[output] = launcherSimulation(launcher,mission,settings,option2D,nlconFlag);
+[output] = launcherSimulation(launcher,mission,opt,settings,option2D,nlconFlag);
 
 
     output.launcherMass = totalMass;

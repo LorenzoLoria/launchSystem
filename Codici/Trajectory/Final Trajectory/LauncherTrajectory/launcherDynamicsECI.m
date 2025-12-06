@@ -81,7 +81,7 @@ else
 end
 
 ThrustBRF = percVec * opt.stage{stageNumber}.nEngines *(thrustValue+staticContribution)* [cos(thetaGimball)*cos(gammaGimball); cos(thetaGimball)*sin(gammaGimball); sin(thetaGimball)];
-ThrustIRF = mission.target.Rfinal'*ThrustBRF;
+ThrustIRF = mission.Rfinal'*ThrustBRF;
 
 
     % Drag contribution

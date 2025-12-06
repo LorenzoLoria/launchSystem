@@ -1,4 +1,4 @@
-function [timeCollocation, stateCollocation] = totalTrajectoryGlobalGA(launcher,opt,mission,settings,thrustDataVec)
+function [timeCollocation, stateCollocation] = totalTrajectoryGlobalGA(mission,opt,launcher,thrustDataVec,option2D)
 
 persistent thrustDataVecPrev timeCollocationPrev stateCollocationPrev
 
@@ -17,16 +17,16 @@ else
 thrustDataVecPrev = thrustDataVec ; 
 
 nStages = launcher(1);
-totalMass = opt.totalMass;
+m0Tot = opt.m0Tot;
  
-nDeval = settings.nEvalPointsTraj;
+nDeval = opt.nDeval;
 stateCollocation = zeros(7,nDeval,nStages+1);
 timeCollocation = zeros(nDeval,nStages+1);
 
 latInitial = mission.launchBase.latInitial;
 lonInitial = mission.launchBase.lonInitial;
 
-if settings.trajectoryOption2D == 1
+if option2D == 1
     omega =0;
 else
     omega = mission.target.omega ;
@@ -38,7 +38,7 @@ vyInitial = omega * mission.environment.rEarth * cos(latInitial) * cos(lonInitia
 for i = 1:nStages
 
         if i == 1
-            m0 = totalMass;
+            m0 = m0Tot;
             x0 = [mission.launchBase.initialPointECI'; vxInitial; vyInitial; 0;  m0];
             t0 = 0;
             tf = opt.stage{i}.mProp * (length(thrustDataVec(:,1,i))-1)* opt.stage{i}.engine.ispZero * mission.environment.g0 * 2 ;
@@ -59,9 +59,9 @@ for i = 1:nStages
     fThrust = griddedInterpolant(tVec, thrustDataVec(:,:,i), 'linear', 'none'); 
     thrustData= @(t) fThrust(t).';
 
-    opt.totalMass = m0;
+    opt.m0Tot = m0;
     
-    [tt,xx] = launcherTrajectory(x0,mission,thrustData,tSpan,nDeval,i,opt,settings.trajectoryOption2D);
+    [tt,xx] = launcherTrajectory(x0,mission,thrustData,tSpan,nDeval,i,opt,option2D);
     
     stateCollocation(:,:,i) = xx;
     timeCollocation(:,i) = tt;

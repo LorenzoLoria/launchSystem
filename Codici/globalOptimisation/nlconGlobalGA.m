@@ -1,10 +1,10 @@
-function [cin,ceq] = nlconGlobalGA(launcher,mission,settings)
+function [cin,ceq] = nlconGlobalGA(launcher,mission,opt,settings,option2D)
 
 ceq = [];
 
 nlconFlag = 1; 
 
-[output] = launcherSimulation(launcher,mission,settings,nlconFlag);
+[output] = launcherSimulation(launcher,mission,opt,settings,option2D,nlconFlag);
 
 cin = [output];
 
