@@ -25,7 +25,6 @@ lNose = mission.capsule.height + opt.geometry.stage{nStages}.interstage.length ;
 Aref = pi/4 * dCylinder^2 ;                                                                     % area di riferimento [m^2] cross section cilindro mediato
 Sref = Aref ;
 Anose = max(mission.capsule.Area , pi*opt.geometry.stage{nStages}.radius^2) ;                   % area nose [m^2] max tra cross section capsula e ultimo stadio
-Abase = pi*opt.geometry.stage{currentStage}.radius^2 ;                                          % area base [m^2] cross section primo stadio
 phi = pi/4 ;                                                                                    % angolo di giunzione [rad] angolo tra ultimo stadio e interstage di connessione alla capsula
 
 if currentStage == 1
@@ -33,7 +32,10 @@ if currentStage == 1
 else
     AexitTot = opt.stage{currentStage}.engine.effAreaVac * opt.stage{currentStage}.nEngines;
 end
-Ab = pi/4 * dCylinder^2 ;                                                                       %area riferimento???
+
+boatTailRadius = opt.geometry.stage{currentStage}.radius ;                                      %boat tail not present r=radius of the current stagev
+Abase = pi * boatTailRadius^2 ;                                                                 % area base [m^2] se è presente una boattail non coincide con l'area dello stadio corrente
+Ab = pi/4 * dCylinder^2;                                                                        %area max cross section
 Ap = dCylinder * lCylinder ;                                                                    %area razzo vista da lato
 ce = 4.525 * opt.geometry.stage{1}.radius*2 / 10;                                               %mean chord fins??? mediato rispetto a saturn5?
 be = 4.525 * opt.geometry.stage{1}.radius*2 / 10;                                               %semi span delle fin mediato rispetto a saturn5?
