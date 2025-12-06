@@ -59,7 +59,8 @@ function dsdt = launcherDynamicsECI(t, x,thrustData, mission,stageNumber,opt,opt
     if Mach == 0
         Cd = 0.01;
     else
-    [~,Cd,~,~] = CLCDcomputation(Mach,0,dynamicPressure,1,mission,stageNumber,opt);
+    %[~,Cd,~,~] = CLCDcomputation(Mach,0,dynamicPressure,1,mission);
+    Cd = 1;
     end
     optVar = thrustData(t); 
     
