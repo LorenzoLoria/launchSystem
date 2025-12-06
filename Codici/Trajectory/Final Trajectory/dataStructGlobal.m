@@ -65,6 +65,7 @@ mission.engines{4}.effAreaVac = 2.3^2/4*pi;
 
 mission.capsule.weight = 8600;
 mission.capsule.Area = 4^2*pi/4;
+mission.capsule.radius = 2;
 mission.capsule.supersonicCD = 1.23;
 mission.capsule.subsonicCD = 0.45;
 mission.capsule.height = 2.9;
