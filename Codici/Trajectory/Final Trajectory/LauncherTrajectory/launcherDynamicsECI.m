@@ -37,24 +37,21 @@ function dsdt = launcherDynamicsECI(t, x,thrustData, mission,stageNumber,opt,opt
     r     = x(1:3);
     v     = x(4:6);
     m     = x(7);
-    
 
-    vMag = norm(v); 
-    
-    rMag = norm(r);
     
     A   = mission.capsule.Area;
+
     g0  = mission.environment.g0; 
     GM  = mission.environment.GM;
 
     % Interpolate air density based on current altitude
-    h   = rMag-mission.environment.rEarth;  
+    warning off
+    h   = norm(r)-mission.environment.rEarth;  
+    %rho = interp1(mission.environment.altRange, mission.environment.rho, h, 'linear', 'extrap');
     rho = mission.environment.rhoFun(h);
-   
-    dynamicPressure = 0.5 * rho * vMag^2;
+    dynamicPressure = 0.5 * rho * norm(v)^2;
     [soundspeed] = mission.aerodynamics.soundspeedFun(h);
-    Mach = vMag/soundspeed;
-    
+    Mach = norm(v)/soundspeed;
     if Mach == 0
         Cd = 0.01;
     else
@@ -89,13 +86,13 @@ ThrustIRF = mission.target.Rfinal'*ThrustBRF;
 
 
     % Drag contribution
-    D = - 0.5 .* rho .* vMag .* A .* Cd .* v; 
+    D = - 0.5 .* rho .* norm(v) .* A .* Cd .* v; 
 
     % Gravity contribution
-    G = - GM * r /rMag^3;
+    G = - GM * r /norm(r)^3;
 
     % mass flow rate
-    mDot = -( percVec *thrustValue* opt.stage{stageNumber}.nEngines) / (g0 * isp); 
+    mDot = - norm( percVec *thrustValue* opt.stage{stageNumber}.nEngines) / (g0 * isp); 
 
     % Equation of motion
     dsdt = zeros(7,1);
