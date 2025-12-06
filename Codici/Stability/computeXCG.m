@@ -18,7 +18,7 @@ N = opt.nStages;
 % Payload Data
 % m = massMaxQ;
 lco = mission.capsule.height;
-mco = mission.capsule.weight;
+mco = mission.capsule.weigth;
 Xco = lco / 2; 
 
 

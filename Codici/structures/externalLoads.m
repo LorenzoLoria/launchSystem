@@ -56,7 +56,7 @@ machNumber = norm(vMaxQ) / soundSpeed;
 
 dMaxQ = -rot2*maxq * mainbodyCD *mission.capsule.Area* [1;0;0];
 lMaxQ = -rot2*maxq * mainbodyCL *mission.capsule.Area * [0;-1;0];
-gMaxQ = -rot3'*mission.target.Rfinal* mission.environment.GM * posMaxQ /norm(posMaxQ)^3;
+gMaxQ = -rot3'*mission.Rfinal* mission.environment.GM * posMaxQ /norm(posMaxQ)^3;
 
 tMaxQ = (aMaxQ - gMaxQ)*massMaxQ - dMaxQ-lMaxQ;
 
@@ -74,7 +74,7 @@ mission.structure.vMaxQ             = vMaxQ;
 
 m1Stage = opt.stage{1}.mStage + massMaxQ - opt.m0Tot;
 
-mission.structure.massMaxQVec = [mission.capsule.weight];
+mission.structure.massMaxQVec = [mission.capsule.weigth];
 
 for ii = opt.nStages:-1:1
     mission.structure.massMaxQVec = [mission.structure.massMaxQVec, mission.structures{ii}.mInterstage, opt.stage{ii}.mStage];

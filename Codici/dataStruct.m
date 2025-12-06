@@ -67,7 +67,7 @@ mission.launcher.engines{4}.effAreaZero = 2.3^2/4*pi;
 mission.launcher.engines{4}.effAreaVac = 2.3^2/4*pi;
 
 
-mission.capsule.weight = 8600;
+mission.capsule.weigth = 8600;
 mission.capsule.Area = 4^2*pi/4;
 mission.capsule.supersonicCD = 1.23;
 mission.capsule.subsonicCD = 0.45;
@@ -146,7 +146,7 @@ rot = [ex,ey,ez]';
 %hold off
 
 
-    mission.target.Rfinal = rot ;
+    mission.Rfinal = rot ;
 
     mission.optimisation.GA.variables = 5;    
 
@@ -177,8 +177,8 @@ mStage1 = mProp1+mS1;
 mStage2 = mProp2+mS2;
 
 
-optimisation.m0Tot = mStage1 + mStage2 + mission.capsule.weight;
-optimisation.totalMass = mStage1 + mStage2 + mission.capsule.weight;
+optimisation.m0Tot = mStage1 + mStage2 + mission.capsule.weigth;
+optimisation.totalMass = mStage1 + mStage2 + mission.capsule.weigth;
 
 optimisation.stage{1}.mStage = mStage1;
 optimisation.stage{1}.mProp = mProp1;
