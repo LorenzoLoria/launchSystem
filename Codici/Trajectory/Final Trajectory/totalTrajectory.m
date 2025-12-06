@@ -73,7 +73,7 @@ windDirection = [1 0 0]';
 
 [ttCaps,xxCaps] = ballisticTrajectory(x0Capsule,mission,windDirection,t0Capsule,nDeval);
 
-stateCollocation(:,:,end) = [xxCaps;mission.capsule.weigth*ones(1,nDeval)];
+stateCollocation(:,:,end) = [xxCaps;mission.capsule.weight*ones(1,nDeval)];
 timeCollocation(:,end) = ttCaps;
 
 timeCollocationPrev = timeCollocation ;
