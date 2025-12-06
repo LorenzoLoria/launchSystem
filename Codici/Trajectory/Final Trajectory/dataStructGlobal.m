@@ -178,23 +178,23 @@ mission.structure.safetyFactor       = 1.5;
 
 settings = struct();
 
-settings.globalGAoptVariables = 7 ;
+
 % ============================ Lower and upper bounds ===============================
 
-settings.lowerBoundsFMC(:,:,1) = [0.1*ones(settings.globalGAoptVariables,1);...
-                        0*ones(settings.globalGAoptVariables,1)];
-settings.lowerBoundsFMC(:,:,2) = [0.1*ones(settings.globalGAoptVariables,1);...
-                        0*ones(settings.globalGAoptVariables,1)];
-settings.lowerBoundsFMC(:,:,3) = [0.1*ones(settings.globalGAoptVariables,1);...
-                        0*ones(settings.globalGAoptVariables,1)];
+settings.lowerBoundsFMC(:,:,1) = [0.1*ones(mission.optimisation.GA.variables,1);...
+                        0*ones(mission.optimisation.GA.variables,1)];
+settings.lowerBoundsFMC(:,:,2) = [0.1*ones(mission.optimisation.GA.variables,1);...
+                        0*ones(mission.optimisation.GA.variables,1)];
+settings.lowerBoundsFMC(:,:,3) = [0.1*ones(mission.optimisation.GA.variables,1);...
+                        0*ones(mission.optimisation.GA.variables,1)];
 
 
-settings.upperBoundsFMC(:,:,1) = [ones(settings.globalGAoptVariables,1);...
-                        90*ones(settings.globalGAoptVariables,1)];
-settings.upperBoundsFMC(:,:,2) = [ones(settings.globalGAoptVariables,1);...
-                        120*ones(settings.globalGAoptVariables,1)];
-settings.upperBoundsFMC(:,:,3) = [ones(settings.globalGAoptVariables,1);...
-                        150*ones(settings.globalGAoptVariables,1)];
+settings.upperBoundsFMC(:,:,1) = [ones(mission.optimisation.GA.variables,1);...
+                        90*ones(mission.optimisation.GA.variables,1)];
+settings.upperBoundsFMC(:,:,2) = [ones(mission.optimisation.GA.variables,1);...
+                        120*ones(mission.optimisation.GA.variables,1)];
+settings.upperBoundsFMC(:,:,3) = [ones(mission.optimisation.GA.variables,1);...
+                        150*ones(mission.optimisation.GA.variables,1)];
 
 
 settings.lowerBoundsGA = settings.lowerBoundsFMC(:);
@@ -246,7 +246,7 @@ settings.nEvalPointsTraj = 100 ;
 
 settings.intconGlobalGA = [1 2 3 4];
 settings.globalGAoption2D = 1;
-
+settings.globalGAoptVariables = 7 ;
 
 
 
