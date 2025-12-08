@@ -191,6 +191,15 @@ settings = struct();
 
 settings.globalGAoptVariables = 7 ;
 settings.nOptPointsTraj = 5 ;
+
+% ============================ Initial population internal GA ===============================
+
+settings.initialPopulationGATraj.twoStages = load("ThrustData.mat") ;
+settings.initialPopulationGATraj.twoStages = settings.initialPopulationGATraj.twoStages.X ;
+clear settings.initialPopulationGATraj.twoStages.X ;
+
+
+
 % ============================ Lower and upper bounds ===============================
 
 settings.lowerBoundsFMC(:,:,1) = [0.9*ones(settings.nOptPointsTraj,1);...

@@ -18,6 +18,17 @@ end
 
 [mer,staging,configuration] = initialMassEstimation(mission,configuration,settings,launcher);
 
+
+if launcher(1) == 1
+
+elseif launcher(1) == 2
+    localGAsettings = settings.gaTrajOptions ;
+    localGAsettings.InitialPopulationMatrix = settings.initialPopulationGATraj.twoStages ;
+else
+
+end
+
+
 [xGATraj, fvalGATraj] = ga( @(x) objFunGATraj( reshape(x,settings.nOptPointsTraj,2,launcher(1)),launcher,configuration, mission,settings), ...
                         launcher(1)*2*settings.nOptPointsTraj,...
                         [],[],[],[],settings.lowerBoundsGA,settings.upperBoundsGA, ...
@@ -34,7 +45,7 @@ error = 101;
 
 while error > 100
 
-    [~,fvalFMCTraj] = fmincon ( @(x)objFunFMCTraj(x,launcher,configuration,mission),...
+    [~,fvalFMCTraj] = fmincon ( @(x)objFunFMCTraj(x,launcher,configuration,mission,settings),...
         xGATraj,[],[],[],[],...
         settings.lowerBoundsFMC-eps,settings.upperBoundsFMC+eps,...
         @(x) nlconFMCTraj(x,launcher,configuration,mission,settings.trajectoryOption2D),...
@@ -42,7 +53,6 @@ while error > 100
     error = 99;
 
 end
-
 
 
 if nlconFlag
