@@ -9,8 +9,8 @@ rr = x(1:3);
 v  = x(4:6); 
     
 % Calcoli della Norma (Fatti SOLO UNA volta)
-rMag = norm(rr); 
-vMag = norm(v);
+rMag = sqrt(rr'*rr); 
+vMag = sqrt(v'*v);
 
 GM = mission.environment.GM;
 h =rMag-mission.environment.rEarth; 

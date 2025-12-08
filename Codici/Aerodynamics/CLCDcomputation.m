@@ -1,43 +1,45 @@
 function[CL,CD,CN,CA, mainbodyCL, mainbodyCD, finsCL, finsCD] = CLCDcomputation(Mach,alpha,dynamicPressure,isPoweredFlag,mission,currentStage,opt)
 
 nStages = length(opt.stage);
+geoStages = opt.geometry.stage;
+optStage = opt.stage;
 q = dynamicPressure;                       % pressione dinamica [Pa]
 
 
 %Last stage, coupler to the capsule is not considered here, but rather in
 %the nosecone
-stageRadius = opt.geometry.stage{nStages}.radius;
-lCylinder = opt.geometry.stage{nStages}.tanksLength;                                            % lunghezza totale [m] lunghezza cilindro mediato
+stageRadius = geoStages{nStages}.radius;
+lCylinder = geoStages{nStages}.tanksLength;                                            % lunghezza totale [m] lunghezza cilindro mediato
 dCylinder = lCylinder *stageRadius*2;     % diametro [m] diametro cilindro mediato
 
 %Other stages
 for i=nStages-1:-1:currentStage
-    lCylinder = lCylinder + opt.geometry.stage{i}.tanksLength + opt.geometry.stage{i}.interstage.length ;
-    dCylinder = dCylinder + opt.geometry.stage{i}.tanksLength * opt.geometry.stage{i}.radius*2 +...
-                opt.geometry.stage{i}.interstage.length *...
-                (opt.geometry.stage{i}.radius + opt.geometry.stage{i+1}.radius);
+    lCylinder = lCylinder + geoStages{i}.tanksLength + geoStages{i}.interstage.length ;
+    dCylinder = dCylinder + geoStages{i}.tanksLength * geoStages{i}.radius*2 +...
+                geoStages {i}.interstage.length *...
+                (geoStages {i}.radius + geoStages {i+1}.radius);
     
 end
 
 dCylinder = dCylinder / lCylinder ;
 lambda = lCylinder / dCylinder;                                                                 % Fineness ratio
 
-lNose = mission.capsule.height + opt.geometry.stage{nStages}.interstage.length ;                % lunghezza nose [m] lunghezza capsula + interstage
+lNose = mission.capsule.height + geoStages{nStages}.interstage.length ;                % lunghezza nose [m] lunghezza capsula + interstage
 Aref = pi/4 * dCylinder^2 ;                                                                     % area di riferimento [m^2] cross section cilindro mediato
 Sref = Aref ;
 Anose = max(mission.capsule.Area , pi*stageRadius^2) ;                   % area nose [m^2] max tra cross section capsula e ultimo stadio
 phi = pi/4 ;                                                                                    % angolo di giunzione [rad] angolo tra ultimo stadio e interstage di connessione alla capsula
 
-nEngines = opt.stage{currentStage}.nEngines;
+nEngines = optStage{currentStage}.nEngines;
 
 if currentStage == 1
-    AexitTot = opt.stage{currentStage}.engine.effAreaZero * nEngines;   % aree uscita motori
+    AexitTot = optStage{currentStage}.engine.effAreaZero * nEngines;   % aree uscita motori
 else
-    AexitTot = opt.stage{currentStage}.engine.effAreaVac * nEngines;
+    AexitTot = optStage{currentStage}.engine.effAreaVac * nEngines;
 end
 
-stage1Radius = opt.geometry.stage{1}.radius;
-boatTailRadius = opt.geometry.stage{currentStage}.radius ;                                      %boat tail not present r=radius of the current stagev
+stage1Radius = geoStages{1}.radius;
+boatTailRadius = geoStages{currentStage}.radius ;                                      %boat tail not present r=radius of the current stagev
 Abase = pi * boatTailRadius^2 ;                                                                 % area base [m^2] se è presente una boattail non coincide con l'area dello stadio corrente
 Ab = pi/4 * dCylinder^2;                                                                        %area max cross section
 Ap = dCylinder * lCylinder ;                                                                    %area razzo vista da lato
