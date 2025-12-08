@@ -23,7 +23,7 @@ if launcher(1) == 1
 
 elseif launcher(1) == 2
     localGAsettings = settings.gaTrajOptions ;
-    localGAsettings.InitialPopulationMatrix = settings.initialPopulationGATraj.twoStages ;
+    localGAsettings.InitialPopulationMatrix = settings.initialPopulationGATraj.twoStages' ;
 else
 
 end
@@ -32,12 +32,18 @@ end
 [xGATraj, fvalGATraj] = ga( @(x) objFunGATraj( reshape(x,settings.nOptPointsTraj,2,launcher(1)),launcher,configuration, mission,settings), ...
                         launcher(1)*2*settings.nOptPointsTraj,...
                         [],[],[],[],settings.lowerBoundsGA,settings.upperBoundsGA, ...
-                        @(x) nlconGATraj( reshape(x,settings.nOptPointsTraj,2,launcher(1)),launcher,configuration, mission,settings),settings.gaTrajOptions);
+                        @(x) nlconGATraj( reshape(x,settings.nOptPointsTraj,2,launcher(1)),launcher,configuration, mission,settings),localGAsettings);
 
 
-if fvalGATraj > 6000    
+if fvalGATraj > 6000
 
-    output = 3000000;
+    if nlconFlag
+        output = 1e9;
+    else
+        output.launcheMass = 1e9 ;
+        output.tof = 1e9 ;
+    end
+
     return
 
 end

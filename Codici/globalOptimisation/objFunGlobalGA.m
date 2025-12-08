@@ -1,18 +1,32 @@
-function  [objective] = objFunGlobalGA(launcher,mission,settings,option2D)
+function  [objective] = objFunGlobalGA(launcher,mission,settings)
 
 nlconFlag = 0;
 
-[output] = launcherSimulation(launcher,mission,settings,option2D,nlconFlag);
+[output] = launcherSimulation(launcher,mission,settings,nlconFlag);
 
-
-    output.launcherMass = totalMass;
-    output.tof = fvalFMCTraj; 
-
-objective = output.totalMass/200000 + output.tof/3600 ; 
-
+if ~isstruct(output)
+    keyboard
+end
 
 
 
+totalMass = output.launcherMass ; 
+tof = output.tof ; 
+
+
+objective = totalMass/200000 + tof/3600 ; 
+
+if isnan(totalMass) || isnan(tof)
+    keyboard
+end
+
+if isinf(totalMass) || isinf(tof)
+    keyboard
+end
+
+if isempty(totalMass) || isempty(tof)
+    keyboard
+end
 
 
 
