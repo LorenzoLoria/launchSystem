@@ -160,8 +160,7 @@ for i = 1 : partsNumber
             t(i, j) = max(t(i, j), tBuckling);
         end
 
-        [t(i), idx] = min(t(i, :));
-
+        [t(i), idx] = min(t)
         % Area 
         A = pi * (r(i)^2 - (r(i)-t(i)).^2);
         
@@ -175,13 +174,13 @@ for i = 1 : partsNumber
         
         % Buckling for UnPressurized Cylinders
         
-        sigmaBuckling = (9 * (t(i) ./ r(i))^1.6 + 0.16 * (t(i) ./ h(i))^1.3) * E(idx) * t(i) / r(i);
+        sigmaBuckling = (9 * (t(i) ./ r(i))^1.6 + 0.16 * (t(i) ./ h(i))^1.3) * E * t(i) / r(i);
         
         stressMatrix(i, :) = [longitudinalStress, bendingStress, shearStress, 0, 0, sigmaBuckling];
     
         % Exctraction of the most critical result
         volume = pi .* h(i) * (r(i)^2 - (r(i) - t(i)).^2);
-        mStruct(i) = volume .* rhoMaterial(idx);
+        mStruct(i) = volume .* rhoMaterial;
     end
 end
 

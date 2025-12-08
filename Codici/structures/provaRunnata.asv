@@ -56,10 +56,10 @@ mission.structure.launcherLength = mission.structure.launcherLength(end);
 
 mission.diameter = mission.structure.diameter;
 xcp = computeXcp(mission, opt);
-xcp_a = mission.aerodynamics.rootChord - computeFinXcp(mission);
+xcp_a = mission.aerodynamics.rootChord - computeFinXcp(mission); % compute position starting from the launcher bottom
 
 % Length of the element used for structural analysis
-mission.structure.elementLength = [xcp,mission.capsule.height/2-xcp,mission.capsule.height/2];
+mission.structure.elementLength = [mission.capsule.height/2,xcp-mission.capsule.height/2,mission.capsule.height-xcp];
 
 for ii = opt.nStages:-1:1
     mission.structure.elementLength = [ mission.structure.elementLength, mission.structures{ii}.lengthInterstage/2, mission.structures{ii}.lengthInterstage/2, opt.stage{ii}.length/2,opt.stage{ii}.length/2];
@@ -90,12 +90,13 @@ fprintf('  %.3f tons\n', mStruct_ton);
 
 %%
 xcg = computeXCG(mission, opt);
-equatMoment = @(Ftfins) mission.structure.tMaxQ(2) * (mission.structure.launcherLength - ...
-    xcg) - ( mission.structure.dMaxQ(2) + mission.structure.lMaxQ(2)) * (xcg - ...
-    xcp_a) + Ftfins * (xcp_a - xcg); 
-sol = fzero(equatMoment, 0);
+% equatMoment = @(Ftfins) mission.structure.tMaxQ(2) * (mission.structure.launcherLength - ...
+%     xcg) - ( mission.structure.dMaxQ(2) + mission.structure.lMaxQ(2)) * (xcg - ...
+%     xcp_a) + Ftfins * (xcp_a - xcg); 
+% sol = fzero(equatMoment, 0);
+Ftfins = (- mission.structure.tMaxQ(2) * (mission.structure.launcherLength - xcg) + ( mission.structure.dMaxQ(2) + mission.structure.lMaxQ(2)) * (xcg - xcp_a)) / (xcp_a - xcg)
+CLnew = abs(Ftfins) / (mission.structure.dynamicPressure * mission.aerodynamics.bodyGeom.Aref)
 
-Aeq = sol / (mission.structure.dynamicPressure)
 
 %%
 alphas = deg2rad(linspace(-180, 180, 400)); % in gradi per esempio
@@ -157,7 +158,7 @@ grid on;
 xlabel('x [m]');
 ylabel('Axial Load [N]');
 xlim([0, x_all(end)])
-
+ylim([0, ])
 % --- Figura 2: Shear Load ---
 figure(2); 
 ar2 = area(x_all, T_all);

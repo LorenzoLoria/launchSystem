@@ -56,10 +56,10 @@ mission.structure.launcherLength = mission.structure.launcherLength(end);
 
 mission.diameter = mission.structure.diameter;
 xcp = computeXcp(mission, opt);
-xcp_a = mission.aerodynamics.rootChord - computeFinXcp(mission);
+xcp_a = mission.aerodynamics.rootChord - computeFinXcp(mission); % compute position starting from the launcher bottom
 
 % Length of the element used for structural analysis
-mission.structure.elementLength = [xcp,mission.capsule.height/2-xcp,mission.capsule.height/2];
+mission.structure.elementLength = [mission.capsule.height/2,xcp-mission.capsule.height/2,mission.capsule.height-xcp];
 
 for ii = opt.nStages:-1:1
     mission.structure.elementLength = [ mission.structure.elementLength, mission.structures{ii}.lengthInterstage/2, mission.structures{ii}.lengthInterstage/2, opt.stage{ii}.length/2,opt.stage{ii}.length/2];
@@ -158,6 +158,7 @@ grid on;
 xlabel('x [m]');
 ylabel('Axial Load [N]');
 xlim([0, x_all(end)])
+xline([0, cumsum(mission.structure.elementLength)], 'LineStyle','--')
 
 % --- Figura 2: Shear Load ---
 figure(2); 
@@ -173,6 +174,7 @@ grid on;
 xlabel('x [m]');
 ylabel('Shear Load [N]');
 xlim([0, x_all(end)])
+xline([0, cumsum(mission.structure.elementLength)], 'LineStyle','--')
 
 % --- Figura 3: Bending Moment ---
 figure(3); 
@@ -188,3 +190,4 @@ grid on;
 xlabel('x [m]');
 ylabel('Bending Moment [Nm]');
 xlim([0, x_all(end)])
+xline([0, cumsum(mission.structure.elementLength)], 'LineStyle','--')

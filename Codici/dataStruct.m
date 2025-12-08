@@ -212,16 +212,16 @@ optimisation.nDeval = 100;
 
 % ============================ Aerodynamics ===============================
 
-mission.aerodynamics.bodyGeom.l = 56;
+mission.aerodynamics.bodyGeom.l = 54.9;
 mission.aerodynamics.bodyGeom.d = 4;
-mission.aerodynamics.bodyGeom.Lnose = 0.6;
+mission.aerodynamics.bodyGeom.Lnose = 2.9;
 mission.aerodynamics.bodyGeom.Aref = pi*(mission.aerodynamics.bodyGeom.d/2)^2; 
 mission.aerodynamics.bodyGeom.Anose = mission.aerodynamics.bodyGeom.Aref;
 mission.aerodynamics.bodyGeom.Abase = mission.aerodynamics.bodyGeom.Aref;
 mission.aerodynamics.bodyGeom.Aexit = 0;  
 mission.aerodynamics.bodyGeom.phi = deg2rad(0);
 mission.aerodynamics.bodyGeom.Ab = mission.aerodynamics.bodyGeom.Aref;
-mission.aerodynamics.bodyGeom.Ap = mission.aerodynamics.bodyGeom.l * mission.aerodynamics.bodyGeom.d;
+mission.aerodynamics.bodyGeom.Ap = mission.aerodynamics.bodyGeom.l * mission.aerodynamics.bodyGeom.d; % sezione verticale del cilindro
 
 
 
