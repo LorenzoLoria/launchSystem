@@ -313,7 +313,7 @@ mission.structure.ultimate = [480e6, 560e6, 483e6, 572e6];
 mission.structure.yield = [390e6, 500e6, 345e6, 503e6];
 
 % Pressurizzazione serbatoi
-mission.structure.tankPressure = [0, 0, 3.4e5, 0, 3.4e5];
+mission.structure.tankPressure = 3.4e5;
 
 % Dimensions 
 mission.structure.diameter = 4;

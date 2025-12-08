@@ -36,7 +36,7 @@ materialNumber = length(E);
 rhoOX          = mission.launcher.engines{engineUsed}.oxDens; % density of the oxidizer [kg/m^3]
 rhoFu          = mission.launcher.engines{engineUsed}.fuelDens; % density of the fuel [kg/m^3]
 
-p              = mission.structure.tankPressure; % pressure of component [Pa] [partsNumber x 1]
+p              = mission.structure.pressurization; % pressure of component [Pa] [partsNumber x 1]
 N              = mission.structure.N; % Axial Load [N] (from loadFinder) (VECTOR)
 T              = mission.structure.T; % Shear Load [N] (from loadFinder) (VECTOR)
 M              = mission.structure.M; % Bending Moment [Nm] (from loadFinder) (VECTOR)

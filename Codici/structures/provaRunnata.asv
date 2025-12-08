@@ -64,8 +64,7 @@ mission.structure.elementLength(end+1) = xcp_a;
 mission.structure.nComponents = length(mission.structure.componentLength);
 
 % ====================== CALCOLO AZIONI INTERNE ===========================
-% mission.structure.Ftfins = (- mission.structure.tMaxQ(2) * (mission.structure.launcherLength - xcg) + ( mission.structure.dMaxQ(2) + mission.structure.lMaxQ(2)) * (xcg - xcp)) / (mission.structure.launcherLength - xcp_a - xcg);
-[mission, A] = loadsFinder(mission);
+[mission] = loadsFinder(mission);
 
 N = mission.structure.N;
 T = mission.structure.T;
@@ -76,13 +75,13 @@ M = mission.structure.M;
 engineUsed = 1;
 
 % Pressure vector creation
-mission.structure.pressurization = zeros(mission.structure.nElements, 1);
+p = zeros(mission.structure.nElements, 1);
 
-for ii = 3:2:mission.structure.nComponents
-    mission.structure.pressurization(ii) = mission.structure.tankPressure;
+for ii = 3:mission.structure.nComponents
+    p(ii)
 end
 
-mission = thicknessFunction(mission, engineUsed);
+mission    = thicknessFunction(mission, engineUsed);
 
 thick_mm = mission.structure.thickness * 1e3;   % [mm]
 fprintf('Thicknesses of the structures starting from the nose are:\n');
