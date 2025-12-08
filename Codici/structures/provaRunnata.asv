@@ -90,13 +90,12 @@ fprintf('  %.3f tons\n', mStruct_ton);
 
 %%
 xcg = computeXCG(mission, opt);
-% equatMoment = @(Ftfins) mission.structure.tMaxQ(2) * (mission.structure.launcherLength - ...
-%     xcg) - ( mission.structure.dMaxQ(2) + mission.structure.lMaxQ(2)) * (xcg - ...
-%     xcp_a) + Ftfins * (xcp_a - xcg); 
-% sol = fzero(equatMoment, 0);
-Ftfins = (- mission.structure.tMaxQ(2) * (mission.structure.launcherLength - xcg) + ( mission.structure.dMaxQ(2) + mission.structure.lMaxQ(2)) * (xcg - xcp_a)) / (xcp_a - xcg)
-CLnew = abs(Ftfins) / (mission.structure.dynamicPressure * mission.aerodynamics.bodyGeom.Aref)
+equatMoment = @(Ftfins) mission.structure.tMaxQ(2) * (mission.structure.launcherLength - ...
+    xcg) - ( mission.structure.dMaxQ(2) + mission.structure.lMaxQ(2)) * (xcg - ...
+    xcp_a) + Ftfins * (xcp_a - xcg); 
+sol = fzero(equatMoment, 0);
 
+Aeq = sol / (mission.structure.dynamicPressure)
 
 %%
 alphas = deg2rad(linspace(-180, 180, 400)); % in gradi per esempio

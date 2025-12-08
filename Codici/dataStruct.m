@@ -212,8 +212,8 @@ optimisation.nDeval = 100;
 
 % ============================ Aerodynamics ===============================
 
-mission.aerodynamics.bodyGeom.l = 3;
-mission.aerodynamics.bodyGeom.d = 0.3;
+mission.aerodynamics.bodyGeom.l = 56;
+mission.aerodynamics.bodyGeom.d = 4;
 mission.aerodynamics.bodyGeom.Lnose = 0.6;
 mission.aerodynamics.bodyGeom.Aref = pi*(mission.aerodynamics.bodyGeom.d/2)^2; 
 mission.aerodynamics.bodyGeom.Anose = mission.aerodynamics.bodyGeom.Aref;
@@ -231,7 +231,7 @@ mission.aerodynamics.semispan    = 1.81;                      % semispan [m]
 
 mission.aerodynamics.finsGeom.Nfins = 1;
 mission.aerodynamics.finsGeom.be = mission.aerodynamics.semispan;                  % span equivalente ~ semispan reale
-mission.aerodynamics.finsGeom.Se = 0.5 * mission.aerodynamics.rootChord * mission.aerodynamics.semispan;       % area della fin [m^2]
+mission.aerodynamics.finsGeom.Se = 2 * 0.5 * (mission.aerodynamics.rootChord + mission.aerodynamics.tipChord) * mission.aerodynamics.semispan;       % area della fin [m^2]
 mission.aerodynamics.finsGeom.cmac = (2/3) * mission.aerodynamics.rootChord;       % mean aerodynamic chord [m]
 mission.aerodynamics.finsGeom.delta_le = 45;
 mission.aerodynamics.finsGeom.lambda_le = 0;

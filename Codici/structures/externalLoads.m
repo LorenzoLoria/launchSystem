@@ -1,7 +1,7 @@
 function [mission] = externalLoads(timeCollocation,stateCollocation,mission,opt,thrustData,alpha)
 
 vel = stateCollocation(4:6,:,1:end-1)-stateCollocation(4:6,1,1);
-vel = mission.target.Rfinal* vel(1:3,:);
+vel = mission.Rfinal* vel(1:3,:);
 absVel = sqrt ( vel(1,:).^2+ vel(2,:).^2 + vel(3,:).^2 );
 
 normRocket = vel./absVel ;
@@ -52,7 +52,7 @@ soundSpeed = mission.aerodynamics.soundspeedFun(hMaxQ);
 
 machNumber = norm(vMaxQ) / soundSpeed;
 
-[~,~,~,~, mainbodyCL, mainbodyCD, finsCL, finsCD] = CLCDcomputation(machNumber,alpha,maxq,1,mission);
+[~,~,~,~, mainbodyCL, mainbodyCD, mission.structure.finsCL, mission.structure.finsCD] = CLCDcomputation(machNumber,alpha,maxq,1,mission);
 
 dMaxQ = -rot2*maxq * mainbodyCD *mission.capsule.Area* [1;0;0];
 lMaxQ = -rot2*maxq * mainbodyCL *mission.capsule.Area * [0;-1;0];
@@ -84,7 +84,7 @@ mission.structure.massMaxQVec(end) = m1Stage;
 
 % --- DA MODIFICARE
 
-mission.structure.dragFinsMaxQ = -rot2*maxq * finsCD * mission.aerodynamics.finsGeom.Se * [1;0;0];
-mission.structure.liftFinsMaxQ = -rot2*maxq * finsCL * mission.aerodynamics.finsGeom.Se * [0;-1;0];
+mission.structure.dragFinsMaxQ = -rot2*maxq * mission.structure.finsCD * mission.aerodynamics.finsGeom.Se * [1;0;0];
+mission.structure.liftFinsMaxQ = -rot2*maxq * mission.structure.finsCL * mission.aerodynamics.finsGeom.Se * [0;-1;0];
 
 end
