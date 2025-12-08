@@ -35,25 +35,27 @@ end
                         @(x) nlconGATraj( reshape(x,settings.nOptPointsTraj,2,launcher(1)),launcher,configuration, mission,settings),settings.gaTrajOptions);
 
 
-if fvalGATraj > 6000  
+if fvalGATraj > 6000    
+
     output = 3000000;
-return
+    return
 
 end
 
-error = 101;
 
+
+error = 101;
+xGATrajRS = reshape(xGATraj,settings.nOptPointsTraj,2,launcher(1));
 while error > 100
 
     [~,fvalFMCTraj] = fmincon ( @(x)objFunFMCTraj(x,launcher,configuration,mission,settings),...
-        xGATraj,[],[],[],[],...
+        xGATrajRS,[],[],[],[],...
         settings.lowerBoundsFMC-eps,settings.upperBoundsFMC+eps,...
-        @(x) nlconFMCTraj(x,launcher,configuration,mission,settings.trajectoryOption2D),...
+        @(x) nlconFMCTraj(x,launcher,configuration,mission,settings),...
         settings.fminconTrajOptions);
     error = 99;
 
 end
-
 
 if nlconFlag
     output = [];

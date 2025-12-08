@@ -1,8 +1,9 @@
-function [cin,ceq] = nlconFMCTraj(x,launcher,opt,mission,option2D)
+function [cin,ceq] = nlconFMCTraj(x,launcher,opt,mission,settings)
 
+option2D = settings.trajectoryOption2D ;
 thrustDataVec = x;
 
-[timeCollocation,stateCollocation] = totalTrajectoryGlobalGA(mission,opt,launcher,thrustDataVec,option2D);
+[timeCollocation,stateCollocation] = totalTrajectoryGlobalGA(launcher,opt,mission,settings,thrustDataVec);
 
 latInitial = mission.target.latInitial ;
 latFinal = latInitial ;
