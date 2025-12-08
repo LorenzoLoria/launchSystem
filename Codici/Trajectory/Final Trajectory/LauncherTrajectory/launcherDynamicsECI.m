@@ -39,9 +39,9 @@ function dsdt = launcherDynamicsECI(t, x,thrustData, mission,stageNumber,opt,opt
     m     = x(7);
     
 
-    vMag = norm(v); 
+    vMag = sqrt(v'*v); 
     
-    rMag = norm(r);
+    rMag = sqrt(r'*r);
     
     A   = mission.capsule.Area;
     g0  = mission.environment.g0; 
