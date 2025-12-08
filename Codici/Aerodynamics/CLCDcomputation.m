@@ -1,47 +1,53 @@
 function[CL,CD,CN,CA, mainbodyCL, mainbodyCD, finsCL, finsCD] = CLCDcomputation(Mach,alpha,dynamicPressure,isPoweredFlag,mission,currentStage,opt)
 
 nStages = length(opt.stage);
+geoStages = opt.geometry.stage;
+optStage = opt.stage;
 q = dynamicPressure;                       % pressione dinamica [Pa]
 
 
 %Last stage, coupler to the capsule is not considered here, but rather in
 %the nosecone
-lCylinder = opt.geometry.stage{nStages}.tanksLength;                                            % lunghezza totale [m] lunghezza cilindro mediato
-dCylinder = opt.geometry.stage{nStages}.tanksLength * opt.geometry.stage{nStages}.radius*2;     % diametro [m] diametro cilindro mediato
+stageRadius = geoStages{nStages}.radius;
+lCylinder = geoStages{nStages}.tanksLength;                                            % lunghezza totale [m] lunghezza cilindro mediato
+dCylinder = lCylinder *stageRadius*2;     % diametro [m] diametro cilindro mediato
 
 %Other stages
 for i=nStages-1:-1:currentStage
-    lCylinder = lCylinder + opt.geometry.stage{i}.tanksLength + opt.geometry.stage{i}.interstage.length ;
-    dCylinder = dCylinder + opt.geometry.stage{i}.tanksLength * opt.geometry.stage{i}.radius*2 +...
-                opt.geometry.stage{i}.interstage.length *...
-                (opt.geometry.stage{i}.radius + opt.geometry.stage{i+1}.radius);
+    lCylinder = lCylinder + geoStages{i}.tanksLength + geoStages{i}.interstage.length ;
+    dCylinder = dCylinder + geoStages{i}.tanksLength * geoStages{i}.radius*2 +...
+                geoStages {i}.interstage.length *...
+                (geoStages {i}.radius + geoStages {i+1}.radius);
     
-
 end
+
 dCylinder = dCylinder / lCylinder ;
 lambda = lCylinder / dCylinder;                                                                 % Fineness ratio
 
-lNose = mission.capsule.height + opt.geometry.stage{nStages}.interstage.length ;                % lunghezza nose [m] lunghezza capsula + interstage
+lNose = mission.capsule.height + geoStages{nStages}.interstage.length ;                % lunghezza nose [m] lunghezza capsula + interstage
 Aref = pi/4 * dCylinder^2 ;                                                                     % area di riferimento [m^2] cross section cilindro mediato
 Sref = Aref ;
-Anose = max(mission.capsule.Area , pi*opt.geometry.stage{nStages}.radius^2) ;                   % area nose [m^2] max tra cross section capsula e ultimo stadio
+Anose = max(mission.capsule.Area , pi*stageRadius^2) ;                   % area nose [m^2] max tra cross section capsula e ultimo stadio
 phi = pi/4 ;                                                                                    % angolo di giunzione [rad] angolo tra ultimo stadio e interstage di connessione alla capsula
 
+nEngines = optStage{currentStage}.nEngines;
+
 if currentStage == 1
-    AexitTot = opt.stage{currentStage}.engine.effAreaZero * opt.stage{currentStage}.nEngines;   % aree uscita motori
+    AexitTot = optStage{currentStage}.engine.effAreaZero * nEngines;   % aree uscita motori
 else
-    AexitTot = opt.stage{currentStage}.engine.effAreaVac * opt.stage{currentStage}.nEngines;
+    AexitTot = optStage{currentStage}.engine.effAreaVac * nEngines;
 end
 
-boatTailRadius = opt.geometry.stage{currentStage}.radius ;                                      %boat tail not present r=radius of the current stagev
+stage1Radius = geoStages{1}.radius;
+boatTailRadius = geoStages{currentStage}.radius ;                                      %boat tail not present r=radius of the current stagev
 Abase = pi * boatTailRadius^2 ;                                                                 % area base [m^2] se è presente una boattail non coincide con l'area dello stadio corrente
 Ab = pi/4 * dCylinder^2;                                                                        %area max cross section
 Ap = dCylinder * lCylinder ;                                                                    %area razzo vista da lato
-ce = 4.525 * opt.geometry.stage{1}.radius*2 / 10;                                               %mean chord fins??? mediato rispetto a saturn5?
-be = 4.525 * opt.geometry.stage{1}.radius*2 / 10;                                               %semi span delle fin mediato rispetto a saturn5?
+ce = 4.525 * stage1Radius*2 / 10;                                               %mean chord fins??? mediato rispetto a saturn5?
+be = 4.525 * stage1Radius*2 / 10;                                               %semi span delle fin mediato rispetto a saturn5?
 Se = 0.5 * be^2;                                                                                %superficie di una fin
 cmac = 2/3 * ce;                                                                                %mean aerochord fin
-deltaLE = 45;                                                                                   %angolo rombo ???
+deltaLE = pi/4;                                                                                   %angolo rombo ???
 lambdaLE = 0;                                                                                   % sweep leading edge
 b = 2 * be ;                                                                                    % 2*be
 tmac = 0.08 * cmac;                                                                             %spessore massimo sezione
@@ -191,7 +197,7 @@ CD0_surf_friction = 0.0133 * (Mach / (q*cmac))^0.2 * 2 * Se / Sref;
 if M_ale < 1
     CD0_surf_wave = 0;
 else
-    CD0_surf_wave = (1.429 / M_ale^2) * ((1.2*M_ale^2)^3.5 * (2.4/(2.8*M_ale^2 - 0.4))^2.5 - 1) * (sin(deg2rad(deltaLE))^2 * cos(deg2rad(lambdaLE)) * tmac * b) / Sref;
+    CD0_surf_wave = (1.429 / M_ale^2) * ((1.2*M_ale^2)^3.5 * (2.4/(2.8*M_ale^2 - 0.4))^2.5 - 1) * (sin((deltaLE))^2 * cos((lambdaLE)) * tmac * b) / Sref;
 end
 
 CN_fins_tot = Nfins * CN_surf;
