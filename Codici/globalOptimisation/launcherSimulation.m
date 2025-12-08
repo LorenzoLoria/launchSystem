@@ -40,7 +40,7 @@ if fvalGATraj > 6000
     if nlconFlag
         output = 1e9;
     else
-        output.launcheMass = 1e9 ;
+        output.launcherMass = 1e9 ;
         output.tof = 1e9 ;
     end
 
