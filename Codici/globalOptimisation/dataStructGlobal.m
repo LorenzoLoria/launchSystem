@@ -190,30 +190,31 @@ mission.structure.safetyFactor       = 1.5;
 settings = struct();
 
 settings.globalGAoptVariables = 7 ;
+settings.nOptPointsTraj = 5 ;
 % ============================ Lower and upper bounds ===============================
 
-settings.lowerBoundsFMC(:,:,1) = [0.1*ones(settings.globalGAoptVariables,1);...
-                        0*ones(settings.globalGAoptVariables,1)];
-settings.lowerBoundsFMC(:,:,2) = [0.1*ones(settings.globalGAoptVariables,1);...
-                        0*ones(settings.globalGAoptVariables,1)];
-settings.lowerBoundsFMC(:,:,3) = [0.1*ones(settings.globalGAoptVariables,1);...
-                        0*ones(settings.globalGAoptVariables,1)];
+settings.lowerBoundsFMC(:,:,1) = [0.9*ones(settings.nOptPointsTraj,1);...
+                        0*ones(settings.nOptPointsTraj,1)];
+settings.lowerBoundsFMC(:,:,2) = [0.4*ones(settings.nOptPointsTraj,1);...
+                        0*ones(settings.nOptPointsTraj,1)];
+settings.lowerBoundsFMC(:,:,3) = [0.4*ones(settings.nOptPointsTraj,1);...
+                        0*ones(settings.nOptPointsTraj,1)];
 
 
-settings.upperBoundsFMC(:,:,1) = [ones(settings.globalGAoptVariables,1);...
-                        90*ones(settings.globalGAoptVariables,1)];
-settings.upperBoundsFMC(:,:,2) = [ones(settings.globalGAoptVariables,1);...
-                        120*ones(settings.globalGAoptVariables,1)];
-settings.upperBoundsFMC(:,:,3) = [ones(settings.globalGAoptVariables,1);...
-                        150*ones(settings.globalGAoptVariables,1)];
+settings.upperBoundsFMC(:,:,1) = [ones(settings.nOptPointsTraj,1);...
+                        90*ones(settings.nOptPointsTraj,1)];
+settings.upperBoundsFMC(:,:,2) = [ones(settings.nOptPointsTraj,1);...
+                        120*ones(settings.nOptPointsTraj,1)];
+settings.upperBoundsFMC(:,:,3) = [ones(settings.nOptPointsTraj,1);...
+                        150*ones(settings.nOptPointsTraj,1)];
 
 
 settings.lowerBoundsGA = settings.lowerBoundsFMC(:);
 settings.upperBoundsGA = settings.upperBoundsFMC(:);
 
 
-settings.lowerBoundsGlobalGA = [2,1,4,4,0.4,0.4,0.4];
-settings.upperBoundsGlobalGA = [2,1,4,4,0.7,0.7,0.7];
+settings.lowerBoundsGlobalGA = [2,1,4,4,0.4,0.4,0.7];
+settings.upperBoundsGlobalGA = [2,1,4,4,0.7,0.5,0.7];
 
 
 % ============================ Function options ===============================

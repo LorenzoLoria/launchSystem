@@ -16,8 +16,7 @@ for i = 1:launcher(1)
 end
 
 
-[mer,~,configuration] = initialMassEstimation(mission,configuration,settings,launcher);
-
+[mer,staging,configuration] = initialMassEstimation(mission,configuration,settings,launcher);
 
 [xGATraj, fvalGATraj] = ga( @(x) objFunGATraj( reshape(x,settings.nOptPointsTraj,2,launcher(1)),launcher,configuration, mission,settings), ...
                         launcher(1)*2*settings.nOptPointsTraj,...

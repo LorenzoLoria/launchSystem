@@ -54,7 +54,7 @@ lOverD = 5;
 
 
 
-        while twRatio < 1
+        while twRatio < 1.3
             mStack = mStack-mStage;
             nEngine = nEngine+1;
             mProp = nEngine * thrustValue/9.81 * launcher(4+i);

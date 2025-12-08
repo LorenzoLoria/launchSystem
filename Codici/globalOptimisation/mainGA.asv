@@ -20,7 +20,7 @@ addpath(genpath("..\..\"))
 
 %% Skip GA
 
-launcher = [2,1,4,4,0.7,0.4,0.7];
+launcher = [2,1,4,4,0.5,0.4,0.7];
 for i = 1:launcher(1)
     configuration.stage{i}.engine = mission.engines{launcher(1+i)};
 end
