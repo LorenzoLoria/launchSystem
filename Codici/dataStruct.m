@@ -159,8 +159,8 @@ optimisation.stage{2}.engine = mission.launcher.engines{3};
 optimisation.stage{3}.engine = mission.launcher.engines{3};
 
 optimisation.stage{1}.nEngines = 3;
-optimisation.stage{2}.nEngines = 1.4;
-optimisation.stage{3}.nEngines = 0.6;
+optimisation.stage{2}.nEngines = 1.25;
+optimisation.stage{3}.nEngines = 0.5;
 
 optimisation.stage{1}.percentage = 0.6;
 optimisation.stage{2}.percentage= 0.5;
