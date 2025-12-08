@@ -20,7 +20,7 @@ end
 lonFinal = lonInitial + omega * timeCollocation(end,end) ;
 targetFinalPos = 6371000*[cos(latFinal)*cos(lonFinal); cos(latFinal)*sin(lonFinal); sin(latFinal) ];
 
-objective =   norm(stateCollocation(1:3,end,end)-mission.target.initialPointECI)/1000;
+objective =   norm(stateCollocation(1:3,end,end)-mission.target.initialPointECI)/1000; % + timeCollocation(end,end)/4000;
 
 %thetaOscillation = sqrt(sum((diff([x(:,2,1) ; x(:,2,2)])).^2)) ;
 %phiOscillation = sqrt(sum((diff([x(:,3,1) ; x(:,3,2)])).^2)) ;

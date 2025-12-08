@@ -60,7 +60,7 @@ mission.launcher.engines{4}.ispVac = 452;
 mission.launcher.engines{4}.thrustZero = 1860*1e3;
 mission.launcher.engines{4}.thrustVacum = 2279*1e3;
 mission.launcher.engines{4}.weight = 3526;
-mission.launcher.engines{3}.OF = 6;
+mission.launcher.engines{4}.OF = 6;
 mission.launcher.engines{4}.oxDens = 1143;
 mission.launcher.engines{4}.fuelDens = 71;
 mission.launcher.engines{4}.effAreaZero = 2.3^2/4*pi;
@@ -153,32 +153,38 @@ rot = [ex,ey,ez]';
 
 %% differentStages Simulation 
 optimisation = struct();
-optimisation.nStages = 2;
+optimisation.nStages = 3;
 optimisation.stage{1}.engine = mission.launcher.engines{1};
 optimisation.stage{2}.engine = mission.launcher.engines{3};
+optimisation.stage{3}.engine = mission.launcher.engines{3};
 
-optimisation.stage{1}.nEngines = 4;
-optimisation.stage{2}.nEngines = 5;
+optimisation.stage{1}.nEngines = 3;
+optimisation.stage{2}.nEngines = 1.4;
+optimisation.stage{3}.nEngines = 0.6;
 
-optimisation.stage{1}.percentage = 0.5;
-optimisation.stage{2}.percentage= 0.3;
+optimisation.stage{1}.percentage = 0.6;
+optimisation.stage{2}.percentage= 0.5;
+optimisation.stage{3}.percentage= 0.4;
 
-
-mProp1 = optimisation.stage{1}.nEngines*optimisation.stage{1}.engine.thrustZero/9.81*0.5;
+mProp1 = optimisation.stage{1}.nEngines*optimisation.stage{1}.engine.thrustZero/9.81*optimisation.stage{1}.percentage;
 epsS1 = 0.05;
 
-mProp2 = optimisation.stage{2}.nEngines*optimisation.stage{2}.engine.thrustVacum/9.81*0.5;
+mProp2 = optimisation.stage{2}.nEngines*optimisation.stage{2}.engine.thrustVacum/9.81*optimisation.stage{2}.percentage;
 epsS2 = 0.06;
+
+mProp3 = optimisation.stage{3}.nEngines*optimisation.stage{3}.engine.thrustVacum/9.81*optimisation.stage{3}.percentage;
+epsS3 = 0.06;
 
 mS1 = epsS1/(1-epsS1)*mProp1;
 mS2 = epsS2/(1-epsS2)*(mProp2);
+mS3 = epsS3/(1-epsS3)*(mProp3);
 
 mStage1 = mProp1+mS1;
 mStage2 = mProp2+mS2;
+mStage3 = mProp3+mS3;
 
-
-optimisation.m0Tot = mStage1 + mStage2 + mission.capsule.weigth;
-optimisation.totalMass = mStage1 + mStage2 + mission.capsule.weigth;
+optimisation.m0Tot = mStage1 + mStage2 + mStage3 + mission.capsule.weigth;
+optimisation.totalMass = mStage1 + mStage2 + mStage3 + mission.capsule.weigth;
 
 optimisation.stage{1}.mStage = mStage1;
 optimisation.stage{1}.mProp = mProp1;
@@ -194,7 +200,9 @@ optimisation.stage{2}.mStage = mStage2;
 optimisation.stage{2}.mProp = mProp2;
 optimisation.stage{2}.structuralMass = mS2;
 
-
+optimisation.stage{3}.mStage = mStage3;
+optimisation.stage{3}.mProp = mProp3;
+optimisation.stage{3}.structuralMass = mS3;
 %optimisation.stage{2}.ispZero = mission.launcher.engines{2}.ispZero;
 %optimisation.stage{2}.ispVac = mission.launcher.engines{2}.ispVac;
 
