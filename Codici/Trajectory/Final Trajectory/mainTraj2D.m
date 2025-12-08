@@ -26,17 +26,17 @@ tSpan = [0 500];
 
 
 % Initial Guess using GA
-obj_ga = @(x) objFunMultiStagesGA( reshape(x,mission.optimisation.GA.variables,2,3), mission,opt,1);
-nonlcon_ga = @(x) nlconMultiStagesGA( reshape(x,mission.optimisation.GA.variables,2,3), mission,opt,1);
+obj_ga = @(x) objFunMultiStagesGA( reshape(x,mission.optimisation.GA.variables,2,1), mission,opt,1);
+nonlcon_ga = @(x) nlconMultiStagesGA( reshape(x,mission.optimisation.GA.variables,2,1), mission,opt,1);
 
-lbFmincon(:,:,1) = [0.5*ones(mission.optimisation.GA.variables,1);0*ones(mission.optimisation.GA.variables,1)];
-ubFmincon(:,:,1) = [ones(mission.optimisation.GA.variables,1);90*ones(mission.optimisation.GA.variables,1)];
+lbFmincon(:,:,1) = [0.1*ones(mission.optimisation.GA.variables,1);0*ones(mission.optimisation.GA.variables,1)];
+ubFmincon(:,:,1) = [ones(mission.optimisation.GA.variables,1);150*ones(mission.optimisation.GA.variables,1)];
 
-lbFmincon(:,:,2) = [0.01*ones(mission.optimisation.GA.variables,1);0*ones(mission.optimisation.GA.variables,1)];
-ubFmincon(:,:,2) = [ones(mission.optimisation.GA.variables,1);120*ones(mission.optimisation.GA.variables,1)];
-
-lbFmincon(:,:,3) = [0.01*ones(mission.optimisation.GA.variables,1);0*ones(mission.optimisation.GA.variables,1)];
-ubFmincon(:,:,3) = [ones(mission.optimisation.GA.variables,1);180*ones(mission.optimisation.GA.variables,1)];
+% lbFmincon(:,:,2) = [0.01*ones(mission.optimisation.GA.variables,1);0*ones(mission.optimisation.GA.variables,1)];
+% ubFmincon(:,:,2) = [ones(mission.optimisation.GA.variables,1);120*ones(mission.optimisation.GA.variables,1)];
+% 
+% lbFmincon(:,:,3) = [0.01*ones(mission.optimisation.GA.variables,1);0*ones(mission.optimisation.GA.variables,1)];
+% ubFmincon(:,:,3) = [ones(mission.optimisation.GA.variables,1);180*ones(mission.optimisation.GA.variables,1)];
 
 lbGA = lbFmincon(:);
 ubGA = ubFmincon(:);
@@ -44,8 +44,8 @@ ubGA = ubFmincon(:);
 
 options_ga = optimoptions("ga", ...
     "Display","iter", ...
-    "MaxGenerations",30, ...
-    "PopulationSize",200,...
+    "MaxGenerations",20, ...
+    "PopulationSize",100,...
     "UseParallel",true,...
     "FunctionTolerance", 1e-4,...
     'EliteCount',  6,...
@@ -76,10 +76,10 @@ options_ga = optimoptions("ga", ...
 % bineq = zeros(m,1);
 
 
-[x_ga, fval_ga] = ga(obj_ga,2*3*mission.optimisation.GA.variables,[],[],[],[],lbGA,ubGA,nonlcon_ga,options_ga);
+[x_ga, fval_ga] = ga(obj_ga,2*1*mission.optimisation.GA.variables,[],[],[],[],lbGA,ubGA,nonlcon_ga,options_ga);
 %%
 
-T0 = reshape(x_ga,mission.optimisation.GA.variables,2,3);
+T0 = reshape(x_ga,mission.optimisation.GA.variables,2,1);
 
 % Optimisation with fMinCon
 [X,FVAL,EXITFLAG,OUTPUT] = fmincon(@(x) objFunMultiStages(x,mission,opt,1),T0,[],[],[],[],lbFmincon-eps,ubFmincon+eps,@(x) nlconMultiStages(x,mission,opt,1),mission.options.fmincon);
@@ -94,9 +94,9 @@ figure(1)
 EarthPlot(mission.environment.rEarth)
 hold on
 plot3(stateCollocation(1,:,1),stateCollocation(2,:,1),stateCollocation(3,:,1),'r')
-plot3(stateCollocation(1,:,2),stateCollocation(2,:,2),stateCollocation(3,:,2),'y')
-plot3(stateCollocation(1,:,3),stateCollocation(2,:,3),stateCollocation(3,:,3),'b')
-plot3(stateCollocation(1,:,4),stateCollocation(2,:,4),stateCollocation(3,:,4),'g')
+plot3(stateCollocation(1,:,2),stateCollocation(2,:,2),stateCollocation(3,:,2),'g')
+% plot3(stateCollocation(1,:,3),stateCollocation(2,:,3),stateCollocation(3,:,3),'b')
+% plot3(stateCollocation(1,:,4),stateCollocation(2,:,4),stateCollocation(3,:,4),'g')
 plot3(mission.target.initialPointECI(1),mission.target.initialPointECI(2),mission.target.initialPointECI(3),'bo')
 targetFinalLat = mission.target.latInitial ; 
 targetFinalLon = mission.target.lonInitial + mission.target.omega * timeCollocation(end,end); 
@@ -116,7 +116,7 @@ axis equal
 
 %%
 figure
-plot(diff([stateCollocation(7,:,1),stateCollocation(7,:,2) ,stateCollocation(7,:,3)]))
+plot(diff([stateCollocation(7,:,1)]))%,stateCollocation(7,:,2) ,stateCollocation(7,:,3)]))
 title("Mass flow rate")
 
 
@@ -136,22 +136,22 @@ title("Accelerations")
 
 
 figure
-plot([thrustData(:,1,1);thrustData(:,1,2)])
+plot([thrustData(:,1,1)])
 title("Throttling")
 
 
 figure
-plot([thrustData(:,2,1);thrustData(:,2,2)])
+plot([thrustData(:,2,1)])
 title("Angle1")
 
-X = [X(:,1,1) ; X(:,2,1) ; X(:,1,2) ;  X(:,2,2) ; X(:,1,3) ;  X(:,2,3)] ;
+X = [X(:,1,1) ; X(:,2,1) ];
 
 
 %%
 
-if norm(stateCollocation(1:3,end,end) - mission.target.initialPointECI) < 200000 
+if norm(stateCollocation(1:3,end,end) - mission.target.initialPointECI) < 2000 
     
-    filename = 'InitialPop3stages.mat';
+    filename = 'InitialPop1stages.mat';
     if isfile(filename)
         result = load(filename,"X");
         X = [result.X,X];
@@ -163,4 +163,6 @@ if norm(stateCollocation(1:3,end,end) - mission.target.initialPointECI) < 200000
     
 end
 
+
 %X = X(:,1:7)
+

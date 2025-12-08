@@ -21,6 +21,6 @@ targetFinalPos = 6371000*[cos(latFinal)*cos(lonFinal); cos(latFinal)*sin(lonFina
 
 %cin = [(accMax-6*mission.environment.g0)/mission.environment.g0 ; (norm(stateCollocation(1:3,end,end) - targetFinalPos) - 5e3)/1e3];
 %ceq = norm(stateCollocation(1:3,end,end) - targetFinalPos);
-cin = [(accMax-6*mission.environment.g0)/mission.environment.g0];% ; abs(angleWrtVelMax)-20];
+cin = [(accMax-6*mission.environment.g0)/mission.environment.g0]; %; abs(angleWrtVelMax)-20];
 ceq = [];
 end

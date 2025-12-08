@@ -7,12 +7,21 @@ mission.launcher.engines{1}.name = 'Merlin1D' ;
 mission.launcher.engines{2}.name = 'Raptor' ;
 mission.launcher.engines{3}.name = 'Vinci' ;
 mission.launcher.engines{4}.name = 'RS-25' ;
+mission.launcher.engines{5}.name   = 'HM7B';
+mission.launcher.engines{6}.name   = 'Aestus2'; % !! TRL = 6 !!
+mission.launcher.engines{7}.name   = 'AJ10_118K';
+mission.launcher.engines{8}.name   = 'RL10C-1';
+mission.launcher.engines{9}.name   = 'BE-3U';
 
 mission.launcher.engines{1}.couple = 'RP1-LOX' ;
 mission.launcher.engines{2}.couple = 'CH4-LOX' ;
 mission.launcher.engines{3}.couple = 'LH2-LOX' ;
 mission.launcher.engines{4}.couple = 'LH2-LOX' ;
-
+mission.launcher.engines{5}.couple = 'LH2-LOX';
+mission.launcher.engines{6}.couple = 'MMH-N2O4';
+mission.launcher.engines{7}.couple = 'A50-N2O4'; 
+mission.launcher.engines{8}.couple = 'LH2-LOX';
+mission.launcher.engines{9}.couple = 'LH2-LOX';
 
 mission.launcher.engines{1}.ispZero = 283;
 mission.launcher.engines{1}.ispVac = 311;
@@ -66,6 +75,109 @@ mission.launcher.engines{4}.fuelDens = 71;
 mission.launcher.engines{4}.effAreaZero = 2.3^2/4*pi;
 mission.launcher.engines{4}.effAreaVac = 2.3^2/4*pi;
 
+% =========================
+% 8) HM7B (Ariane upper stage)
+% =========================
+
+
+% Motore solo-vuoto: ispZero/thrustZero sono valori indicativi
+mission.launcher.engines{5}.ispZero = 360;        % [s] stima
+mission.launcher.engines{5}.ispVac  = 445;        % [s] ~444–446
+
+mission.launcher.engines{5}.thrustZero  = 60e3;   % [N] circa
+mission.launcher.engines{5}.thrustVacum = 62.7e3; % [N] dato Ariane 5
+
+mission.launcher.engines{5}.weight = 155;         % [kg] ordine di grandezza 
+
+mission.launcher.engines{5}.OF      = 5.0;        % rapporto O/F ~5:1
+mission.launcher.engines{5}.oxDens  = 1143;       % [kg/m^3] LOX (come gli altri)
+mission.launcher.engines{5}.fuelDens= 71;         % [kg/m^3] LH2
+
+% Nozzle exit diameter ≈ 2.1 m → area efficace
+d_HM7B = 2.1;                                     % [m]
+mission.launcher.engines{5}.effAreaZero = (d_HM7B^2)*pi/4;
+mission.launcher.engines{5}.effAreaVac  = (d_HM7B^2)*pi/4;
+
+% =========================
+% 9) Aestus II / RS-72 (upper stage ipergolico, ~55 kN)
+% =========================
+
+
+mission.launcher.engines{6}.ispZero = 320;        % [s] ipotesi (motore solo-vuoto)
+mission.launcher.engines{6}.ispVac  = 338;        % [s] ~336–340
+
+mission.launcher.engines{6}.thrustZero  = 55.4e3; % [N]
+mission.launcher.engines{6}.thrustVacum = 55.4e3; % [N]
+
+mission.launcher.engines{6}.weight = 138;         % [kg] dry mass
+
+mission.launcher.engines{6}.OF      = 1.9;        % mixture ratio (massa) tipico
+% Densità tipiche ipergolici (ordine di grandezza)
+mission.launcher.engines{6}.oxDens  = 1440;       % [kg/m^3] N2O4
+mission.launcher.engines{6}.fuelDens= 880;        % [kg/m^3] MMH
+
+% Nozzle exit diameter ≈ 1.36 m (Aestus II)
+d_Aestus2 = 1.36;                                 % [m]
+mission.launcher.engines{6}.effAreaZero = (d_Aestus2^2)*pi/4;
+mission.launcher.engines{6}.effAreaVac  = (d_Aestus2^2)*pi/4;
+
+% =========================
+% 10) AJ10-118K (Delta-K, ~44 kN)
+% =========================
+
+mission.launcher.engines{7}.ispZero = 300;       % [s] stima (altitude engine)
+mission.launcher.engines{7}.ispVac  = 320.5;     % [s] ~319–321
+
+mission.launcher.engines{7}.thrustZero  = 43.6e3; % [N] ~9.8 klbf
+mission.launcher.engines{7}.thrustVacum = 43.6e3; % [N]
+
+mission.launcher.engines{7}.weight = 125;        % [kg] ≈ 275 lb
+
+mission.launcher.engines{7}.OF      = 1.9;       % mixture ratio tipico AJ10
+% Densità da letteratura (ordine di grandezza)
+mission.launcher.engines{7}.oxDens  = 1448;      % [kg/m^3] N2O4
+mission.launcher.engines{7}.fuelDens= 903;       % [kg/m^3] Aerozine-50
+
+% Diametro ugello ≈ 1.7 m
+d_AJ10 = 1.7;                                     % [m]
+mission.launcher.engines{7}.effAreaZero = (d_AJ10^2)*pi/4;
+mission.launcher.engines{7}.effAreaVac  = (d_AJ10^2)*pi/4;
+
+% =========================
+% 7) RL10C-1 (Centaur / Vulcan)
+% =========================
+
+mission.launcher.engines{8}.ispZero = 380;        % ipotesi (motore solo-vuoto)
+mission.launcher.engines{8}.ispVac  = 450;        % ~449.7 s arrotondato 
+mission.launcher.engines{8}.thrustZero  = 1.01e5; % N, ≈ vac
+mission.launcher.engines{8}.thrustVacum = 1.01e5; % N, ~101 kN in vuoto
+mission.launcher.engines{8}.weight      = 190;    % kg, ~420 lb 
+
+mission.launcher.engines{8}.OF      = 5.5;   % nominal mixture ratio RL10C-1
+mission.launcher.engines{8}.oxDens  = 1143;
+mission.launcher.engines{8}.fuelDens= 71;
+
+% RL10C-1 nozzle diameter ~57" ≈ 1.45 m
+mission.launcher.engines{8}.effAreaZero = (1.45^2)*pi/4;
+mission.launcher.engines{8}.effAreaVac  = (1.45^2)*pi/4;
+
+% =========================
+% 6) BE-3U (New Glenn upper)
+% =========================
+
+mission.launcher.engines{9}.ispZero = 390;        % ipotesi (non opera davvero a SL)
+mission.launcher.engines{9}.ispVac  = 445;        % s, dichiarato da Blue Origin 
+mission.launcher.engines{9}.thrustZero  = 7.78e5; % N, assumo ≈ thrust vac
+mission.launcher.engines{9}.thrustVacum = 7.78e5; % N, ~778 kN in vuoto
+mission.launcher.engines{9}.weight      = 1000;   % kg, stima ordine grandezza (<~1.1 t) 
+
+mission.launcher.engines{9}.OF      = 5.5;   % ≈ rapporto tipico BE-3 LH2/LOX
+mission.launcher.engines{9}.oxDens  = 1143;
+mission.launcher.engines{9}.fuelDens= 71;
+
+% diametro ugello non pubblicato in modo chiaro: assumo simile a RS-25
+mission.launcher.engines{9}.effAreaZero = (2.3^2)*pi/4; % m^2 (ipotesi)
+mission.launcher.engines{9}.effAreaVac  = (2.3^2)*pi/4;
 
 mission.capsule.weigth = 8600;
 mission.capsule.Area = 4^2*pi/4;
@@ -153,16 +265,16 @@ rot = [ex,ey,ez]';
 
 %% differentStages Simulation 
 optimisation = struct();
-optimisation.nStages = 3;
-optimisation.stage{1}.engine = mission.launcher.engines{1};
+optimisation.nStages = 1;
+optimisation.stage{1}.engine = mission.launcher.engines{2};
 optimisation.stage{2}.engine = mission.launcher.engines{3};
 optimisation.stage{3}.engine = mission.launcher.engines{3};
 
-optimisation.stage{1}.nEngines = 3;
+optimisation.stage{1}.nEngines = 2;
 optimisation.stage{2}.nEngines = 1.25;
-optimisation.stage{3}.nEngines = 0.5;
+optimisation.stage{3}.nEngines = 0.6;
 
-optimisation.stage{1}.percentage = 0.6;
+optimisation.stage{1}.percentage = 0.75;
 optimisation.stage{2}.percentage= 0.5;
 optimisation.stage{3}.percentage= 0.4;
 
@@ -183,8 +295,10 @@ mStage1 = mProp1+mS1;
 mStage2 = mProp2+mS2;
 mStage3 = mProp3+mS3;
 
-optimisation.m0Tot = mStage1 + mStage2 + mStage3 + mission.capsule.weigth;
-optimisation.totalMass = mStage1 + mStage2 + mStage3 + mission.capsule.weigth;
+
+
+optimisation.m0Tot = mStage1 + mission.capsule.weigth;
+optimisation.totalMass = mStage1 + mission.capsule.weigth;
 
 optimisation.stage{1}.mStage = mStage1;
 optimisation.stage{1}.mProp = mProp1;
