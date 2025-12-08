@@ -174,9 +174,11 @@ else
     CD0_surf_wave = (1.429 / M_ale^2) * ((1.2*M_ale^2)^3.5 * (2.4/(2.8*M_ale^2 - 0.4))^2.5 - 1) * (sin(deg2rad(delta_le))^2 * cos(deg2rad(lambda_le)) * tmac * b) / Sref;
 end
 
-CN_fins_tot = Nfins * CN_surf;
-CD0_fins_tot = Nfins * (CD0_surf_friction + CD0_surf_wave);
-CA_fins_tot = CD0_fins_tot * cos(alpha)^2;
+% CN_fins_tot = Nfins * CN_surf;
+CN_fins_tot = 0;
+CA_fins_tot = 0;
+% CD0_fins_tot = Nfins * (CD0_surf_friction + CD0_surf_wave);
+% CA_fins_tot = CD0_fins_tot * cos(alpha)^2;
 
 % Somma totali
 CN = CNbody + CN_fins_tot;

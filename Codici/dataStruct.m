@@ -282,9 +282,7 @@ mission.environment.pressure= griddedInterpolant( ...
 
 % ========================= Structures ====================================
 
-mission.structure.nComponents = 8; % da modificare con funzione constance
-
-mission.structure.SF = 2.5; % da verificare
+mission.structure.SF = 1.5; % da verificare
 
 % Al2219 - cryogenic tanks and primary structures for 1st/2nd stage
 mission.structure.rho      = 2840;
@@ -300,8 +298,6 @@ mission.structure.diameter           = ones(8,1) * 4;
 
 
 % ========================= Structures ====================================
-
-mission.structure.SF = 1; % da verificare
 
 %----------------------------------------------------------------------
 % Al 7075-T6 - highly loaded fittings, secondary structures

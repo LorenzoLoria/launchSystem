@@ -1,4 +1,4 @@
-function [mission, A] = loadsFinder(mission)
+function [mission, b] = loadsFinder(mission)
 
 % Builds matrix A required to solve the linear system Ax = b where:
 % A = matrix that encodes the equilibrium equations
@@ -109,7 +109,7 @@ end
 
 b(:, [2 3]) = b(:, [3 2]); % inversione richiesta siccome il CG del payload è prima del CP del corpo
 
-b(:,end-1) = [dragFinsN+liftFinsN; dragFinsT+liftFinsT; 0];
+b(:,end-1) = [dragFinsN+liftFinsN; -mission.structure.Ftfins; 0];
 
 b = b(:);
 
