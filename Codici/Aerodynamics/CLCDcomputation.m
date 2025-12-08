@@ -53,7 +53,9 @@ CAW_M0 = 0.8 * sin(phi).^2;   % scalare
 
 % 1.3) Modello subsonico fino a M <= 0.8
 CAW_sub = a_sub .* (Mach.^b_sub) + CAW_M0;
-
+if isnan(Mach)
+    keyboard
+end
 % regioni:
 %   M <= 0       : poniamo CAW = CAW_M0
 %   0 < M <= 0.8 : CAW_sub
