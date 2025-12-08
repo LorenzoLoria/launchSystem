@@ -119,5 +119,4 @@ loads = A \ b;
 mission.structure.N = loads(1:3:end);
 mission.structure.T = loads(2:3:end);
 mission.structure.M = loads(3:3:end);
-
 end

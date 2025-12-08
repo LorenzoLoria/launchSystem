@@ -1,6 +1,7 @@
 %% === SCEGLI IL MATERIALE PER LA STRUTTURA ===
 % Decommenta SOLO uno dei blocchi qui sotto
 
+%{
 %----------------------------------------------------------------------
 % Al2219 - cryogenic tanks and primary structures for 1st/2nd stage (LOX/LH2, LOX/RP-1)
 %----------------------------------------------------------------------
@@ -8,6 +9,7 @@ mission.structure.rho      = 2840;
 mission.structure.E        = 72e9;
 mission.structure.yield    = 390e6;
 mission.structure.ultimate = 480e6;
+%}
 
 %{
 %----------------------------------------------------------------------
@@ -88,3 +90,4 @@ mission.structure.E        = 200e9;
 mission.structure.yield    = 1035e6;
 mission.structure.ultimate = 1240e6;
 %}
+

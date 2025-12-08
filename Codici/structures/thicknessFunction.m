@@ -31,6 +31,7 @@ ultimateStress = mission.structure.ultimate; % ultimate stress for chosen materi
 E              = mission.structure.E; % Young Modulus for chosen material [Pa]
 shearAllowable = ultimateStress / 2; % ultimate shear stress for chosen material [Pa]
 rhoMaterial    = mission.structure.rho; % density of the chosen material [kg/m^3] 
+materialNumber = length(E);
 
 rhoOX          = mission.launcher.engines{engineUsed}.oxDens; % density of the oxidizer [kg/m^3]
 rhoFu          = mission.launcher.engines{engineUsed}.fuelDens; % density of the fuel [kg/m^3]
@@ -63,7 +64,10 @@ end
 
 firstStageN = N(end);
 firstStageT = T(end);
-firstStageM = max(M(end-3:end));
+Mtail = M(end-2:end);
+[~, idx] = max(abs(Mtail));
+firstStageM = Mtail(idx);
+
 
 N = [payloadN, interN, firstStageN];
 T = [payloadT, interT, firstStageT];
@@ -73,9 +77,11 @@ partsNumber = length(N);
 
 r = r * ones(partsNumber, 1);
 
-t = zeros(partsNumber, 1);
+t = zeros(partsNumber, materialNumber);
+tVec = zeros(partsNumber, 1);
 mStruct = zeros(partsNumber, 1);
 stressMatrix = zeros(partsNumber, 6);
+idx = zeros(partsNumber, 1);
 
 for i = 1 : partsNumber
     
@@ -100,26 +106,26 @@ for i = 1 : partsNumber
         t(i, j) = max(t(i, j), tBuckling);
         end
 
-        [t(i), idx] = min(t(i, :));
+        [tVec(i), idx(i)] = min(t(i, :));
 
         % Hydrostatic pressure
         pHydro = rhoFu .* nx .* g0 .* h(i);
 
         % Area of the cylinder
-        A = pi * (r(i)^2 - (r(i)-t(i)).^2);
+        A = pi * (r(i)^2 - (r(i)-tVec(i)).^2);
         
         % Inertia (valid for a cylinder)
-        I = pi / 4 * (r(i)^4 - (r(i) - t(i)).^4);
+        I = pi / 4 * (r(i)^4 - (r(i) - tVec(i)).^4);
         
         % Mass computation
-        volume = pi .* h(i) .* (r(i)^2 - (r(i) - t(i)).^2);
-        mStruct(i) = volume .* rhoMaterial(idx);
+        volume = pi .* h(i) .* (r(i)^2 - (r(i) - tVec(i)).^2);
+        mStruct(i) = volume .* rhoMaterial(idx(i));
         
         % Buckling for Pressurized Cylinders
-        k0 = 9 * (t(i, j) / r(i)).^(0.6) + 0.16 .* (r(i) / h(i)).^(1.3) .* (t(i, j) / r(i)).^(0.3);
-        kp = 0.191 * (p(i) / E(idx)) .* (r(i) / t(i)).^2;
+        k0 = 9 * (tVec(i) / r(i)).^(0.6) + 0.16 .* (r(i) / h(i)).^(1.3) .* (tVec(i) / r(i)).^(0.3);
+        kp = 0.191 * (p(i) / E(idx(i))) .* (r(i) / tVec(i)).^2;
         
-        sigmaBuckling = ((k0 + min(kp, 0.229)) * E(idx) .* t(i)) / r(i);
+        sigmaBuckling = ((k0 + min(kp, 0.229)) * E(idx(i)) .* tVec(i)) / r(i);
         
         % if sigmaBuckling < ultimateStress
         %     error('Spessore troppo sottile')
@@ -129,7 +135,7 @@ for i = 1 : partsNumber
         longitudinalStress = N(i) / A; 
         bendingStress = M(i) ./ I .* r(i);
         shearStress = T(i) ./ A;
-        hoopStress = (p(i) .* r(i) + pHydro .* r(i)) ./ t(i);
+        hoopStress = (p(i) .* r(i) + pHydro .* r(i)) ./ tVec(i);
         axialStress = hoopStress / 2;
         
         stressMatrix(i, :) = [longitudinalStress, bendingStress, shearStress, hoopStress, axialStress, sigmaBuckling];
@@ -153,20 +159,20 @@ for i = 1 : partsNumber
     
         t(i, j) = max(tAxial, tShear);
     
-        bucklingEq = @(t_var) ((N(i) / (pi*(r(i)^2-(r(i)-t_var)^2)) + M(i) / (pi/4*(r(i)^4-(r(i)-t_var)^4)) * r(i))) - (9 * (t_var ./ r(i))^1.6 + 0.16 * (t_var ./ h(i))^1.3) * E(j) * t_var / r(i);
+        bucklingEq = @(t_var) ((N(i) / (pi*(r(i)^2-(r(i)-t_var)^2)) + M(i) / (pi/4*(r(i)^4-(r(i)-t_var)^4)) * r(i))) - 0.6 * (1 - 0.901 * (1 - exp(-1 / 16 * sqrt(r(i)/t_var)))) * E(j) * t_var / r(i);
             options = optimoptions('fsolve', 'Display', 'off', 'TolFun', 1e-6);
             tBuckling = fsolve(bucklingEq, t(i, j), options);
             
             t(i, j) = max(t(i, j), tBuckling);
         end
 
-        [t(i), idx] = min(t(i, :));
+        [tVec(i), idx(i)] = min(t(i, :));
 
         % Area 
-        A = pi * (r(i)^2 - (r(i)-t(i)).^2);
+        A = pi * (r(i)^2 - (r(i)-tVec(i)).^2);
         
         % Inertia
-        I = pi / 4 * (r(i)^4 - (r(i) - t(i)).^4);
+        I = pi / 4 * (r(i)^4 - (r(i) - tVec(i)).^4);
         
         % Stresses (MAGNITUDE)
         longitudinalStress = N(i) / A; 
@@ -175,20 +181,21 @@ for i = 1 : partsNumber
         
         % Buckling for UnPressurized Cylinders
         
-        sigmaBuckling = (9 * (t(i) ./ r(i))^1.6 + 0.16 * (t(i) ./ h(i))^1.3) * E(idx) * t(i) / r(i);
+        sigmaBuckling = 0.6 * (1 - 0.901 * (1 - exp(-1 / 16 * sqrt(r(i)/tVec(i))))) * E(idx(i)) * tVec(i) / r(i); % NASA SP-8007
         
         stressMatrix(i, :) = [longitudinalStress, bendingStress, shearStress, 0, 0, sigmaBuckling];
     
         % Exctraction of the most critical result
-        volume = pi .* h(i) * (r(i)^2 - (r(i) - t(i)).^2);
-        mStruct(i) = volume .* rhoMaterial(idx);
+        volume = pi .* h(i) * (r(i)^2 - (r(i) - tVec(i)).^2);
+        mStruct(i) = volume .* rhoMaterial(idx(i));
     end
 end
 
 % =========================== ESTRAZIONE ==================================
 
 mission.structure.mStruct = mStruct;
-mission.structure.thickness = t;
+mission.structure.thickness = tVec;
 mission.structure.stressMatrix = stressMatrix;
+mission.structure.materials = idx;
 
 end
