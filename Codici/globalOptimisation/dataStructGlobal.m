@@ -194,7 +194,7 @@ settings.nOptPointsTraj = 5 ;
 
 % ============================ Initial population internal GA ===============================
 
-settings.initialPopulationGATraj.twoStages = load("ThrustData.mat") ;
+settings.initialPopulationGATraj.twoStages = load("initialPopulation2StagesOld.mat") ;
 settings.initialPopulationGATraj.twoStages = settings.initialPopulationGATraj.twoStages.X ;
 clear settings.initialPopulationGATraj.twoStages.X ;
 
