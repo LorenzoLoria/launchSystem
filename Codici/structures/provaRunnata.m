@@ -57,6 +57,7 @@ mission.structure.launcherLength = mission.structure.launcherLength(end);
 mission.diameter = mission.structure.diameter;
 xcp = computeXcp(mission, opt);
 xcp_a = mission.aerodynamics.rootChord - computeFinXcp(mission); % compute position starting from the launcher bottom
+xcg = computeXCG(mission, opt);
 
 % Length of the element used for structural analysis
 mission.structure.elementLength = [mission.capsule.height/2,xcp-mission.capsule.height/2,mission.capsule.height-xcp];
@@ -87,23 +88,6 @@ fprintf('  %.3f mm\n', thick_mm);  % stampa un valore per riga
 mStruct_ton = mission.structure.mStruct * 1e-3; % [ton]
 fprintf('Masses of the structures starting from the nose are:\n');
 fprintf('  %.3f tons\n', mStruct_ton);
-
-%%
-xcg = computeXCG(mission, opt);
-% equatMoment = @(Ftfins) mission.structure.tMaxQ(2) * (mission.structure.launcherLength - ...
-%     xcg) - ( mission.structure.dMaxQ(2) + mission.structure.lMaxQ(2)) * (xcg - ...
-%     xcp_a) + Ftfins * (xcp_a - xcg); 
-% sol = fzero(equatMoment, 0);
-Ftfins = (- mission.structure.tMaxQ(2) * (mission.structure.launcherLength - xcg) + ( mission.structure.dMaxQ(2) + mission.structure.lMaxQ(2)) * (xcg - xcp_a)) / (xcp_a - xcg)
-CLnew = abs(Ftfins) / (mission.structure.dynamicPressure * mission.aerodynamics.bodyGeom.Aref)
-
-
-%%
-alphas = deg2rad(linspace(-180, 180, 400)); % in gradi per esempio
-plot(rad2deg(alphas), equatMoment(alphas)), grid on
-xlabel('\alpha_{fins} [deg]')
-ylabel('M(\alpha)')
-
 
 %% ============================== PLOTS ===================================
 
@@ -191,3 +175,8 @@ xlabel('x [m]');
 ylabel('Bending Moment [Nm]');
 xlim([0, x_all(end)])
 xline([0, cumsum(mission.structure.elementLength)], 'LineStyle','--')
+xline(xcg, 'k',  'LineWidth',1.5)
+%%
+
+Ftfins = (- mission.structure.tMaxQ(2) * (mission.structure.launcherLength - xcg) + ( mission.structure.dMaxQ(2) + mission.structure.lMaxQ(2)) * (xcg - xcp)) / (mission.structure.launcherLength - xcp_a - xcg)
+CLnew = abs(Ftfins) / (mission.structure.dynamicPressure * mission.aerodynamics.bodyGeom.Aref)

@@ -306,10 +306,11 @@ mission.structure.SF = 1; % da verificare
 %----------------------------------------------------------------------
 % Al 7075-T6 - highly loaded fittings, secondary structures
 %----------------------------------------------------------------------
-mission.structure.rho      = 2720;
-mission.structure.E        = 75e9;
-mission.structure.yield    = 500e6;
-mission.structure.ultimate = 560e6;
+
+mission.structure.rho = [2840, 2720, 2780, 2810];
+mission.structure.E   = [72e9, 75e9, 73e9, 72e9];
+mission.structure.ultimate = [480e6, 560e6, 483e6, 572e6];
+mission.structure.yield = [390e6, 500e6, 345e6, 503e6];
 
 % Pressurizzazione serbatoi
 mission.structure.tankPressure = [0, 0, 3.4e5, 0, 3.4e5];

@@ -96,7 +96,7 @@ for i = 1:nComponents
     A(rM, cT_down) = h(i);   % T(i+1) * lunghezza
     
 end
-
+A(end, end) = - A(end, end-1);
 % ==================== CREATION OF LOAD VECTOR b ==========================
 b = zeros(3, nNodes);
 b(:,2) = [dragN+liftN; dragT+liftT; 0];
