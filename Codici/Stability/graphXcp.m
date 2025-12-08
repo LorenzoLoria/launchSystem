@@ -2,10 +2,12 @@
 close all
 clear all
 
+
 %% PARAMETERS
 lc1 = 20;  % Stage 1 length [m]
 lc2 = 10;  % Stage 2 length [m]
 lco = 3;   % Base length [m]
+
 
 m0  = 210.4e3; % Initial mass [kg]
 mc1 = 162.5e3; % Stage 1 mass [kg]
@@ -51,6 +53,7 @@ vsound    = 340;                            % Speed of sound [m/s]
 cmac = 2;   % Fin mean chord [m]
 be   = 1.5; % 2*fin axial base [m]
 Se   = 3;   % 2*fin surface [m^2]
+
 
 %% COMPUTE CG AND CP
 for i = 1:length(t)

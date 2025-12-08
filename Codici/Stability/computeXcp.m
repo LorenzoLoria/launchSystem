@@ -21,6 +21,7 @@ li1 = mission.structures{1}.lengthInterstage;
 li2 = mission.structures{2}.lengthInterstage;
 li3 = mission.structures{3}.lengthInterstage;
 
+
 % ============================ SOLUTION ===================================
 if N == 3
     l = lco + li3 + lc3 + li2 + lc2  + li1 + lc1; 
