@@ -1,8 +1,10 @@
-function [mission] = externalLoads(timeCollocation,stateCollocation,mission,opt,thrustData,alpha)
+function [mission] = externalLoads(timeCollocation,stateCollocation,mission,opt,thrustData,launcher,alpha)
 
 vel = stateCollocation(4:6,:,1:end-1)-stateCollocation(4:6,1,1);
 vel = mission.target.Rfinal* vel(1:3,:);
 absVel = sqrt ( vel(1,:).^2+ vel(2,:).^2 + vel(3,:).^2 );
+
+stageNumber = 1;
 
 normRocket = vel./absVel ;
 
@@ -52,11 +54,40 @@ soundSpeed = mission.aerodynamics.soundspeedFun(hMaxQ);
 
 machNumber = norm(vMaxQ) / soundSpeed;
 
-[~,~,~,~, mainbodyCL, mainbodyCD, finsCL, finsCD] = CLCDcomputation(machNumber,alpha,maxq,1,mission);
+nStages = length(opt.stage);
+geoStages = opt.geometry.stage;
+optStage = opt.stage;
+
+stageRadius = geoStages{nStages}.radius;
+lCylinder = geoStages{nStages}.tanksLength; 
+interstageLength = geoStages{nStages}.interstage.length;
+
+dCylinder = lCylinder *stageRadius*2;
+
+for i=nStages-1:-1:stageNumber
+    lCylinder = lCylinder + geoStages{i}.tanksLength + geoStages{i}.interstage.length ;
+    dCylinder = dCylinder + geoStages{i}.tanksLength * geoStages{i}.radius*2 +...
+                geoStages {i}.interstage.length *...
+                (geoStages {i}.radius + geoStages {i+1}.radius);
+    
+end
+
+lNose = mission.capsule.height + geoStages{nStages}.interstage.length;
+Anose = max(mission.capsule.Area , pi*stageRadius^2) ;
+stage1Radius = geoStages{1}.radius;
+boatTailRadius = geoStages{stageNumber}.radius ;
+dimensions = [stageRadius,lCylinder,dCylinder,lNose,Anose,stage1Radius,boatTailRadius,interstageLength];
+nEngines = optStage{stageNumber}.nEngines;
+aTotZero = optStage{stageNumber}.engine.effAreaZero;
+aTotVacum = optStage{stageNumber}.engine.effAreaVac;
+
+engineVec = [nEngines,aTotZero,aTotVacum];
+
+[CL,CD,CN,CA, mainbodyCL, mainbodyCD, finsCL, finsCD] = CLCDcomputation(machNumber,alpha,maxq,1,mission,1,dimensions,engineVec);
 
 dMaxQ = -rot2*maxq * mainbodyCD *mission.capsule.Area* [1;0;0];
 lMaxQ = -rot2*maxq * mainbodyCL *mission.capsule.Area * [0;-1;0];
-gMaxQ = -rot3'*mission.Rfinal* mission.environment.GM * posMaxQ /norm(posMaxQ)^3;
+gMaxQ = -rot3'*mission.target.Rfinal* mission.environment.GM * posMaxQ /norm(posMaxQ)^3;
 
 tMaxQ = (aMaxQ - gMaxQ)*massMaxQ - dMaxQ-lMaxQ;
 
@@ -72,11 +103,11 @@ mission.structure.gMaxQ             = gMaxQ;
 mission.structure.hMaxQ             = hMaxQ;
 mission.structure.vMaxQ             = vMaxQ;
 
-m1Stage = opt.stage{1}.mStage + massMaxQ - opt.m0Tot;
+m1Stage = opt.stage{1}.mStage + massMaxQ - opt.totalMass;
 
-mission.structure.massMaxQVec = [mission.capsule.weigth];
+mission.structure.massMaxQVec = [mission.capsule.weight];
 
-for ii = opt.nStages:-1:1
+for ii = launcher(1):-1:1
     mission.structure.massMaxQVec = [mission.structure.massMaxQVec, mission.structures{ii}.mInterstage, opt.stage{ii}.mStage];
 end
 

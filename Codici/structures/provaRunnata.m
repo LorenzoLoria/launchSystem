@@ -9,61 +9,67 @@ close all
 addpath(genpath('..\..\'))
 
 [mission, settings] = dataStructGlobal;
-[~, opt] = dataStruct;
 
-thrustData(:, :, 1) =     [0.992951743036793	26.174503353658913
-0.918245484987595	5.524888452757455
-0.949721966745758	4.816713623391522
-0.917770387441014	73.262523254569814
-0.962817207168307	42.233780805019514];
+mission.structure.alphaQmax = 0;
 
-thrustData(:, :, 2) =    [0.609126028473365	8.838970511617315
-0.949237174404871	70.435231583491500
-0.702233911900803	1.003603356352884e+02
-0.845617612957625	52.146897489107950
-0.413941032471940	99.388409631182256];
+launcher = [2,1,3,4,0.5605,0.5595,0.7];
 
-launcher = [2];
-
-[timeCollocation, stateCollocation] = totalTrajectoryGlobalGA(launcher,opt,mission,settings,thrustData);
-
-%%
-mission.structure.alphaQmax = deg2rad(3.4);
-
-[mission] = externalLoads(timeCollocation,stateCollocation,mission,opt,thrustData, mission.structure.alphaQmax);
-
-if opt.nStages == 1
-    mission.structure.nComponents = 8;
-elseif opt.nStages == 2
-    mission.structure.nComponents = 12;
-elseif opt.nStages == 3
-    mission.structure.nComponents = 16;
+for i = 1:launcher(1)
+    configuration.stage{i}.engine = mission.engines{launcher(1+i)};
 end
 
-mission.structure.nNodes = mission.structure.nComponents + 1;
+[mer,staging,configuration] = initialMassEstimation(mission,configuration,settings,launcher);
+thrustDataGA = load('thrustdataVecTraj.mat','xGATraj');
+
+thrustData(:,:,1) = [thrustDataGA.xGATraj(1:5)',thrustDataGA.xGATraj(6:10)'];
+thrustData(:,:,2) = [thrustDataGA.xGATraj(11:15)',thrustDataGA.xGATraj(16:20)'];
+
+
+
+[timeCollocation, stateCollocation] = totalTrajectoryGlobalGA(launcher,configuration,mission,settings,thrustData);
+
+%%
+
+[mission] = externalLoads(timeCollocation,stateCollocation,mission,configuration,launcher,thrustData, 0);
+
+
+%%
+if launcher(1) == 1
+    nComponents = 8;
+elseif launcher(1) == 2
+    nComponents = 12;
+elseif launcher(1) == 3
+    nComponents = 16;
+end
+
+nNodes = nComponents + 1;
 
 % Nodes
-mission.structure.loadNodes = [2,3:2:mission.structure.nNodes-1,mission.structure.nNodes-1];
+loadNodes = [2,3:2:nNodes-1,nNodes-1];
 
 % Length of the components of the LV
 mission.structure.componentLength = [mission.capsule.height];
 
-for ii = opt.nStages:-1:1
-    mission.structure.componentLength = [ mission.structure.componentLength, mission.structures{ii}.lengthInterstage, opt.stage{ii}.length];
+for ii = launcher(1):-1:1
+    if ii == 1
+        mission.structure.componentLength = [ mission.structure.componentLength, configuration.geometry.stage{ii}.interstage.length, configuration.geometry.stage{ii}.length - configuration.stage{1}.engine.length];
+    else
+    mission.structure.componentLength = [ mission.structure.componentLength, configuration.geometry.stage{ii}.interstage.length, configuration.geometry.stage{ii}.length];
+    end
 end
 
 % Computation of position of xCp and xCp_a (fins)
 mission.structure.launcherLength = cumsum(mission.structure.componentLength);
 mission.structure.launcherLength = mission.structure.launcherLength(end);
 
-mission.diameter = mission.structure.diameter;
-xcp = computeXcp(mission, opt);
+%mission.diameter = mission.structure.diameter;
+xcp = computeXcp(mission, configuration,launcher);
 xcp_a = mission.aerodynamics.rootChord - computeFinXcp(mission);
 
 % Length of the element used for structural analysis
 mission.structure.elementLength = [xcp,mission.capsule.height/2-xcp,mission.capsule.height/2];
 
-for ii = opt.nStages:-1:1
+for ii = launcher(1):-1:1
     mission.structure.elementLength = [ mission.structure.elementLength, mission.structures{ii}.lengthInterstage/2, mission.structures{ii}.lengthInterstage/2, opt.stage{ii}.length/2,opt.stage{ii}.length/2];
 end
 
