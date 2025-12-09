@@ -6,9 +6,15 @@ if isempty(thrustDataVecPrev)
     thrustDataVecPrev = zeros(size(thrustDataVec)) ;
 end
 
-% if length(size(thrustDataVecPrev)) ~= length(size(thrustDataVec))
-%     thrustDataVecPrev = zeros(size(thrustDataVec)) ; 
-% end
+
+if length(size(thrustDataVecPrev)) ~= length(size(thrustDataVec))
+    thrustDataVecPrev = zeros(size(thrustDataVec)) ; 
+end
+
+if any( size(thrustDataVecPrev) ~= size(thrustDataVec))
+    thrustDataVecPrev = zeros(size(thrustDataVec)) ; 
+end 
+
 
 
 

@@ -9,7 +9,6 @@ if ~isstruct(output)
 end
 
 
-
 totalMass = output.launcherMass ; 
 tof = output.tof ; 
 
@@ -28,6 +27,9 @@ if isempty(totalMass) || isempty(tof)
     keyboard
 end
 
+if any(size(objective)<1)
+    keyboard
+end
 
 
 
