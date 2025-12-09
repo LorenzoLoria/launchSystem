@@ -1,45 +1,42 @@
-function[CL,CD,CN,CA, mainbodyCL, mainbodyCD, finsCL, finsCD] = CLCDcomputation(Mach,alpha,dynamicPressure,isPoweredFlag,mission,currentStage,opt)
+function[CL,CD,CN,CA, mainbodyCL, mainbodyCD, finsCL, finsCD] = CLCDcomputation(Mach,alpha,dynamicPressure,isPoweredFlag,mission,currentStage,dimensions,engineVec)
 
-nStages = length(opt.stage);
-geoStages = opt.geometry.stage;
-optStage = opt.stage;
-q = dynamicPressure;                       % pressione dinamica [Pa]
 
 
 %Last stage, coupler to the capsule is not considered here, but rather in
 %the nosecone
-stageRadius = geoStages{nStages}.radius;
-lCylinder = geoStages{nStages}.tanksLength;                                            % lunghezza totale [m] lunghezza cilindro mediato
-dCylinder = lCylinder *stageRadius*2;     % diametro [m] diametro cilindro mediato
+% lCylinder = geoStages{nStages}.tanksLength;                                            % lunghezza totale [m] lunghezza cilindro mediato
+% dCylinder = lCylinder *stageRadius*2;     % diametro [m] diametro cilindro mediato
+% 
+% %Other stages
+% for i=nStages-1:-1:currentStage
+%     lCylinder = lCylinder + geoStages{i}.tanksLength + geoStages{i}.interstage.length ;
+%     dCylinder = dCylinder + geoStages{i}.tanksLength * geoStages{i}.radius*2 +...
+%                 geoStages {i}.interstage.length *...
+%                 (geoStages {i}.radius + geoStages {i+1}.radius);
+% 
+% end
 
-%Other stages
-for i=nStages-1:-1:currentStage
-    lCylinder = lCylinder + geoStages{i}.tanksLength + geoStages{i}.interstage.length ;
-    dCylinder = dCylinder + geoStages{i}.tanksLength * geoStages{i}.radius*2 +...
-                geoStages {i}.interstage.length *...
-                (geoStages {i}.radius + geoStages {i+1}.radius);
-    
-end
+lCylinder = dimensions(2);
+dCylinder = dimensions(3);
 
 dCylinder = dCylinder / lCylinder ;
 lambda = lCylinder / dCylinder;                                                                 % Fineness ratio
 
-lNose = mission.capsule.height + geoStages{nStages}.interstage.length ;                % lunghezza nose [m] lunghezza capsula + interstage
+lNose = dimensions(4);                % lunghezza nose [m] lunghezza capsula + interstage
 Aref = pi/4 * dCylinder^2 ;                                                                     % area di riferimento [m^2] cross section cilindro mediato
 Sref = Aref ;
-Anose = max(mission.capsule.Area , pi*stageRadius^2) ;                   % area nose [m^2] max tra cross section capsula e ultimo stadio
+Anose = dimensions(5);              % area nose [m^2] max tra cross section capsula e ultimo stadio
 phi = pi/4 ;                                                                                    % angolo di giunzione [rad] angolo tra ultimo stadio e interstage di connessione alla capsula
-
-nEngines = optStage{currentStage}.nEngines;
+nEngines = engineVec(1);
 
 if currentStage == 1
-    AexitTot = optStage{currentStage}.engine.effAreaZero * nEngines;   % aree uscita motori
+    AexitTot = engineVec(2) * nEngines;   % aree uscita motori
 else
-    AexitTot = optStage{currentStage}.engine.effAreaVac * nEngines;
+    AexitTot = engineVec(3) * nEngines;
 end
 
-stage1Radius = geoStages{1}.radius;
-boatTailRadius = geoStages{currentStage}.radius ;                                      %boat tail not present r=radius of the current stagev
+stage1Radius = dimensions(6);
+boatTailRadius = dimensions(7) ;                                      %boat tail not present r=radius of the current stagev
 Abase = pi * boatTailRadius^2 ;                                                                 % area base [m^2] se è presente una boattail non coincide con l'area dello stadio corrente
 Ab = pi/4 * dCylinder^2;                                                                        %area max cross section
 Ap = dCylinder * lCylinder ;                                                                    %area razzo vista da lato
@@ -68,19 +65,19 @@ bSub = 1;                                                                       
 % -----------------------------
 
 % 1.1) Contributi supersonici (M >= 1.3)
-CAW_sharp = (1.586 + 1.834 ./ (Mach.^2)) .* ...
-            (atan(0.5 ./ (lNose ./ dCylinder))).^1.69;
+CAW_sharp = (1.586 + 1.834 ./ (Mach^2)) * ...
+            (atan(0.5 / (lNose / dCylinder)))^1.69;
 
-CAW_hemi  = 0.665 * (1.586 + 1.834 ./ (Mach.^2));
+CAW_hemi  = 0.665 * (1.586 + 1.834 / (Mach^2));
 
-CAW_sup   = CAW_sharp .* ((Aref - Anose) ./ Aref) + ...
-            CAW_hemi  .* (Anose ./ Aref);
+CAW_sup   = CAW_sharp .* ((Aref - Anose) / Aref) + ...
+            CAW_hemi  .* (Anose / Aref);
 
 % 1.2) Limite fortemente subsonico (M ≈ 0)
 CAW_M0 = 0.8 * sin(phi).^2;   % scalare
 
 % 1.3) Modello subsonico fino a M <= 0.8
-CAW_sub = aSub .* (Mach.^bSub) + CAW_M0;
+CAW_sub = aSub * (Mach^bSub) + CAW_M0;
 
 % regioni:
 %   M <= 0       : poniamo CAW = CAW_M0
@@ -99,13 +96,13 @@ elseif Mach > 0.8 && Mach<=1.3    % 0.8 < M < 1.3  -> interpolazione lineare
     CA1  = aSub * (M1^bSub) + CAW_M0;
     % valore a M=1.3 (supersonico)
     M2   = 1.3;
-    CAW_sharp_13 = (1.586 + 1.834 / M2^2) * ...
-                   (atan(0.5 / (lNose / dCylinder)))^1.69;
-    CAW_hemi_13  = 0.665 * (1.586 + 1.834 / M2^2);
-    CA2  = CAW_sharp_13 * ((Aref - Anose) / Aref) + ...
-           CAW_hemi_13  * (Anose / Aref);
+    CAW_sharp_13 = (1.586+1.834/M2^2) * ...
+                   (atan(0.5/(lNose / dCylinder)))^1.69;
+    CAW_hemi_13  = 0.665*(1.586+1.834/M2^2);
+    CA2  = CAW_sharp_13*((Aref-Anose)/Aref) + ...
+           CAW_hemi_13*(Anose/Aref);
     % interp lineare in funzione di M
-    CAW = CA1 + (CA2 - CA1) .* (Mach - M1) / (M2 - M1);
+    CAW = CA1 + (CA2 - CA1)*(Mach - M1)/(M2 - M1);
 elseif Mach > 1.3                 % M >= 1.3
     CAW = CAW_sup;
 end
@@ -117,31 +114,25 @@ end
 
 % Coefficiente base drag riferito all'area di base
 
-if Mach < 1
-    CD0B = 0.12 + 0.13 .* (Mach.^2);
-else
-    CD0B = 0.25 ./ Mach;
-end
+
+CD0B = 0.12 + 0.13 .* (Mach.^2)*(Mach<1) + (0.25/Mach)*(Mach>=1);
+
 
 % Area di base efficace (motore acceso)
 Abase_eff = Abase - AexitTot;
 
-if isPoweredFlag
-    CA_B = CD0B .* (Abase_eff ./ Aref);
-else
-    CA_B = CD0B .* (Abase ./ Aref);
-end
+
+CA_B = (CD0B .* (Abase_eff ./ Aref))*isPoweredFlag + CD0B .* (Abase ./ Aref)*(not(isPoweredFlag)) ;
+
 
 % -----------------------------
 % 3) Friction drag (C_A)_f  (Jerger/Fleeman in SI)
 % -----------------------------
 % (C_A)_f ≈ 0.091 * (L/d) * ( M / (q * L) )^0.2
 % q = pressione dinamica [Pa], L in [m]
-if Mach ==0
-    CA_f = 0;
-else
-    CA_f = 0.091 * lambda .* ( Mach ./ (q * lCylinder) ).^0.2;
-end
+
+CA_f = 0 + (0.091*lambda*(Mach/(dynamicPressure*lCylinder))^0.2)*(Mach~=0);
+
 % -----------------------------
 % 4) C_A,alpha=0 e dipendenza in alpha
 % -----------------------------
@@ -149,7 +140,7 @@ end
 CA0 = CAW + CA_B + CA_f;
 
 % C_A,body(M, alpha) = C_A,alpha=0(M) * cos^2(alpha)
-CAbody = CA0 .* cos(alpha).^2;
+CAbody = CA0*cos(alpha)^2;
 
 
 %--------------------------------------------------------------------------
@@ -158,13 +149,10 @@ CAbody = CA0 .* cos(alpha).^2;
 
 Ab_over_A = Ab / Aref;
 Ap_over_A = Ap / Aref;
-Cdn = mission.aerodynamics.bodyInfo.Cdn;  %lascia come è costante
+Cdn = 1.2; %mission.aerodynamics.bodyInfo.Cdn;  %lascia come è costante
 
-if Mach < 1
-    eta = 0.05 * lambda + 0.52;
-else
-    eta = 1;
-end
+eta = (0.05 * lambda + 0.52).*(Mach<1) + 1.*(Mach>1);
+
 
 % -----------------------------
 % Calcolo dei termini slender-body e crossflow
@@ -183,22 +171,17 @@ A = be^2/Se;
 M_ale = Mach * cosd(lambdaLE);
 
 % --- Normal force coefficient
-if Mach > sqrt(1 + (8/(pi*A))^2)
-    CN_surf = ((4*abs(sin(alpha)*cos(alpha)) / sqrt(Mach^2 - 1)) + 2*sin(alpha)^2) * Se / Sref;
-else
-    CN_surf = ((pi*A/2*abs(sin(alpha)*cos(alpha)) + 2*sin(alpha)^2) * Se / Sref);
-end
+mRef = sqrt(1 + (8/(pi*A))^2);
+CN_surf =( ((4*abs(sin(alpha)*cos(alpha)) / sqrt(Mach^2 - 1)) + 2*sin(alpha)^2) * Se / Sref)*(Mach > mRef) + (((pi*A/2*abs(sin(alpha)*cos(alpha)) + 2*sin(alpha)^2) * Se / Sref))*(Mach <= mRef);
+
 
 % --- CD0 surface friction
-CD0_surf_friction = 0.0133 * (Mach / (q*cmac))^0.2 * 2 * Se / Sref;
+CD0_surf_friction = 0.0133 * (Mach / (dynamicPressure*cmac))^0.2 * 2 * Se / Sref;
 
 % --- CD0 surface wave
 
-if M_ale < 1
-    CD0_surf_wave = 0;
-else
-    CD0_surf_wave = (1.429 / M_ale^2) * ((1.2*M_ale^2)^3.5 * (2.4/(2.8*M_ale^2 - 0.4))^2.5 - 1) * (sin((deltaLE))^2 * cos((lambdaLE)) * tmac * b) / Sref;
-end
+CD0_surf_wave = 0 + ((1.429 / M_ale^2) * ((1.2*M_ale^2)^3.5 * (2.4/(2.8*M_ale^2 - 0.4))^2.5 - 1) * (sin((deltaLE))^2 * cos((lambdaLE)) * tmac * b) / Sref).*(M_ale>=1);
+
 
 CN_fins_tot = Nfins * CN_surf;
 CD0_fins_tot = Nfins * (CD0_surf_friction + CD0_surf_wave);

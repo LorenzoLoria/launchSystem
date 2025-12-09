@@ -1,5 +1,5 @@
 
-function dsdt = launcherDynamicsECI(t, x,thrustData, mission,stageNumber,opt,option2D)
+function dsdt = launcherDynamicsECI(t, x,thrustData, mission,stageNumber,opt,option2D,dimensions,engineVec)
 
 % LAUNCHERDYNAMICS  3D launcher equations of motion.
 %   This function computes the time derivative of the state vector for a 
@@ -53,13 +53,13 @@ function dsdt = launcherDynamicsECI(t, x,thrustData, mission,stageNumber,opt,opt
     rho = 1.29*exp(-h/8433);
 
     dynamicPressure = 0.5 * rho * vMag^2;
-    [soundspeed] = mission.aerodynamics.soundspeedFun(h);
+    soundspeed = mission.aerodynamics.soundspeedFun(h);
     Mach = vMag/soundspeed;
     
     if Mach == 0
         Cd = 0.01;
     else
-    [~,Cd,~,~] = CLCDcomputation(Mach,0,dynamicPressure,1,mission,stageNumber,opt);
+    [~,Cd,~,~] = CLCDcomputation(Mach,0,dynamicPressure,1,mission,stageNumber,dimensions,engineVec);
     end
     optVar = thrustData(t); 
     
@@ -84,7 +84,7 @@ else
     thrustValue = opt.stage{stageNumber}.engine.thrustVacum;
 end
 
-ThrustBRF = percVec * opt.stage{stageNumber}.nEngines *(thrustValue+staticContribution)* [cos(thetaGimball)*cos(gammaGimball); cos(thetaGimball)*sin(gammaGimball); sin(thetaGimball)];
+ThrustBRF = percVec * engineVec(1) *(thrustValue+staticContribution)* [cos(thetaGimball)*cos(gammaGimball); cos(thetaGimball)*sin(gammaGimball); sin(thetaGimball)];
 ThrustIRF = mission.target.Rfinal'*ThrustBRF;
 
 
@@ -95,7 +95,7 @@ ThrustIRF = mission.target.Rfinal'*ThrustBRF;
     G = - GM * r /rMag^3;
 
     % mass flow rate
-    mDot = -( percVec *thrustValue* opt.stage{stageNumber}.nEngines) / (g0 * isp); 
+    mDot = -( percVec *thrustValue* engineVec(1)) / (g0 * isp); 
 
     % Equation of motion
     dsdt = zeros(7,1);
