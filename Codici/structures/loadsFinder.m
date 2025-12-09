@@ -33,7 +33,7 @@ a       = mission.structure.aMaxQ;
 aN      = a(1); 
 aT      = a(2);    
 
-% Element of the elements
+% Length of the elements
 h       = mission.structure.elementLength;
 
 % Fins' Lift
@@ -109,8 +109,8 @@ end
 
 b(:, [2 3]) = b(:, [3 2]); % inversione richiesta siccome il CG del payload è prima del CP del corpo
 
-b(:,end-1) = [dragFinsN+liftFinsN; -mission.structure.Ftfins; 0];
-
+% b(:,end-1) = [dragFinsN+liftFinsN; -5.370723997971515e+06; 0];
+b(:,end-1) = [dragFinsN+liftFinsN; -1.119698091469362e+06; 0];
 b = b(:);
 
 % =========================== SOLUTION ====================================

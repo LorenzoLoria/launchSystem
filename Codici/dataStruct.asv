@@ -434,8 +434,8 @@ mission.structures{2}.mInterstage = 0;
 mission.structures{3}.mInterstage = 0;
 
 mission.structures{1}.lengthInterstage = 0;
-mission.structures{2}.lengthInterstage = 0
-mission.structures{3}.lengthInterstage = 0;
+mission.structures{2}.lengthInterstage = 5;
+mission.structures{3}.lengthInterstage = 3.5;
 
 
 

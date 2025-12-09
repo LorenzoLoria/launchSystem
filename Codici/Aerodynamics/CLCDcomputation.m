@@ -175,10 +175,10 @@ else
 end
 
 % CN_fins_tot = Nfins * CN_surf;
-CN_fins_tot = 0;
-CA_fins_tot = 0;
 % CD0_fins_tot = Nfins * (CD0_surf_friction + CD0_surf_wave);
 % CA_fins_tot = CD0_fins_tot * cos(alpha)^2;
+CN_fins_tot = 0;
+CA_fins_tot = 0;
 
 % Somma totali
 CN = CNbody + CN_fins_tot;

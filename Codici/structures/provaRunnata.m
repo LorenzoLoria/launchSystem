@@ -19,7 +19,7 @@ thrustData(:,:,3) = [X(21:25),X(26:30)];
 [timeCollocation, stateCollocation] = totalTrajectory(mission,opt,thrustData,1);
 
 %%
-mission.structure.alphaQmax = deg2rad(3.4);
+mission.structure.alphaQmax = deg2rad(0);
 
 [mission] = externalLoads(timeCollocation,stateCollocation,mission,opt,thrustData, mission.structure.alphaQmax);
 
@@ -53,6 +53,13 @@ xcp_a = mission.aerodynamics.rootChord - computeFinXcp(mission); % compute posit
 xcg = computeXCG(mission, opt);
 
 % Length of the element used for structural analysis
+
+% Computation of the CGs
+xcg_capsule = computeXCG(mission, opt);
+
+
+
+
 mission.structure.elementLength = [mission.capsule.height/2,xcp-mission.capsule.height/2,mission.capsule.height-xcp];
 
 for ii = opt.nStages:-1:1
@@ -65,7 +72,7 @@ mission.structure.nComponents = length(mission.structure.componentLength);
 
 % ====================== CALCOLO AZIONI INTERNE ===========================
 mission.structure.Ftfins = (- mission.structure.tMaxQ(2) * (mission.structure.launcherLength - xcg) + ( mission.structure.dMaxQ(2) + mission.structure.lMaxQ(2)) * (xcg - xcp)) / (mission.structure.launcherLength - xcp_a - xcg);
-[mission, b] = loadsFinder(mission);
+[mission] = loadsFinder(mission);
 
 N = mission.structure.N;
 T = mission.structure.T;
@@ -180,5 +187,9 @@ xline([0, cumsum(mission.structure.elementLength)], 'LineStyle','--')
 xline(xcg, 'k',  'LineWidth',1.5)
 %%
 
-Ftfins = (- mission.structure.tMaxQ(2) * (mission.structure.launcherLength - xcg) + ( mission.structure.dMaxQ(2) + mission.structure.lMaxQ(2)) * (xcg - xcp)) / (mission.structure.launcherLength - xcp_a - xcg)
+Ftfins = (( mission.structure.dMaxQ(2) + mission.structure.lMaxQ(2)) * (mission.structure.launcherLength - xcp) + mission.structure.massMaxQ * (mission.structure.gMaxQ(2) - mission.structure.aMaxQ(2)) * (mission.structure.launcherLength - xcg)) / (xcp_a)
+mom = ( mission.structure.dMaxQ(2) + mission.structure.lMaxQ(2)) * (xcg - xcp) - mission.structure.tMaxQ(2) * (mission.structure.launcherLength - xcg) - Ftfins * (mission.structure.launcherLength - xcp_a - xcg)
+
+%%
+momentFins = Ftfins * xcp_a
 CLnew = abs(Ftfins) / (mission.structure.dynamicPressure * mission.aerodynamics.bodyGeom.Aref)

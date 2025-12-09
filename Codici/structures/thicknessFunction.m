@@ -159,12 +159,13 @@ for i = 1 : partsNumber
     
         t(i, j) = max(tAxial, tShear);
     
-        bucklingEq = @(t_var) ((N(i) / (pi*(r(i)^2-(r(i)-t_var)^2)) + M(i) / (pi/4*(r(i)^4-(r(i)-t_var)^4)) * r(i))) - 0.6 * (1 - 0.901 * (1 - exp(-1 / 16 * sqrt(r(i)/t_var)))) * E(j) * t_var / r(i);
+        bucklingEq = @(t_var) ((abs(N(i)) / (pi*(r(i)^2-(r(i)-t_var)^2)) + abs(M(i)) / (pi/4*(r(i)^4-(r(i)-t_var)^4)) * r(i))) - 0.6 * (1 - 0.901 * (1 - exp(-1 / 16 * sqrt(r(i)/t_var)))) * E(j) * t_var / r(i);
             options = optimoptions('fsolve', 'Display', 'off', 'TolFun', 1e-6);
             tBuckling = fsolve(bucklingEq, t(i, j), options);
             
             t(i, j) = max(t(i, j), tBuckling);
         end
+        
 
         [tVec(i), idx(i)] = min(t(i, :));
 
