@@ -194,9 +194,20 @@ settings.nOptPointsTraj = 5 ;
 
 % ============================ Initial population internal GA ===============================
 
-settings.initialPopulationGATraj.twoStages = load("initialPopulation2StagesOld.mat") ;
+settings.initialPopulationGATraj.oneStage = load("InitialPop1stages.mat") ;
+settings.initialPopulationGATraj.oneStage = settings.initialPopulationGATraj.oneStage.X ;
+clear settings.initialPopulationGATraj.oneStage.X ;
+
+
+settings.initialPopulationGATraj.twoStages = load("InitialPop2stages.mat") ;
 settings.initialPopulationGATraj.twoStages = settings.initialPopulationGATraj.twoStages.X ;
 clear settings.initialPopulationGATraj.twoStages.X ;
+
+
+settings.initialPopulationGATraj.threeStages = load("InitialPop3stages.mat") ;
+settings.initialPopulationGATraj.threeStages = settings.initialPopulationGATraj.threeStages.X ;
+clear settings.initialPopulationGATraj.threeStages.X ;
+
 
 
 
@@ -251,9 +262,12 @@ settings.fminconTrajOptions = optimoptions("fmincon",...
 settings.globalGAOptions = optimoptions("ga", ...
                                 "Display","iter", ...
                                 "MaxGenerations",20, ...
-                                "PopulationSize",50,...
+                                "PopulationSize",10,...
+                                "EliteCount", 1,...
                                 "UseParallel",true,...
-                                "FunctionTolerance", 1e-4);
+                                "FunctionTolerance", 1e-4, ...
+                                "NonlinearConstraintAlgorithm", "penalty", ...
+                                "PlotFcn",{"gaplotbestf", "gaplotbestindiv"});
 
 
 settings.fsolveOptions = optimoptions('fsolve','Display','none');
@@ -262,7 +276,6 @@ settings.fsolveOptions = optimoptions('fsolve','Display','none');
 
 % ============================ Other optimization parameters ===============================
 
-settings.nOptPointsTraj = 5 ;
 settings.nEvalPointsTraj = 100 ;
 
 settings.intconGlobalGA = [1 2 3 4];
