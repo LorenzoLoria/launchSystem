@@ -32,8 +32,8 @@ else
     localGAsettings.InitialPopulationMatrix = settings.initialPopulationGATraj.threeStages' ;
 end
 
-localLowerBoundsGA = settings.lowerBoundsGA(:,:,1:launcher(1)) ; 
-localUpperBoundsGA = settings.upperBoundsGA(:,:,1:launcher(1)) ; 
+localLowerBoundsGA = settings.lowerBoundsGA(1:launcher(1)*2*settings.nOptPointsTraj) ; 
+localUpperBoundsGA = settings.upperBoundsGA(1:launcher(1)*2*settings.nOptPointsTraj) ; 
 
 [xGATraj, fvalGATraj] = ga( @(x) objFunGATraj( reshape(x,settings.nOptPointsTraj,2,launcher(1)),launcher,configuration, mission,settings), ...
                         launcher(1)*2*settings.nOptPointsTraj,...
