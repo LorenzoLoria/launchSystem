@@ -21,17 +21,23 @@ end
 
 if launcher(1) == 1
 
+    localGAsettings = settings.gaTrajOptions ;
+    localGAsettings.InitialPopulationMatrix = settings.initialPopulationGATraj.oneStage' ;
+
 elseif launcher(1) == 2
     localGAsettings = settings.gaTrajOptions ;
     localGAsettings.InitialPopulationMatrix = settings.initialPopulationGATraj.twoStages' ;
 else
-
+    localGAsettings = settings.gaTrajOptions ;
+    localGAsettings.InitialPopulationMatrix = settings.initialPopulationGATraj.threeStages' ;
 end
 
+localLowerBoundsGA = settings.lowerBoundsGA(1:launcher(1)*2*settings.nOptPointsTraj) ; 
+localUpperBoundsGA = settings.upperBoundsGA(1:launcher(1)*2*settings.nOptPointsTraj) ; 
 
 [xGATraj, fvalGATraj] = ga( @(x) objFunGATraj( reshape(x,settings.nOptPointsTraj,2,launcher(1)),launcher,configuration, mission,settings), ...
                         launcher(1)*2*settings.nOptPointsTraj,...
-                        [],[],[],[],settings.lowerBoundsGA,settings.upperBoundsGA, ...
+                        [],[],[],[],localLowerBoundsGA,localUpperBoundsGA, ...
                         @(x) nlconGATraj( reshape(x,settings.nOptPointsTraj,2,launcher(1)),launcher,configuration, mission,settings),localGAsettings);
 
 
@@ -52,11 +58,15 @@ end
 
 error = 101;
 xGATrajRS = reshape(xGATraj,settings.nOptPointsTraj,2,launcher(1));
+
+localLowerBoundsFMC = settings.lowerBoundsFMC(:,:,1:launcher(1)) ; 
+localUpperBoundsFMC = settings.upperBoundsFMC(:,:,1:launcher(1)) ; 
+
 while error > 100
 
     [~,fvalFMCTraj] = fmincon ( @(x)objFunFMCTraj(x,launcher,configuration,mission,settings),...
         xGATrajRS,[],[],[],[],...
-        settings.lowerBoundsFMC-eps,settings.upperBoundsFMC+eps,...
+        localLowerBoundsFMC-eps,localUpperBoundsFMC+eps,...
         @(x) nlconFMCTraj(x,launcher,configuration,mission,settings),...
         settings.fminconTrajOptions);
     error = 99;

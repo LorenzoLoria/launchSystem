@@ -1,6 +1,6 @@
 function [angleWrtVelMax,accMax] = findAccAngle(launcher,opt,mission,stateCollocation,timeCollocation,thrustDataVec,settings)
 
-tic
+
 option2D = settings.trajectoryOption2D ; 
 nDeval = settings.nEvalPointsTraj;
 nEl = settings.nOptPointsTraj;
@@ -44,5 +44,5 @@ RIRF = mission.target.Rfinal.';
     end
     angleWrtVelMax = acosd(min(cosangleWrtVelMaxStage));
     accMax = max(accMaxStage);
-toc
+
 end
