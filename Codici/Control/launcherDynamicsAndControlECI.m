@@ -1,0 +1,131 @@
+function dxdt = launcherDynamicsAndControlECI(t, x,thrustData, mission,stageNumber,opt)
+% LAUNCHERDYNAMICSOL  3D launcher equations of motion.
+%   This function computes the time derivative of the state vector for a 
+%   multistage rocket in a 3D Cartesian coordinate system.
+%
+%   x axis coincident with radius connecting earth center and initial
+%   position
+%   
+%   State Vector x (7x1):
+%     x(1) = pos_x   [m]   x position
+%     x(2) = pos_y   [m]   y position
+%     x(3) = vx      [m]   velocity wrt to x axis
+%     x(4) = vy      [m/s] velocity wrt to y axis
+%     x(5) = theta   [m/s] attitude angle wrt x-axis
+%     x(6) = omega   [m/s] angular velocity
+%     x(7) = m       [kg]  Instantaneous total mass
+%
+%   thrustData:
+%
+%     ThrustData(:,1) = Tx
+%     ThrustData(:,2) = Ty
+%     ThrustData(:,3) = Tz
+%
+%   mission.capsule:
+%     .Area   = Reference cross-sectional area [m^2]
+%     .Cd     = Drag coefficient [-] 
+%
+%   mission.environment:
+%     .altRange = Vector of altitudes [m]
+%     .rhoVal   = Vector of air densities [kg/m^3]
+%     .g0       = Standard gravity [m/s^2]
+%
+%   mission.prop:
+%     .Isp      = Specific Impulse [s]
+
+    % Unpack State Vector and Mission Data
+    r     = x(1:2) ;
+    v     = x(3:4) ;
+    theta = x(5) ;
+    omega = x(6) ;
+    m     = x(7);
+   
+    rMag = sqrt(r'*r);
+    vMag = sqrt(v'*v); 
+    
+    A   = mission.capsule.Area;
+    g0  = mission.environment.g0; 
+    GM  = mission.environment.GM;
+
+    % Interpolate air density based on current altitude
+    h   = rMag - mission.environment.rEarth;  
+    rho = mission.environment.rhoFun(h);
+    
+    dynamicPressure = 0.5 * rho * vMag^2;
+    [soundspeed] = mission.aerodynamics.soundspeedFun(h);
+    Mach = vMag/soundspeed;
+    
+    if Mach == 0
+        Cd = 0.01;
+    else
+       [Cl,Cd,~,~] = CLCDcomputation(Mach,0,dynamicPressure,1,mission,stageNumber,opt);
+    end
+
+    optVar = thrustData(t); 
+   
+    throttling  = optVar(1);
+    gammaGimbal = deg2rad(optVar(2));
+    nEngines = opt.stage{stageNumber}.nEngines ;
+    nominalThrust = opt.stage{stageNumber}.engine.thrust ;
+    
+    BRFtoIRF = [cos(theta) -sin(theta) ; sin(theta) cos(theta)] ;
+    IRFtoBRF = BRFtoIRF' ;
+
+
+    % alpha computation
+    vBRF = IRFtoBRF * v ;
+    alpha = atan2(vBRF(2), vBRF(1)) ;  
+  
+    % xCG = f(m) (xCG = 30)
+    xCG = computeXCG(mission, opt) ;
+    
+    % xCP = f(M,alpha) (xCP = 10)
+    xCP = computeXcp(mission, opt) ;
+ 
+    % inertiaCG = f(m) - I_xx = 1/12 * m * (3*r^2 + h^2) (inertiaCG = 27 * 1e6)
+    inertiaCG = (1/12) * m * (3*radius^2 + h_fuel_curr^2);
+
+    thrustBRF = throttling * nEngines * nominalThrust * [cos(gammaGimbal) ; sin(gammaGimbal)] ;
+
+    thrustIRF =  BRFtoIRF * thrustBRF;
+
+
+    % Drag contribution
+    dragIRF = - 0.5 .* rho .* vMag .* A .* Cd .* v; 
+
+    % Lift contribution
+    ClAlpha = 2*pi ; 
+    alpha0 = 0 ; % Momentaneamente finchè non abbiamo funzione di Lucrezia
+
+    liftIRF = 0.5 .* rho .* vMag .* A .* (ClAlpha .* (alpha-alpha0).* (rad2deg(alpha)<15) ).* cross([v;0] , [0; 0; 1]);
+    liftIRF = liftIRF(1:2) ;
+
+    % liftIRF = 0.5 .* rho .* norm(v) .* A .* Cd .* v;
+    
+    % Gravity contribution
+    gravityIRF = - GM * r / rMag^3 ;
+
+    % mass flow rate
+    mDot = - norm(thrustIRF) / (g0 * opt.stage{stageNumber}.engine.isp); 
+
+    % Equation of motion
+    dxdt = zeros(7,1);
+    
+    % Velocity derivatives (Position rates)
+
+    dxdt(1:2) = v;
+
+    % Acceleration derivatives (Velocity rates)
+    dxdt(3:4) = (thrustIRF + dragIRF + liftIRF ) / m + gravityIRF;  
+    
+    dxdt(5) = omega ;
+
+    dxdt(6) = -norm(liftIRF) * (xCP - xCG) * cos(alpha) - norm(dragIRF) *...
+    (xCP - xCG) * sin(alpha) - thrustBRF(2) * xCG ;
+    
+    dxdt(6) = dxdt(6) / inertiaCG ;
+    % dxdt(6) = 0;
+
+    dxdt(7) = mDot ;
+
+    end

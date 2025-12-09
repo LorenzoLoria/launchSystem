@@ -83,7 +83,7 @@ elseif N == 1
     
     momentSum = m1*X1 + mi1*X2;
     
-    Xcg = (momentSum + mco*Xco) / (m1 + mi1 + mco)
+    Xcg = (momentSum + mco*Xco) / (m1 + mi1 + mco) ;
 end
 
 
