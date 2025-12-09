@@ -10,14 +10,29 @@ addpath(genpath('..\..\'))
 
 [mission, opt] = dataStruct;
 
-X = load('..\Trajectory\Final Trajectory\InitialPop3stages.mat','X');
+X = load('..\Trajectory\Final Trajectory\InitialPop1stages.mat','X');
 X = X.X(:,end);
 thrustData(:,:,1) = [X(1:5),X(6:10)];
-thrustData(:,:,2) = [X(11:15),X(16:20)];
-thrustData(:,:,3) = [X(21:25),X(26:30)];
+%thrustData(:,:,2) = [X(11:15),X(16:20)];
+%thrustData(:,:,3) = [X(21:25),X(26:30)];
 
 [timeCollocation, stateCollocation] = totalTrajectory(mission,opt,thrustData,1);
+EarthPlot(mission.environment.rEarth)
+hold on
+plot3(stateCollocation(1,:,1),stateCollocation(2,:,1),stateCollocation(3,:,1),'r')
+plot3(stateCollocation(1,:,2),stateCollocation(2,:,2),stateCollocation(3,:,2),'g')
+% plot3(stateCollocation(1,:,3),stateCollocation(2,:,3),stateCollocation(3,:,3),'b')
+% plot3(stateCollocation(1,:,4),stateCollocation(2,:,4),stateCollocation(3,:,4),'g')
+plot3(mission.target.initialPointECI(1),mission.target.initialPointECI(2),mission.target.initialPointECI(3),'bo')
+targetFinalLat = mission.target.latInitial ; 
+targetFinalLon = mission.target.lonInitial + mission.target.omega * timeCollocation(end,end); 
+targetFinalPosECI = 6371000*[cos(targetFinalLat)*cos(targetFinalLon); cos(targetFinalLat)*sin(targetFinalLon); sin(targetFinalLat) ];
+plot3(targetFinalPosECI(1),targetFinalPosECI(2),targetFinalPosECI(3), 'ob')
+title("Trajectory")
+hold off
 
+
+%norm(stateCollocation(1:3,end,end) - mission.target.initialPointECI)
 %%
 mission.structure.alphaQmax = deg2rad(0);
 
@@ -186,9 +201,56 @@ xlim([0, x_all(end)])
 xline([0, cumsum(mission.structure.elementLength)], 'LineStyle','--')
 xline(xcg, 'k',  'LineWidth',1.5)
 %%
+Mach = mission.structure.machNumber;
+be  = mission.aerodynamics.finsGeom.be;
+Se  = mission.aerodynamics.finsGeom.Se;
+Sref = mission.aerodynamics.bodyGeom.Aref;
+cmac = mission.aerodynamics.finsGeom.cmac;
+delta_le = mission.aerodynamics.finsGeom.delta_le;
+lambda_le = mission.aerodynamics.finsGeom.lambda_le;
+b = mission.aerodynamics.finsGeom.b;
+tmac = mission.aerodynamics.finsGeom.tmac;
+Nfins = mission.aerodynamics.finsGeom.Nfins;
+q = mission.structure.dynamicPressure;
+alphaFin = deg2rad(10);
+A = be^2/Se;
+M_ale = Mach * cosd(lambda_le);
 
-Ftfins = (( mission.structure.dMaxQ(2) + mission.structure.lMaxQ(2)) * (mission.structure.launcherLength - xcp) + mission.structure.massMaxQ * (mission.structure.gMaxQ(2) - mission.structure.aMaxQ(2)) * (mission.structure.launcherLength - xcg)) / (xcp_a)
-mom = ( mission.structure.dMaxQ(2) + mission.structure.lMaxQ(2)) * (xcg - xcp) - mission.structure.tMaxQ(2) * (mission.structure.launcherLength - xcg) - Ftfins * (mission.structure.launcherLength - xcp_a - xcg)
+
+% --- Normal force coefficient
+if Mach > sqrt(1 + (8/(pi*A))^2)
+    CN_surf = ((4*abs(sin(alphaFin)*cos(alphaFin)) / sqrt(Mach^2 - 1)) + 2*sin(alphaFin)^2) * Se / Sref;
+else
+    CN_surf = ((pi*A/2*abs(sin(alphaFin)*cos(alphaFin)) + 2*sin(alphaFin)^2) * Se / Sref);
+end
+
+% --- CD0 surface friction
+CD0_surf_friction = 0.0133 * (Mach / (q*cmac))^0.2 * 2 * Se / Sref;
+
+% --- CD0 surface wave
+
+if M_ale < 1
+    CD0_surf_wave = 0;
+else
+    CD0_surf_wave = (1.429 / M_ale^2) * ((1.2*M_ale^2)^3.5 * (2.4/(2.8*M_ale^2 - 0.4))^2.5 - 1) * (sin(deg2rad(delta_le))^2 * cos(deg2rad(lambda_le)) * tmac * b) / Sref;
+end
+
+CN_fins_tot = Nfins * CN_surf;
+CD0_fins_tot = Nfins * (CD0_surf_friction + CD0_surf_wave);
+CA_fins_tot = CD0_fins_tot * cos(alphaFin)^2;
+% CL, CD Fins
+finsCL = CN_fins_tot * cos(alphaFin) - CA_fins_tot * sin(alphaFin);
+finsCD = CA_fins_tot * cos(alphaFin) + CN_fins_tot * sin(alphaFin);
+
+Lfin = mission.structure.dynamicPressure * mission.aerodynamics.bodyGeom.Aref * finsCL * 2;
+Dfin = mission.structure.dynamicPressure * mission.aerodynamics.bodyGeom.Aref * finsCL *2;
+
+LfinBody = [Lfin * sin(alphaFin) ; Lfin * cos(alphaFin)];
+DfinBody = [Dfin * cos(alphaFin) ; -Dfin * sin(alphaFin)];
+
+% thrust angle such that the torque is balanced
+delta = asind((-(LfinBody(2) + DfinBody(2)) * (mission.structure.launcherLength - xcp_a - xcg) + (mission.structure.dMaxQ(2) + mission.structure.lMaxQ(2)) * (xcg - xcp))/(norm(mission.structure.tMaxQ)*(mission.structure.launcherLength - xcg)))
+
 
 %%
 momentFins = Ftfins * xcp_a

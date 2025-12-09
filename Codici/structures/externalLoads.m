@@ -50,9 +50,9 @@ hMaxQ = absH(idx);
 
 soundSpeed = mission.aerodynamics.soundspeedFun(hMaxQ);
 
-machNumber = norm(vMaxQ) / soundSpeed;
+mission.structure.machNumber = norm(vMaxQ) / soundSpeed;
 
-[~,~,~,~, mainbodyCL, mainbodyCD, mission.structure.finsCL, mission.structure.finsCD] = CLCDcomputation(machNumber,alpha,maxq,1,mission);
+[~,~,~,~, mainbodyCL, mainbodyCD, mission.structure.finsCL, mission.structure.finsCD] = CLCDcomputation(mission.structure.machNumber,alpha,maxq,1,mission);
 
 dMaxQ = -rot2*maxq * mainbodyCD *mission.capsule.Area* [1;0;0];
 lMaxQ = -rot2*maxq * mainbodyCL *mission.capsule.Area * [0;-1;0];

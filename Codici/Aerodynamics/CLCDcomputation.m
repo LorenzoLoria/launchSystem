@@ -152,15 +152,15 @@ CNbody = CN_slender + CN_crossflow;
 %--------------------------------------------------------------------------
 %------------------------------FINS----------------------------------------
 %--------------------------------------------------------------------------
-
+alphaFin = deg2rad(10);
 A = be^2/Se;
 M_ale = Mach * cosd(lambda_le);
 
 % --- Normal force coefficient
 if Mach > sqrt(1 + (8/(pi*A))^2)
-    CN_surf = ((4*abs(sin(alpha)*cos(alpha)) / sqrt(Mach^2 - 1)) + 2*sin(alpha)^2) * Se / Sref;
+    CN_surf = ((4*abs(sin(alphaFin)*cos(alphaFin)) / sqrt(Mach^2 - 1)) + 2*sin(alphaFin)^2) * Se / Sref;
 else
-    CN_surf = ((pi*A/2*abs(sin(alpha)*cos(alpha)) + 2*sin(alpha)^2) * Se / Sref);
+    CN_surf = ((pi*A/2*abs(sin(alphaFin)*cos(alphaFin)) + 2*sin(alphaFin)^2) * Se / Sref);
 end
 
 % --- CD0 surface friction
@@ -174,27 +174,26 @@ else
     CD0_surf_wave = (1.429 / M_ale^2) * ((1.2*M_ale^2)^3.5 * (2.4/(2.8*M_ale^2 - 0.4))^2.5 - 1) * (sin(deg2rad(delta_le))^2 * cos(deg2rad(lambda_le)) * tmac * b) / Sref;
 end
 
-% CN_fins_tot = Nfins * CN_surf;
-% CD0_fins_tot = Nfins * (CD0_surf_friction + CD0_surf_wave);
-% CA_fins_tot = CD0_fins_tot * cos(alpha)^2;
-CN_fins_tot = 0;
-CA_fins_tot = 0;
+CN_fins_tot = Nfins * CN_surf;
+CD0_fins_tot = Nfins * (CD0_surf_friction + CD0_surf_wave);
+CA_fins_tot = CD0_fins_tot * cos(alphaFin)^2;
+
 
 % Somma totali
 CN = CNbody + CN_fins_tot;
 CA = CAbody + CA_fins_tot;
 
 % Calcola il coefficiente di lift (C_L)
-CL = CN * cos(alpha) - CA * sin(alpha);
+CL = CN * cos(alphaFin) - CA * sin(alphaFin);
 
 % Calcola il coefficiente di drag (C_D)
-CD = CA * cos(alpha) + CN * sin(alpha);
+CD = CA * cos(alphaFin) + CN * sin(alphaFin);
 
 % CL, CD Main Body
-mainbodyCL = CNbody * cos(alpha) - CAbody * sin(alpha);
-mainbodyCD = CAbody * cos(alpha) + CNbody * sin(alpha);
+mainbodyCL = CNbody * cos(alphaFin) - CAbody * sin(alphaFin);
+mainbodyCD = CAbody * cos(alphaFin) + CNbody * sin(alphaFin);
 
 % CL, CD Fins
-finsCL = CN_fins_tot * cos(alpha) - CA_fins_tot * sin(alpha);
-finsCD = CA_fins_tot * cos(alpha) + CN_fins_tot * sin(alpha);
+finsCL = CN_fins_tot * cos(alphaFin) - CA_fins_tot * sin(alphaFin);
+finsCD = CA_fins_tot * cos(alphaFin) + CN_fins_tot * sin(alphaFin);
 end
