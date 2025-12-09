@@ -128,14 +128,11 @@ function dxdt = launcherDynamicsAndControlECI(t, x,thrustData, mission, configur
     % mass flow rate
     mDot = - norm(thrustIRF) / (g0 *  iSp); 
     
-    % Guidance e Control: Simple PD guidance to get a desired acceleration vector
+    % Guidance: Simple PD guidance to get a desired acceleration vector
     aCommandECI = gains.Kp_pos * (guidancePoints(1:3) - r) + ...
                   gains.Kd_vel * (guidancePoints(4:6) - v) - g;
-    
-    % desired theta: i want the angle point towards the direction of the acceleration
-    thetaDesired = atan2(aCommandECI(2), aCommandECI(1));
-     
-    torqueCommand = gains.Kp_theta * (thetaDesired - theta) + gains.Kp_omega* (0 - omega) ;
+
+    thetaDesired = atan2(accel_cmd(2), accel_cmd(1));
 
     thrustGuidanceBR = IRFtoBRF * (m * aCommandECI) ;
 

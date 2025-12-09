@@ -1,4 +1,4 @@
-function [timeCollocation, stateCollocation] = totalTrajectory(mission,opt,thrustDataVec,option2D)
+function [timeCollocation, stateCollocation] = totalTrajectory(mission, opt ,thrustDataVec,option2D)
 
 persistent thrustDataVecPrev timeCollocationPrev stateCollocationPrev
 
@@ -61,7 +61,7 @@ for i = 1:nStages
 
     opt.m0Tot = m0;
     
-    [tt,xx] = launcherTrajectory(x0,mission,thrustData,tSpan,nDeval,i,opt,option2D);
+    [tt,xx] = launcherTrajectoryControl(x0,mission,thrustData,tSpan,nDeval,i,opt,option2D);
     
     stateCollocation(:,:,i) = xx;
     timeCollocation(:,i) = tt;
