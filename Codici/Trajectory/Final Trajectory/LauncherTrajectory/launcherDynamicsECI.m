@@ -35,20 +35,31 @@ function dsdt = launcherDynamicsECI(t, x,thrustData, mission,stageNumber,opt,opt
 
     % Unpack State Vector and Mission Data
     r     = x(1:3);
+    rMag   = sqrt(r'*r);
+    % Add mean Wind profile
+    h      = rMag-mission.environment.rEarth;
+    if h<=100e3
+        vxWind = mission.environment.windXFun(h/1000);
+        vyWind = mission.environment.windYFun(h/1000);
+    else
+        vxWind = 0;
+        vyWind = 0;
+    end
+
+    wind = mission.target.Rfinal'*[vxWind;vyWind;0];
+
     v     = x(4:6);
     m     = x(7);
     
-
-    vMag = sqrt(v'*v); 
+    vRel = v + wind;
+    vMag = sqrt(vRel'*vRel); 
     
     rMag = sqrt(r'*r);
     
     A   = mission.capsule.Area;
     g0  = mission.environment.g0; 
     GM  = mission.environment.GM;
-
-    % Interpolate air density based on current altitude
-    h   = rMag-mission.environment.rEarth;  
+ 
     %rho = mission.environment.rhoFun(h);
     rho = 1.29*exp(-h/8433);
 
@@ -89,7 +100,7 @@ ThrustIRF = mission.target.Rfinal'*ThrustBRF;
 
 
     % Drag contribution
-    D = - 0.5 .* rho .* vMag .* A .* Cd .* v; 
+    D = - 0.5 .* rho .* vMag .* A .* Cd .* vRel; 
 
     % Gravity contribution
     G = - GM * r /rMag^3;

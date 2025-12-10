@@ -80,38 +80,6 @@ mission.capsule.supersonicCD = 1.23;
 mission.capsule.subsonicCD = 0.45;
 mission.capsule.height = 2.9;
 
-% ============================ Environment ===============================
-
-mission.environment.rEarth = 6371e3;
-mission.environment.g0 = 9.81;
-mission.environment.GM = 398600.433e9;
-mission.environment.rhoFun = @(h) 1.29*exp(-h/8433);
-mission.environment.omega = 2*pi/86164.1 ;
-
-
-
-alt = linspace(0,500000,100);
-soundSpeedVec = load("soundspeed.mat");
-soundSpeedVec = linspace(soundSpeedVec.soundspeed(1),soundSpeedVec.soundspeed(end),100);
-
-mission.aerodynamics.soundspeedFun= griddedInterpolant( ...
-                                    alt, ...   % grid points
-                                    soundSpeedVec, ...        % values
-                                    'linear', ...                       % interpolation method
-                                    'linear');  
-
-
-[~,~,pressure] = atmosisa(alt);
-pressure = pressure.*(pressure>0.5);
-
-mission.environment.pressure=   griddedInterpolant( ...
-                                alt, ...   % grid points
-                                pressure, ...        % values
-                                'linear', ...                       % interpolation method
-                                'linear');  
-
-
-
 
 % ============================ Launch base and target ===============================
 
@@ -132,6 +100,41 @@ rot = [ex,ey,ez]';
 
 mission.target.Rfinal = rot ;
 
+% ============================ Environment ===============================
+
+mission.environment.rEarth = 6371e3;
+mission.environment.g0 = 9.81;
+mission.environment.GM = 398600.433e9;
+mission.environment.rhoFun = @(h) 1.29*exp(-h/8433);
+mission.environment.omega = 2*pi/86164.1 ;
+
+hVec = 0:100;
+meanWind = GRAM07_HWM07_annual(hVec);
+windAngVel = meanWind ./ (mission.environment.rEarth + hVec);
+vxWind = - windAngVel .* (mission.environment.rEarth + hVec) .* sin(mission.launchBase.lonInitial) ;
+vyWind = windAngVel .* (mission.environment.rEarth + hVec) .* cos(mission.launchBase.lonInitial) ;
+mission.environment.windXFun = griddedInterpolant(hVec,vxWind,'linear','linear');
+mission.environment.windYFun = griddedInterpolant(hVec,vyWind,'linear','linear');
+
+alt = linspace(0,500000,100);
+soundSpeedVec = load("soundspeed.mat");
+soundSpeedVec = linspace(soundSpeedVec.soundspeed(1),soundSpeedVec.soundspeed(end),100);
+
+mission.aerodynamics.soundspeedFun= griddedInterpolant( ...
+                                    alt, ...   % grid points
+                                    soundSpeedVec, ...        % values
+                                    'linear', ...                       % interpolation method
+                                    'linear');  
+
+
+[~,~,pressure] = atmosisa(alt);
+pressure = pressure.*(pressure>0.5);
+
+mission.environment.pressure=   griddedInterpolant( ...
+                                alt, ...   % grid points
+                                pressure, ...        % values
+                                'linear', ...                       % interpolation method
+                                'linear');  
 
 % ============================ Aerodynamics ===============================
 
@@ -245,7 +248,7 @@ settings.upperBoundsGlobalGA = [3,4,4,4,0.7,0.7,0.7];
 % ============================ Function options ===============================
 
 settings.gaTrajOptions = optimoptions("ga", ...
-                        "Display","none", ...
+                        "Display","iter", ...
                         "MaxGenerations",20, ...
                         "PopulationSize",50,...
                         "UseParallel",false,...
