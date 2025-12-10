@@ -21,21 +21,22 @@ end
 
 thrustData = reshape(xGATraj,settings.nOptPointsTraj,2,2);
 
+Nstage = launcher(1) ;
+
 % Upload state and time from Traj2D
 load('stateCollocation.mat') ;
 load('timeCollocation.mat') ;
 
 % Manca il reshape di guidancePoints
-
-% Manca Rotazione sul piano 2 degli stateCollocation
+guidanceTime = timeCollocation(:) ;
+guidancePoints = reshape(stateCollocation ,[], Nstage+1) ;
 
 % Initial Condition
 y0 = stateCollocation(:,1,1) ;
 
-% Upload mission data
+% Upload mission data 
 tSpan = [0 500];
 
-Nstage = launcher(1) ;
 
 %% GA for tuning gains
 
@@ -45,7 +46,7 @@ lowerBounds = 1 * ones(8,1) ;
 upperBounds = 1000 * ones(8,1) ;
 nVars = length(lowerBounds) ;
 
-gains0 = [50 0 10 1 0 60 100 1000]' ;
+gains0 = [50 0 10 1 0 60 100 10]' ;
 intCon = 1:8 ;
 
 options_ga = optimoptions("ga", ...
@@ -62,7 +63,7 @@ options_ga = optimoptions("ga", ...
 
 
 options = odeset('RelTol',1e-6,'AbsTol',1e-6);
-[t, sol] = ode113(@(t,x) launcherDynamicsAndControlECI(t, x,thrustData, mission, configuration, launcher, stageNumber, guidancePoints, gains), tSpan, y0,options);
+[t, sol] = ode113(@(t,x) launcherDynamicsAndControlECI(t, x,thrustData, mission, configuration, launcher, stageNumber, guidancePoints, guidanceTime, gains), tSpan, y0,options);
 
 
 

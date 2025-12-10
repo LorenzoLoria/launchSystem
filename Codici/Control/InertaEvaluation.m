@@ -14,7 +14,7 @@ inertia.interStage = 0 ;
 
 % launcher Data
 for ii = totalStageNumber : -1 : stageNumber
-   hStageIter = configuration.geometry.stage{ii}.lenght;
+   hStageIter = configuration.geometry.stage{ii}.length;
    rStageIter = configuration.geometry.stage{ii}.radius;
    mStageIter = configuration.stage{ii}.mStage ;
 
