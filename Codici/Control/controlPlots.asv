@@ -1,4 +1,4 @@
-function controlPlots(t, x, thrustData, mission, configuration, launcher, stageNumber, guidancePoints)
+function controlPlots(t, x_free, x_ctrl, thrustData, mission, configuration, launcher, stageNumber, guidancePoints)
 % =========================================================================
 %   Plots position, velocity, attitude errors + thrust magnitude & gimbal
 %   for FREE trajectory vs CONTROLLED trajectory.
@@ -25,26 +25,40 @@ GimbalLog     = zeros(N,1);
 for k = 1:N
 
     % -------- Extract free-flight states --------
-    r   = x(k,1:2).';
-    v   = x(k,3:4).';
-    th  = x(k,5);
-    om  = x(k,6);
-    m   = x(k,7);
+    r_f   = x_free(k,1:2).';
+    v_f   = x_free(k,3:4).';
+    th_f  = x_free(k,5);
+    om_f  = x_free(k,6);
+    m_f   = x_free(k,7);
 
+    % -------- Extract controlled states --------
+    r_c   = x_ctrl(k,1:2).';
+    v_c   = x_ctrl(k,3:4).';
+    th_c  = x_ctrl(k,5);
+    om_c  = x_ctrl(k,6);
+    m_c   = x_ctrl(k,7);
 
     % -------- Desired values from guidance --------
     r_des = guidancePoints(1:2);
-    v_des = guidancePoints(4:5);    
-    th_des = atan2(a_des(2), a_des(1));
+    v_des = guidancePoints(4:5);
+
+    % Desired attitude = pointing toward desired acceleration
+    a_des = guidancePoints(6:7);    % optional extension
+    th_des_free = 0;                % no control for free case
+    th_des_ctrl = atan2(a_des(2), a_des(1));
 
     % ==========================================================
     %   ERRORS
     % ==========================================================
 
-    err_pos(k,:) = (r_des - r).';
-    err_vel(k,:) = (v_des - v).';
-    attErr(k)  = angleDiff(th_des, th_);
+    err_pos_free(k,:) = (r_des - r_f).';
+    err_pos_ctrl(k,:) = (r_des - r_c).';
 
+    err_vel_free(k,:) = (v_des - v_f).';
+    err_vel_ctrl(k,:) = (v_des - v_c).';
+
+    attErr_free(k)  = angleDiff(th_des_free, th_f);
+    attErr_ctrl(k)  = angleDiff(th_des_ctrl, th_c);
 
     % ==========================================================
     %   THRUST + GIMBAL (ONLY CONTROLLED CASE)
@@ -77,10 +91,11 @@ end
 % =============================
 
 figure;
-plot(tspan, vecnorm(err_pos,2,2), 'r', 'LineWidth',1.5); hold on;
+plot(tspan, vecnorm(err_pos_free,2,2), 'r', 'LineWidth',1.5); hold on;
+plot(tspan, vecnorm(err_pos_ctrl,2,2), 'b', 'LineWidth',1.5);
 xlabel('Time [s]'); ylabel('|| position error || [m]');
 title('Position Error vs Time');
-grid on;
+legend('Without Control','With Control'); grid on;
 
 
 %% ===========================
@@ -88,10 +103,11 @@ grid on;
 % =============================
 
 figure;
-plot(tspan, vecnorm(err_vel,2,2), 'r', 'LineWidth',1.5); hold on;
+plot(tspan, vecnorm(err_vel_free,2,2), 'r', 'LineWidth',1.5); hold on;
+plot(tspan, vecnorm(err_vel_ctrl,2,2), 'b', 'LineWidth',1.5);
 xlabel('Time [s]'); ylabel('|| velocity error || [m/s]');
 title('Velocity Error vs Time');
-grid on;
+legend('Without Control','With Control'); grid on;
 
 
 %% ===========================
@@ -99,10 +115,11 @@ grid on;
 % =============================
 
 figure;
-plot(tspan, abs(attErr), 'r', 'LineWidth',1.5); hold on;
+plot(tspan, abs(attErr_free), 'r', 'LineWidth',1.5); hold on;
+plot(tspan, abs(attErr_ctrl), 'b', 'LineWidth',1.5);
 xlabel('Time [s]'); ylabel('| attitude error | [rad]');
-title('Attitude Error vs Time'); 
-grid on;
+title('Attitude Error vs Time');
+legend('Without Control','With Control'); grid on;
 
 
 %% ===========================
