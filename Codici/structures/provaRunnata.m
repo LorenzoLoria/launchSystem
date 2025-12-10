@@ -32,7 +32,7 @@ thrustData(:,:,2) = [thrustDataGA.xGATraj(11:15)',thrustDataGA.xGATraj(16:20)'];
 
 %%
 
-[mission] = externalLoads(timeCollocation,stateCollocation,mission,configuration,launcher,thrustData, 0);
+[mission] = externalLoads(timeCollocation,stateCollocation,mission,configuration,thrustData, launcher, mer, 0);
 %%
 if launcher(1) == 1
     nComponents = 8;
@@ -77,6 +77,10 @@ mission.structure.elementLength(end) = configuration.geometry.stage{1}.length/2 
 mission.structure.elementLength(end+1) = xcp_a;
 
 % ====================== CALCOLO AZIONI INTERNE ===========================
+
+qMax = 34 * 10^3 ;
+newAreaFins = abs(mission.structure.Ftfins / qMax / 4 / (1/360*2*pi) );
+
 [mission] = loadsFinder(mission, nComponents);
 
 N = mission.structure.N;

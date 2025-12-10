@@ -1,4 +1,4 @@
-function [mission] = externalLoads(timeCollocation,stateCollocation,mission,opt,thrustData,launcher,alpha)
+function [mission] = externalLoads(timeCollocation,stateCollocation,mission,configuration,thrustData,launcher,mer, alpha)
 
 vel = stateCollocation(4:6,:,1:end-1)-stateCollocation(4:6,1,1);
 vel = mission.target.Rfinal* vel(1:3,:);
@@ -54,9 +54,9 @@ soundSpeed = mission.aerodynamics.soundspeedFun(hMaxQ);
 
 machNumber = norm(vMaxQ) / soundSpeed;
 
-nStages = length(opt.stage);
-geoStages = opt.geometry.stage;
-optStage = opt.stage;
+nStages = length(configuration.stage);
+geoStages = configuration.geometry.stage;
+configurationStage = configuration.stage;
 
 stageRadius = geoStages{nStages}.radius;
 lCylinder = geoStages{nStages}.tanksLength; 
@@ -77,9 +77,9 @@ Anose = max(mission.capsule.Area , pi*stageRadius^2) ;
 stage1Radius = geoStages{1}.radius;
 boatTailRadius = geoStages{stageNumber}.radius ;
 dimensions = [stageRadius,lCylinder,dCylinder,lNose,Anose,stage1Radius,boatTailRadius,interstageLength];
-nEngines = optStage{stageNumber}.nEngines;
-aTotZero = optStage{stageNumber}.engine.effAreaZero;
-aTotVacum = optStage{stageNumber}.engine.effAreaVac;
+nEngines = configurationStage{stageNumber}.nEngines;
+aTotZero = configurationStage{stageNumber}.engine.effAreaZero;
+aTotVacum = configurationStage{stageNumber}.engine.effAreaVac;
 
 engineVec = [nEngines,aTotZero,aTotVacum];
 
@@ -95,22 +95,22 @@ lFinsMaxQ = -rot2*maxq * finsCL * mission.aerodynamics.finsGeom.Se * [cos(alphaF
 
 tMaxQ = (aMaxQ - gMaxQ)*massMaxQ - dMaxQ-lMaxQ - dFinsMaxQ - lFinsMaxQ;
 
-% Position computation
-mission.structure.hMaxQ = hMaxQ;
-mission.structure.vMaxQ = vMaxQ;
-mission.structure.massMaxQ = massMaxQ;
-xcp = computeXcp(mission, opt, launcher);
-xcp_a = mission.aerodynamics.rootChord - computeFinXcp(mission); % compute position starting from the launcher bottom
-xcg = computeXCG(mission, opt, launcher);
-
-% Deflection angle
-delta = asin((-(lFinsMaxQ(2) + dFinsMaxQ(2)) * (mission.structure.launcherLength - xcp_a - xcg) + (dMaxQ(2) + lMaxQ(2)) * (xcg - xcp))/(norm(tMaxQ)*(mission.structure.launcherLength - xcg)));
-
-% Rotation of thrust
-tMaxQ = sqrt(tMaxQ(1)^2 + tMaxQ(2)^2) * [cos(delta); sin(delta); 0];
-
-% Rotation of the acceleration 
-aMaxQ = gMaxQ + (dMaxQ+lMaxQ+dFinsMaxQ+lFinsMaxQ+tMaxQ) / massMaxQ;
+% % Position computation
+% mission.structure.hMaxQ = hMaxQ;
+% mission.structure.vMaxQ = vMaxQ;
+% mission.structure.massMaxQ = massMaxQ;
+% xcp = computeXcp(mission, configuration, launcher);
+% xcp_a = mission.aerodynamics.rootChord - computeFinXcp(mission); % compute position starting from the launcher bottom
+% xcg = computeXCG(mission, configuration, launcher, mer);
+% 
+% % Deflection angle
+% delta = asin((-(lFinsMaxQ(2) + dFinsMaxQ(2)) * (configuration.geometry.totalLength - xcp_a - xcg) + (dMaxQ(2) + lMaxQ(2)) * (xcg - xcp))/(norm(tMaxQ)*(configuration.geometry.totalLength - xcg)));
+% 
+% % Rotation of thrust
+% tMaxQ = sqrt(tMaxQ(1)^2 + tMaxQ(2)^2) * [cos(delta); sin(delta); 0];
+% 
+% % Rotation of the acceleration 
+% aMaxQ = gMaxQ + (dMaxQ+lMaxQ+dFinsMaxQ+lFinsMaxQ+tMaxQ) / massMaxQ;
 
 % ==================== STRUCTURE DA ESTRARRE ==============================
 
@@ -124,12 +124,12 @@ mission.structure.gMaxQ             = gMaxQ;
 mission.structure.hMaxQ             = hMaxQ;
 mission.structure.vMaxQ             = vMaxQ;
 
-m1Stage = opt.stage{1}.mStage + massMaxQ - opt.totalMass;
+m1Stage = configuration.stage{1}.mStage + massMaxQ - configuration.totalMass;
 
 mission.structure.massMaxQVec = [mission.capsule.weight];
 
 for ii = launcher(1):-1:1
-    mission.structure.massMaxQVec = [mission.structure.massMaxQVec, mission.structures{ii}.mInterstage, opt.stage{ii}.mStage];
+    mission.structure.massMaxQVec = [mission.structure.massMaxQVec, mer.stage{ii}.interStage, configuration.stage{ii}.mStage];
 end
 
 mission.structure.massMaxQVec(end) = m1Stage;
