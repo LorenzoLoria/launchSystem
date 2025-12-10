@@ -1,4 +1,4 @@
-function dxdt = launcherDynamicsAndControlECI(t, x,thrustData, mission, configuration, launcher, stageNumber, guidancePoints, gains)
+function dxdt = launcherDynamicsAndControlECI(t, x,thrustData, mission, configuration, mer, launcher, stageNumber, guidancePoints, gains)
 % LAUNCHERDYNAMICSOL  3D launcher equations of motion.
 %   This function computes the time derivative of the state vector for a 
 %   multistage rocket in a 3D Cartesian coordinate system.
@@ -47,7 +47,7 @@ function dxdt = launcherDynamicsAndControlECI(t, x,thrustData, mission, configur
         
     totalStageNumber = launcher(1) ;
 
-    inertia =  InertaEvaluation(mission, configuration, launcher, totalStageNumber );
+    inertia =  InertaEvaluation(mission, configuration, mer, launcher, totalStageNumber );
 
     vTarget = guidancePoints(3:4, end) ;
 
@@ -71,7 +71,7 @@ function dxdt = launcherDynamicsAndControlECI(t, x,thrustData, mission, configur
     if Mach == 0
         Cd = 0.01;
     else
-       [Cl,Cd,~,~] = CLCDcomputation(Mach,alpha,dynamicPressure,1,mission,stageNumber,opt);
+       [Cl,Cd,~,~] = CLCDcomputation(Mach,alpha,dynamicPressure,1,mission,stageNumber,configuration);
        % ClAlpha = 2*pi ; 
     end
 
@@ -83,7 +83,7 @@ function dxdt = launcherDynamicsAndControlECI(t, x,thrustData, mission, configur
    
     if stageNumber == 1 % Sea-Level Parameters
       
-        staticContribution = (101325-mission.environment.pressure(h))*opt.stage{stageNumber}.engine.effAreaZero;
+        staticContribution = (101325-mission.environment.pressure(h))*configuration.stage{stageNumber}.engine.effAreaZero;
         nominalThrust = configuration.stage{stageNumber}.engine.thrustZero ;
         iSp = configuration.stage{stageNumber}.engine.ispZero ;
     else % Vaccum Parameters

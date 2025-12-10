@@ -1,0 +1,94 @@
+function [inertia] = InertaEvaluation(mission, configuration, launcher, totalStageNumber )
+% INERTIAEVALUATION evaluate the inertia matrix of launcher + capsule
+
+inertia = zeros(3, 3);
+
+
+
+%% CAPSULE
+% Capsule data (assumption of conical shape) -- > from Sforza Book
+mCapsule = mission.capsule.weight ;
+rCapsule = mission.capsule.radius ;
+hCapsule = mission.capsule.height ;
+z_capsule = hCapsule/4; % COM of a cone is at h/4 from the base
+r_com_capsule = [0; 0; z_capsule]; 
+
+% Local inertia matrix for capsule (about its COM)
+Ixx_capsule = (3/80) * mCapsule * (4 * rCapsule^2 + hCapsule^2);
+Izz_capsule = (3/10) * mCapsule * rCapsule^2;
+I_local_capsule = [Ixx_capsule, 0, 0; ...
+                   0, Ixx_capsule, 0; ...
+                   0, 0, Izz_capsule];
+
+inertia = inertia + translate_inertia(I_local_capsule, mCapsule, r_com_capsule);
+
+
+%% STAGES AND INTERSTAGES
+% Stage number
+stageNumber = launcher(1) ;
+inertia.stage = 0 ;
+inertia.interStage = 0 ;
+
+% launcher Data
+for ii = totalStageNumber : -1 : stageNumber
+
+   %Stages 
+
+   hStageIter = configuration.geometry.stage{ii}.length;
+   rStageIter = configuration.geometry.stage{ii}.radius;
+   mStageIter = configuration.stage{ii}.mStage ;
+
+
+   % Local inertia matrix for stage (cylinder)
+    Ixx_stage = (1/12) * mStageIter * (3 * rStageIter^2 + hStageIter^2);
+    Izz_stage = (1/2) * mStageIter * rStageIter^2;
+    I_local_stage = [Ixx_stage, 0, 0; ...
+                     0, Ixx_stage, 0; ...
+                     0, 0, Izz_stage];
+
+    z_stage = hCapsule + hStageIter/2 ; % z-coordinate of the stage's COM
+    r_com_stage = [0; 0; z_stage];
+
+    inertia = inertia + translate_inertia(I_local_stage, mStageIter, r_com_stage);
+
+    %Interstages
+
+
+
+   hInterstageIter = configuration.geometry.stage{ii}.interstage.length ;
+   rInterstageIter = configuration.geometry.stage{ii-1}.radius;
+   mInterstageIter = mer.stage{ii}.interStage ;
+   inertia.stage(ii) = mStageIter * hStageIter^2 / 12 * (1 + 3 * (rStageIter / hStageIter)^2 ) ;
+   inertia.stage = inertia.stage + inertia.stage(ii) ;
+
+
+   Ixx_interstage = 3 * mInterstageIter * (rStageIter^5 - rInterstageIter^5) / 10 / (rStageIter^3 - rInterstageIter^3)...
+       - mInterstageIter * hInterstageIter^2 / 16 * ( (rStageIter^2 + 2 * ...
+        rStageIter * rInterstageIter + 3 * rInterstageIter^2) / (rStageIter^2 + 2 * rStageIter * rInterstageIter + rInterstageIter^2)); % Calculate Ixx for frustum
+    Izz_interstage = 3 * mInterstageIter * (rStageIter^5 - rInterstageIter^5) / 10 / (rStageIter^3 - rInterstageIter^3)...
+       - mInterstageIter * hInterstageIter^2 / 16 * ( (rStageIter^2 + 2 * ...
+        rStageIter * rInterstageIter + 3 * rInterstageIter^2) / (rStageIter^2 + 2 * rStageIter * rInterstageIter + rInterstageIter^2)); % Calculate Izz for frustum
+    
+    I_local_interstage = [Ixx_interstage, 0, 0; ...
+                          0, Ixx_interstage, 0; ...
+                          0, 0, Izz_interstage];
+
+    z_interstage = hCapsule + hStageIter/2; % Define the z-coordinate of the interstage's COM
+    r_com_interstage = [0; 0; z_interstage];
+
+    inertia = inertia + translate_inertia(I_local_interstage, mInterstageIter, r_com_interstage);
+
+   
+end
+
+
+end
+
+function I_global = translate_inertia(I_local, m, r_com)
+    x = r_com(1); y = r_com(2); z = r_com(3);
+    I_global = I_local + m * [ ...
+        y^2 + z^2, -x*y, -x*z; ...
+        -x*y, x^2 + z^2, -y*z; ...
+        -x*z, -y*z, x^2 + y^2 ...
+    ];
+end
