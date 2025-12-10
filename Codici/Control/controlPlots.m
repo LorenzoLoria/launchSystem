@@ -121,11 +121,5 @@ xlabel('Time [s]'); ylabel('Gimbal [deg]');
 title('Gimbal Angle'); grid on;
 
 
-% ======================================================================
-% Utility: shortest angular difference
-% ======================================================================
-function d = angleDiff(a, b)
-    d = atan2(sin(a-b), cos(a-b));
-end
 
 end
