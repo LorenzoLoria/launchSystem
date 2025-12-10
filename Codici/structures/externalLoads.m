@@ -95,22 +95,22 @@ lFinsMaxQ = -rot2*maxq * finsCL * mission.aerodynamics.finsGeom.Se * [cos(alphaF
 
 tMaxQ = (aMaxQ - gMaxQ)*massMaxQ - dMaxQ-lMaxQ - dFinsMaxQ - lFinsMaxQ;
 
-% % Position computation
-% mission.structure.hMaxQ = hMaxQ;
-% mission.structure.vMaxQ = vMaxQ;
-% mission.structure.massMaxQ = massMaxQ;
-% xcp = computeXcp(mission, configuration, launcher);
-% xcp_a = mission.aerodynamics.rootChord - computeFinXcp(mission); % compute position starting from the launcher bottom
-% xcg = computeXCG(mission, configuration, launcher, mer);
-% 
-% % Deflection angle
-% delta = asin((-(lFinsMaxQ(2) + dFinsMaxQ(2)) * (configuration.geometry.totalLength - xcp_a - xcg) + (dMaxQ(2) + lMaxQ(2)) * (xcg - xcp))/(norm(tMaxQ)*(configuration.geometry.totalLength - xcg)));
-% 
-% % Rotation of thrust
-% tMaxQ = sqrt(tMaxQ(1)^2 + tMaxQ(2)^2) * [cos(delta); sin(delta); 0];
-% 
-% % Rotation of the acceleration 
-% aMaxQ = gMaxQ + (dMaxQ+lMaxQ+dFinsMaxQ+lFinsMaxQ+tMaxQ) / massMaxQ;
+% Position computation
+mission.structure.hMaxQ = hMaxQ;
+mission.structure.vMaxQ = vMaxQ;
+mission.structure.massMaxQ = massMaxQ;
+xcp = computeXcp(mission, configuration, launcher);
+xcp_a = mission.aerodynamics.rootChord - computeFinXcp(mission); % compute position starting from the launcher bottom
+xcg = computeXCG(mission, configuration, launcher, mer);
+
+% Deflection angle
+delta = asin((-(lFinsMaxQ(2) + dFinsMaxQ(2)) * (configuration.geometry.totalLength - xcp_a - xcg) + (dMaxQ(2) + lMaxQ(2)) * (xcg - xcp))/(norm(tMaxQ)*(configuration.geometry.totalLength - xcg)));
+
+% Rotation of thrust
+tMaxQ = sqrt(tMaxQ(1)^2 + tMaxQ(2)^2) * [cos(delta); sin(delta); 0];
+
+% Rotation of the acceleration 
+aMaxQ = gMaxQ + (dMaxQ+lMaxQ+dFinsMaxQ+lFinsMaxQ+tMaxQ) / massMaxQ;
 
 % ==================== STRUCTURE DA ESTRARRE ==============================
 
@@ -123,6 +123,8 @@ mission.structure.massMaxQ          = massMaxQ;
 mission.structure.gMaxQ             = gMaxQ;
 mission.structure.hMaxQ             = hMaxQ;
 mission.structure.vMaxQ             = vMaxQ;
+mission.structure.liftFinsMaxQ      = lFinsMaxQ;
+mission.structure.dragFinsMaxQ      = dFinsMaxQ;
 
 m1Stage = configuration.stage{1}.mStage + massMaxQ - configuration.totalMass;
 

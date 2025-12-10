@@ -1,4 +1,4 @@
-function [mission] = loadsFinder(mission, nComponents)
+function [mission] = loadsFinder(mission, nComponents, loadNodes)
 
 % Builds matrix A required to solve the linear system Ax = b where:
 % A = matrix that encodes the equilibrium equations
@@ -47,7 +47,6 @@ dragFinsT = dragFins(2);
 
 % Number of nodes
 nNodes    = nComponents + 1;
-loadNodes = mission.structure.loadNodes; % indicates the nodes associated to loads
 
 % ===================== Creation of A Matrix ==============================
 A = zeros(3 * nNodes, 3 * nNodes);
@@ -107,7 +106,7 @@ for i = loadNodes(2:end-1)
 end
 
 b1(:,end-1) = [dragFinsN+liftFinsN; dragFinsT+liftFinsT; 0];
-
+% b1(:, end-1) = [dragFinsN+liftFinsN; mission.structure.Ftfins; 0];
 b1 = b1(:);
 
 % =========================== SOLUTION ====================================
