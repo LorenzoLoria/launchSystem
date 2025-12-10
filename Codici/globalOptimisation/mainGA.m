@@ -32,6 +32,10 @@ end
                         [],[],[],[],settings.lowerBoundsGA,settings.upperBoundsGA, ...
                         @(x) nlconGATraj( reshape(x,settings.nOptPointsTraj,2,launcher(1)),launcher,configuration, mission,settings),settings.gaTrajOptions);
 
+thrustData(:,:,1) = [xGATraj(1:5)',xGATraj(6:10)'];
+thrustData(:,:,2) = [xGATraj(11:15)',xGATraj(16:20)'];
+
+
 %% Plots
 
 thrustData = reshape(xGATraj,settings.nOptPointsTraj,2,2);

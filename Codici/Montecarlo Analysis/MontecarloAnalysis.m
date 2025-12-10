@@ -7,20 +7,81 @@ close all
 
 addpath(genpath("..\..\"))
 
-[mission,optimisation] = dataStruct;
+[mission,settings] = dataStructGlobal;
 
-thrustData = load('ThrustData.mat');
-thrustData = thrustData.X;
+launcher = [2,1,4,4,0.4056,0.4016,0.7];
 
-[timeCollocation, ~] = totalTrajectory(mission,optimisation,thrustData);
+for i = 1:launcher(1)
+    configuration.stage{i}.engine = mission.engines{launcher(1+i)};
+end
 
+[mer,staging,configuration] = initialMassEstimation(mission,configuration,settings,launcher);
+
+[xGATraj, fvalGATraj] = ga( @(x) objFunGATraj( reshape(x,settings.nOptPointsTraj,2,launcher(1)),launcher,configuration, mission,settings), ...
+                        launcher(1)*2*settings.nOptPointsTraj,...
+                        [],[],[],[],settings.lowerBoundsGA,settings.upperBoundsGA, ...
+                        @(x) nlconGATraj( reshape(x,settings.nOptPointsTraj,2,launcher(1)),launcher,configuration, mission,settings),settings.gaTrajOptions);
+
+thrustData(:,:,1) = [xGATraj(1:5)',xGATraj(6:10)'];
+thrustData(:,:,2) = [xGATraj(11:15)',xGATraj(16:20)'];
+
+
+[timeCollocation, stateCollocation] = totalTrajectoryGlobalGA(launcher,configuration,mission,settings,thrustData);
+figure
+EarthPlot(mission.environment.rEarth)
+hold on
+plot3(stateCollocation(1,:,1),stateCollocation(2,:,1),stateCollocation(3,:,1))
+plot3(stateCollocation(1,:,2),stateCollocation(2,:,2),stateCollocation(3,:,2))
+plot3(stateCollocation(1,:,3),stateCollocation(2,:,3),stateCollocation(3,:,3))
+plot3(mission.target.initialPointECI(1),mission.target.initialPointECI(2),mission.target.initialPointECI(3),'ro')
 % Definition of the uncertanties
 
-sizeMC = 10;
+sizeMC = 10000;
 NvarsUnc = 3;
-structuralMassUncertainty = 0.0005 * randn(sizeMC,1);
-propellantMassUncertainty = 0.0005 * randn(sizeMC,1);
-specificImpulseUncertainty = 0.00 * randn(sizeMC,1);
+hVec = 0:100;
+[meanWind, varWind] = GRAM07_HWM07_annual(hVec);
+
+windUncertainty = sqrt(varWind) .* randn(sizeMC,1);
+
+WindVelocityMag = 0 + windUncertainty;
+windAngVel = WindVelocityMag ./ (mission.environment.rEarth + hVec);
+
+latInitial = mission.launchBase.latInitial;
+lonInitial = mission.launchBase.lonInitial;
+
+montecarlo.vxWind = - windAngVel .* (mission.environment.rEarth + hVec) .* sin(lonInitial) ;
+montecarlo.vyWind = windAngVel .* (mission.environment.rEarth + hVec) .* cos(lonInitial) ;
+
+%
+distanceFromTarget = zeros(1,sizeMC);
+
+hold on
+parfor parforiter = 1:sizeMC
+    
+    windVelXFun = griddedInterpolant(hVec,montecarlo.vxWind(parforiter,:),'linear','linear');
+    windVelYFun = griddedInterpolant(hVec,montecarlo.vyWind(parforiter,:),'linear','linear');
+    
+    [timeCollocation, stateCollocation] = totalTrajectoryMontecarlo(launcher,configuration,mission,settings,windVelXFun,windVelYFun,thrustData,parforiter);
+    
+    distanceFromTarget(parforiter) = norm(stateCollocation(1:3,end,end)-mission.target.initialPointECI);
+   
+    
+end
+%
+k = 0;
+cumulativeMean = zeros(length(distanceFromTarget)/1,1);
+for j = 1:1:length(distanceFromTarget)
+    k = k+1;
+    cumulativeMean(k) = mean(distanceFromTarget(1:j));
+end
+
+figure
+plot(cumulativeMean)
+
+%%
+% structuralMassUncertainty = 0.0005 * randn(sizeMC,1);
+% propellantMassUncertainty = 0.0005 * randn(sizeMC,1);
+% specificImpulseUncertainty = 0.00 * randn(sizeMC,1);
 
 % assembly of all possible combination
 Matr = [];
