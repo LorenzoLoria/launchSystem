@@ -120,19 +120,6 @@ mStruct_ton = mission.structure.mStruct * 1e-3; % [ton]
 fprintf('Masses of the structures starting from the nose are:\n');
 fprintf('  %.3f tons\n', mStruct_ton);
 
-%%
-xcg = computeXCG(mission, opt);
-equatMoment = @(alphafins) mission.structure.tMaxQ(2) * (mission.structure.launcherLength - ...
-    xcg) + (mission.structure.dMaxQ(2)+mission.structure.lMaxQ(2)) * (xcg - ...
-    xcp_a) + (norm(mission.structure.liftFinsMaxQ) * cos(alphafins) - ...
-    norm(mission.structure.dragFinsMaxQ) * sin(alphafins)) * (xcp_a - xcg); 
-sol = fzero(equatMoment, mission.structure.alphaQmax)
-
-alphas = deg2rad(linspace(-180, 180, 400)); % in gradi per esempio
-plot(rad2deg(alphas), equatMoment(alphas)), grid on
-xlabel('\alpha_{fins} [deg]')
-ylabel('M(\alpha)')
-
 
 %% ============================== PLOTS ===================================
 

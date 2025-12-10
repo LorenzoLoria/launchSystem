@@ -10,7 +10,7 @@ function [mission] = loadsFinder(mission, nElements, loadNodes)
 % mission: struct containing the data needed
 % ======================== DATA CONVERSION ================================
 
-m       = mission.structure.massMaxQVec;   
+m  = mission.structure.massMaxQVec;   
 
 % Drag
 drag    = mission.structure.dMaxQ;
@@ -32,7 +32,7 @@ a       = mission.structure.aMaxQ;
 aN      = a(1); 
 aT      = a(2);    
 
-% Element of the elements
+% Length of the elements
 h       = mission.structure.elementLength;
 
 % Fins' Lift
@@ -91,29 +91,30 @@ for i = 1:nElements
     
     A(rM, cM_down) =  1;   % + M(i+1)
     A(rM, cM_up)   = -1;   % - M(i)
-    A(rM, cT_down) = h(i);   % T(i+1) * lunghezza
+    A(rM, cT_up) = h(i);   % T(i+1) * lunghezza
     
 end
 
 % ==================== CREATION OF LOAD VECTOR b ==========================
-b1 = zeros(3, nNodes);
-b1(:,2) = [dragN+liftN; dragT+liftT; 0];
+b = zeros(3, nNodes);
+b(:,2) = [dragN+liftN; dragT+liftT; 0];
 
 k = 1;
 for i = loadNodes(2:end-1)
-    b1(:,i) = m(k) * [gN-aN; gT-aT; 0];
+    b(:,i) = m(k) * [gN-aN; gT-aT; 0];
     k = k + 1;
 end
 
-b1(:,end-1) = [dragFinsN+liftFinsN; dragFinsT+liftFinsT; 0];
-% b1(:, end-1) = [dragFinsN+liftFinsN; mission.structure.Ftfins; 0];
-b1 = b1(:);
+b(:, [2 3]) = b(:, [3 2]); % inversione richiesta siccome il CG del payload è prima del CP del corpo
+
+b(:,end-1) = [dragFinsN+liftFinsN; dragFinsT+liftFinsT; 0];
+
+b = b(:);
 
 % =========================== SOLUTION ====================================
-loads = A \ b1;
+loads = A \ b;
 
 mission.structure.N = loads(1:3:end);
 mission.structure.T = loads(2:3:end);
 mission.structure.M = loads(3:3:end);
-
 end
