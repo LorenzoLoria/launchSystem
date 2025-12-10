@@ -35,14 +35,14 @@ thrustData(:,:,2) = [thrustDataGA.xGATraj(11:15)',thrustDataGA.xGATraj(16:20)'];
 [mission] = externalLoads(timeCollocation,stateCollocation,mission,configuration,thrustData, launcher, mer, 0);
 
 if launcher(1) == 1
-    nComponents = 8;
+    nElements = 8;
 elseif launcher(1) == 2
-    nComponents = 12;
+    nElements = 12;
 elseif launcher(1) == 3
-    nComponents = 16;
+    nElements = 16;
 end
 
-nNodes = nComponents + 1;
+nNodes = nElements + 1;
 
 % Nodes
 loadNodes = [2,3:2:nNodes-1,nNodes-1];
@@ -65,7 +65,7 @@ mission.structure.launcherLength = mission.structure.launcherLength(end);
 %mission.diameter = mission.structure.diameter;
 xcp = computeXcp(mission, configuration,launcher);
 xcp_a = mission.aerodynamics.rootChord - computeFinXcp(mission);
-xcg = computeXCG(mission, configuration, launcher, mer);
+% xcg = computeXCG(mission, configuration, launcher, mer);
 
 % Length of the element used for structural analysis
 mission.structure.elementLength = [mission.capsule.height/2, xcp - mission.capsule.height/2,mission.capsule.height - xcp];
@@ -84,7 +84,7 @@ mission.structure.elementLength(end+1) = xcp_a;
 % 
 % newAreaFins = abs(mission.structure.Ftfins / (mission.structure.dynamicPressure * clAlpha * alphaMax) );
 
-[mission] = loadsFinder(mission, nComponents, loadNodes);
+[mission] = loadsFinder(mission, nElements, loadNodes);
 
 N = mission.structure.N;
 T = mission.structure.T;
@@ -93,10 +93,22 @@ M = mission.structure.M;
 % ==================== SPESSORE E MASSA STRUTTURA =========================
 
 engineUsed = 1;
+
+% Creation of radius vector --> for now we are considering same radius for
+% interstage and stage
 mission.structure.radius = [mission.capsule.radius];
 
 for ii = launcher(1):-1:1
     mission.structure.radius = [mission.structure.radius configuration.geometry.stage{ii}.radius configuration.geometry.stage{ii}.radius];
+end
+
+% Pressure vector creation
+nComponents = length(mission.structure.componentLength);
+
+mission.structure.pressurization = zeros(nComponents, 1);
+
+for ii = 3:2:nComponents
+    mission.structure.pressurization(ii) = mission.structure.tankPressure;
 end
 
 mission    = thicknessFunction(mission, engineUsed);
@@ -137,7 +149,7 @@ x_coordinates = cumsum([0, mission.structure.elementLength]); % defines the coor
 % Required for interpolation
 M_end_values = [M(2:end); 0];
 
-for i = 1:nComponents
+for i = 1:nElements
     
     x_start = x_coordinates(i);
     x_end   = x_coordinates(i+1);

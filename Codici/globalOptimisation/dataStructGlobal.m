@@ -165,21 +165,26 @@ mission.aerodynamics.finsInfo.vsound = 340;
 % ============================ Materials and structures ===============================
 
 % Al2219 - cryogenic tanks and primary structures for 1st/2nd stage
-mission.materials.Al2219.rho      = 2840;
-mission.materials.Al2219.E        = 72e9;
-mission.materials.Al2219.yield    = 390e6;
-mission.materials.Al2219.ultimate = 480e6;
+% mission.materials.Al2219.rho      = 2840;
+% mission.materials.Al2219.E        = 72e9;
+% mission.materials.Al2219.yield    = 390e6;
+% mission.materials.Al2219.ultimate = 480e6;
 
 %----------------------------------------------------------------------
 % Al 7075-T6 - highly loaded fittings, secondary structures
 %----------------------------------------------------------------------
-mission.materials.Al7075.rho      = 2720;
-mission.materials.Al7075.E        = 75e9;
-mission.materials.Al7075.yield    = 500e6;
-mission.materials.Al7075.ultimate = 560e6;
+% mission.materials.Al7075.rho      = 2720;
+% mission.materials.Al7075.E        = 75e9;
+% mission.materials.Al7075.yield    = 500e6;
+% mission.materials.Al7075.ultimate = 560e6;
+
+mission.structure.rho = [2840, 2720, 2780, 2810];
+mission.structure.E   = [72e9, 75e9, 73e9, 72e9];
+mission.structure.ultimate = [480e6, 560e6, 483e6, 572e6];
+mission.structure.yield = [390e6, 500e6, 345e6, 503e6];
 
 
-mission.structure.tankPressure       = [0, 0, 0, 3.4e5, 3.4e5, 3.4e5, 3.4e5, 0];
+mission.structure.tankPressure       = 3.4e5;
 mission.structure.safetyFactor       = 1.5;
 
 

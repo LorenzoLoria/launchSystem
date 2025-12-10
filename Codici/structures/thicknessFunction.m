@@ -1,4 +1,4 @@
-function [mission] = thicknessFunction(mission, configuration, engineUsed)
+function [mission] = thicknessFunction(mission, engineUsed)
 
 % Function required to size the launcher thickess of all the different 
 % components of the LV. Evaluation must be done in the most
@@ -32,8 +32,8 @@ E              = mission.structure.E; % Young Modulus for chosen material [Pa]
 shearAllowable = ultimateStress / 2; % ultimate shear stress for chosen material [Pa]
 rhoMaterial    = mission.structure.rho; % density of the chosen material [kg/m^3] 
 
-rhoOX          = mission.launcher.engines{engineUsed}.oxDens; % density of the oxidizer [kg/m^3]
-rhoFu          = mission.launcher.engines{engineUsed}.fuelDens; % density of the fuel [kg/m^3]
+rhoOX          = mission.engines{engineUsed}.oxDens; % density of the oxidizer [kg/m^3]
+rhoFu          = mission.engines{engineUsed}.fuelDens; % density of the fuel [kg/m^3]
 
 p              = mission.structure.tankPressure; % pressure of component [Pa] [partsNumber x 1]
 N              = mission.structure.N; % Axial Load [N] (from loadFinder) (VECTOR)
