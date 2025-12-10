@@ -1,4 +1,4 @@
-function [timeCollocationControlled, stateCollocationControlled] = totalTrajectoryControl(mission,configuration,launcher,thrustDataVec, guidancePoints, guidanceTime)
+function [timeCollocationControlled, stateCollocationControlled] = totalTrajectoryControl(mission,mer,configuration,launcher,thrustDataVec, guidancePoints, guidanceTime, gains)
 
 nStages = launcher(1);
 m0Tot = configuration.totalMass;
@@ -33,11 +33,11 @@ for i = 1:nStages
     
     tVec = linspace(tSpan(1),tSpan(end),size(thrustDataVec,1));    
     fThrust = griddedInterpolant(tVec, thrustDataVec(:,:,i), 'linear', 'none'); 
-    thrustData= @(t) fThrust(t).';
+    thrustData = @(t) fThrust(t).';
 
     configuration.totalMass = m0;
     
-    [tt,xx] = launcherTrajectoryControl(x0,mission, configuration, launcher, thrustData,tSpan,nDeval,i, guidancePointsStage, guidanceTimeStage, gains);
+    [tt,xx] = launcherTrajectoryControl(x0,mission, mer, configuration, launcher, thrustData,tSpan,nDeval,i, guidancePointsStage, guidanceTimeStage, gains);
     
     stateCollocationControlled(:,:,i) = xx;
     timeCollocationControlled(:,i) = tt;

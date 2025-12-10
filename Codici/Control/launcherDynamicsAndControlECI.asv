@@ -1,4 +1,4 @@
-function dxdt = launcherDynamicsAndControlECI(t, x,thrustData, mission, configuration, launcher, stageNumber, guidancePoints)
+function dxdt = launcherDynamicsAndControlECI(t, x,thrustData, mission, mer, configuration, launcher, stageNumber, guidancePoints, guidanceTime, gains)
 % LAUNCHERDYNAMICSOL  3D launcher equations of motion.
 %   This function computes the time derivative of the state vector for a 
 %   multistage rocket in a 3D Cartesian coordinate system.
@@ -32,31 +32,39 @@ function dxdt = launcherDynamicsAndControlECI(t, x,thrustData, mission, configur
 %   guidancePoint: desire position from the optimal trajectory
 
     % Unpack State Vector and Mission Data
-   r     = x(1:2) ;
-   v     = x(3:4) ;
-   theta = x(5) ;
-   omega = x(6) ;
-   m     = x(7);
-   
-   rMag = sqrt(r'*r);
-   vMag = sqrt(v'*v); 
-    
-   A   = mission.capsule.Area;
-   g0  = mission.environment.g0; 
-   GM  = mission.environment.GM;
-    
-   totalStageNumber = launcher(1) ;
+      r     = x(1:3) ;
+      v     = x(4:6) ;
+      theta = x(7) ;
+      omega = x(8) ;
+      m     = x(9);
+       
+     rMag = sqrt(r'*r);
+     vMag = sqrt(v'*v); 
+        
+      A   = mission.capsule.Area;
+      g0  = mission.environment.g0; 
+      GM  = mission.environment.GM;
+        
+    totalStageNumber = launcher(1) ;
 
-   % Geometric parameters for the inertial matrix (Approx)
-   launcherRadius = configuration.stage{stageNumber}.radius ;
-   launcherHeight = mission.capsule.height ;
+    % Inertia Evaluation
+    inertia =  InertaEvaluation(mission, configuration, mer, launcher, totalStageNumber );
 
-    for ii = totalStageNumber : -1 : stageNumber
-         launcherHeight = launcherHeight + ...
-          configuration.geometry.stage{ii}.lenght + ...
-          configuration.geometry.stage{ii}.interstage.length ;
-    end
+    % Desired position (Interpolated in order to optain guidacePoint at the
+    % time step of integration
+    xDes = interp1(guidanceTime, guidancePoints(1,:),  t, 'pchip', 'extrap');
+    yDes = interp1(guidanceTime, guidancePoints(2,:),  t, 'pchip', 'extrap');
+    zDes = interp1(guidanceTime, guidancePoints(3,:),  t, 'pchip', 'extrap');
+
+    rDes = [xDes, yDes, zDes] ;
+
+    % Desired velocity (first derivative from your efficient spline)
+    vxDes = interp1(guidanceTime, guidancePoints(1,:), t, 'pchip', 'extrap');
+    vyDes = interp1(guidanceTime, guidancePoints(2,:), t, 'pchip', 'extrap');
+    vzDes = interp1(guidanceTime, guidancePoints(3,:), t, 'pchip', 'extrap');
     
+    vDes = [vxDes, vyDes, vzDes] ;
+
     % Interpolate air density based on current altitude
     h   = rMag - mission.environment.rEarth;  
     rho = mission.environment.rhoFun(h);
@@ -65,11 +73,21 @@ function dxdt = launcherDynamicsAndControlECI(t, x,thrustData, mission, configur
     [soundspeed] = mission.aerodynamics.soundspeedFun(h);
     Mach = vMag/soundspeed;
     
+    % BRFtoIRF = [cos(theta) -sin(theta) ; sin(theta) cos(theta)] ;
+    BRFtoIRF = mission.target.Rfinal ;
+    IRFtoBRF = BRFtoIRF' ;
+
+    % alpha computation
+    vBRF = IRFtoBRF * v ;
+    alpha = atan2(vBRF(2), vBRF(1)) ;  
+  
+    
     % Evaluation of the Aerodynamics coefficients
     if Mach == 0
         Cd = 0.01;
+        Cl = 0 ;
     else
-       [Cl,Cd,~,~] = CLCDcomputation(Mach,0,dynamicPressure,1,mission,stageNumber,opt);
+       [Cl,Cd,~,~] = CLCDcomputation(Mach,alpha,dynamicPressure,1,mission,stageNumber,configuration);
        % ClAlpha = 2*pi ; 
     end
 
@@ -81,7 +99,7 @@ function dxdt = launcherDynamicsAndControlECI(t, x,thrustData, mission, configur
    
     if stageNumber == 1 % Sea-Level Parameters
       
-        staticContribution = (101325-mission.environment.pressure(h))*opt.stage{stageNumber}.engine.effAreaZero;
+        staticContribution = (101325-mission.environment.pressure(h))*configuration.stage{stageNumber}.engine.effAreaZero;
         nominalThrust = configuration.stage{stageNumber}.engine.thrustZero ;
         iSp = configuration.stage{stageNumber}.engine.ispZero ;
     else % Vaccum Parameters
@@ -91,22 +109,14 @@ function dxdt = launcherDynamicsAndControlECI(t, x,thrustData, mission, configur
        iSp = configuration.stage{stageNumber}.engine.ispVacuum ;
     end
 
-
-    BRFtoIRF = [cos(theta) -sin(theta) ; sin(theta) cos(theta)] ;
-    IRFtoBRF = BRFtoIRF' ;
-
-    % alpha computation
-    vBRF = IRFtoBRF * v ;
-    alpha = atan2(vBRF(2), vBRF(1)) ;  
-  
     % xCG = f(m) (xCG = 30)
-    xCG = computeXCG(mission, configuration) ;
+    xCG = computeXCG(mission, configuration, launcher, mer) ;
     
     % xCP = f(M,alpha) (xCP = 10)
     xCP = computeXcp(mission, configuration) ;
  
     % inertiaCG = f(m) - I_xx = 1/12 * m * (3*r^2 + h^2) (inertiaCG = 27 * 1e6)
-    inertiaCG = (1/12) * m * (3*launcherRadius^2 + launcherHeight^2);
+    % inertiaCG = (1/12) * m * (3*launcherRadius^2 + launcherHeight^2);
 
     thrustBRF = throttling * nEngines * (nominalThrust + staticContribution)  * [cos(gammaGimbal) ; sin(gammaGimbal)] ;
     thrustIRF =  BRFtoIRF * thrustBRF;
@@ -114,13 +124,11 @@ function dxdt = launcherDynamicsAndControlECI(t, x,thrustData, mission, configur
     % Drag contribution
     dragIRF = - 0.5 .* rho .* vMag .* A .* Cd .* v; 
 
-    % Lift contribution
-    alpha0 = 0 ; % Momentaneamente finchè non abbiamo funzione di Lucrezia
+    % Lift contribution Reference
+    alpha0 = 0 ;
 
     liftIRF = 0.5 .* rho .* vMag .* A .* (Cl .* (alpha-alpha0).* (rad2deg(alpha)<15) ).* cross([v;0] , [0; 0; 1]);
     liftIRF = liftIRF(1:2) ;
-
-    % liftIRF = 0.5 .* rho .* norm(v) .* A .* Cd .* v;
     
     % Gravity contribution
     gravityIRF = - GM * r / rMag^3 ;
@@ -128,31 +136,49 @@ function dxdt = launcherDynamicsAndControlECI(t, x,thrustData, mission, configur
     % mass flow rate
     mDot = - norm(thrustIRF) / (g0 *  iSp); 
     
-    % Guidance: Simple PD guidance to get a desired acceleration vector
-    aCommandECI = gains.Kp_pos * (guidancePoints(1:3) - r) + ...
-                  gains.Kd_vel * (guidancePoints(4:6) - v) - g;
+    % Guidance e Control: Simple PD guidance to get a desired acceleration vector
+    aCommandECI = gains.Kp_pos * (rDes - r) + ...
+                  gains.Kd_vel * (vDes - v) - gravityIRF;
+    
+    % desired theta: the LV shall be point in order to release the capsule
+    % in the proper direction
+    thetaDesired = acos(mission.target.Rfinal(1,:), vDes/norm(vDes));
+  
+    torqueCommand = gains.Kp_theta * (thetaDesired - theta) + gains.Kp_omega* (0 - omega) ;
 
-    thetaDesired = atan2(accel_cmd(2), accel_cmd(1));
-
+    % For Guidance 
     thrustGuidanceBR = IRFtoBRF * (m * aCommandECI) ;
+    
+    % For Attitude
+    thrustCommandBR = - torqueCommand / xCG ; 
+
+    thrustBRF = [thrustGuidanceBR; thrustCommandBR];
+
+    % Saturate to available thrust
+    if norm(thrustBRF) > nominalThrust  && norm(thrustBRF) > 0
+        thrustBRF = thrustBRF / norm(thrustBRF) * nominalThrust ;
+    end
+    
+    % Need thrust in the Inertial Frames
+    thrustIRF = BRFtoIRF * thrustBRF ;
 
     % Equation of motion
-    dxdt = zeros(7,1);
+    dxdt = zeros(9,1);
     
-    % Velocity derivatives (Position rates)
-    dxdt(1:2) = v;
+    % Velocity derivatives
+    dxdt(1:3) = v;
 
-    % Acceleration derivatives (Velocity rates)
-    dxdt(3:4) = (thrustIRF + dragIRF + liftIRF ) / m + gravityIRF;  
+    % Acceleration derivatives
+    dxdt(4:6) = (thrustIRF + dragIRF + liftIRF ) / m + gravityIRF;  
     
-    dxdt(5) = omega ;
+    dxdt(7) = omega ;
 
-    dxdt(6) = -norm(liftIRF) * (xCP - xCG) * cos(alpha) - norm(dragIRF) *...
+    dxdt(8) = -norm(liftIRF) * (xCP - xCG) * cos(alpha) - norm(dragIRF) *...
     (xCP - xCG) * sin(alpha) - thrustBRF(2) * xCG ;
     
-    dxdt(6) = dxdt(6) / inertiaCG ;
-    % dxdt(6) = 0;
+    dxdt(8) = dxdt(8) / inertia ;
+    
+    % Mass Derivative
+    dxdt(9) = mDot ;
 
-    dxdt(7) = mDot ;
-
-    end
+end

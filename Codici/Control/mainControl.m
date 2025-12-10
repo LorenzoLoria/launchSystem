@@ -59,7 +59,7 @@ options_ga = optimoptions("ga", ...
     'EliteCount',  6);
 
 
-[gains] = ga(@(x) findGains(x,guidancePoints,y0,tSpan), nVars, [],[],[],[],lowerBounds,upperBounds, [] ,intCon, options_ga) ;
+[gains] = ga(@(x) findGains(x,guidancePoints,guidanceTime,y0,tSpan), nVars, [],[],[],[],lowerBounds,upperBounds, [] ,intCon, options_ga) ;
 
 
 options = odeset('RelTol',1e-6,'AbsTol',1e-6);
@@ -68,7 +68,7 @@ options = odeset('RelTol',1e-6,'AbsTol',1e-6);
 
 
 
-function [output] = findGains(x,guidancePoints,y0,tSpan)
+function [output] = findGains(x,guidancePoints,guidanceTime, y0,tSpan)
 
 gains = x ;
 
@@ -78,7 +78,7 @@ end
 
 
 options = odeset('RelTol',1e-6,'AbsTol',1e-6);
-[t, sol] = ode113(@(t,x) launcherDynamicsAndControlECI(t, x,thrustData, mission, configuration, launcher, stageNumber, guidancePoints, gains), tSpan, y0,options);
+[t, sol] = ode113(@(t,x) launcherDynamicsAndControlECI(t, x,thrustData, mission, configuration, launcher, stageNumber, guidancePoints, guidanceTime, gains), tSpan, y0,options);
 
 
 output = sum(sol(:, 1:2)' - guidancePoints(1:2,:)) + sum(sol(:, 3:4)' - guidancePoints(3:4, :)) ;

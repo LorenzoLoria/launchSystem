@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-function dxdt = launcherDynamicsAndControlECI(t, x,thrustData, mission, configuration, mer, launcher, stageNumber, guidancePoints, gains)
-=======
-function dxdt = launcherDynamicsAndControlECI(t, x,thrustData, mission, configuration, launcher, stageNumber, guidancePoints, guidanceTime, gains)
->>>>>>> 35cecd2ab0d173035b79906331940eabab1c4744
+function dxdt = launcherDynamicsAndControlECI(t, x,thrustData, mission, mer, configuration, launcher, stageNumber, guidancePoints, guidanceTime, gains)
 % LAUNCHERDYNAMICSOL  3D launcher equations of motion.
 %   This function computes the time derivative of the state vector for a 
 %   multistage rocket in a 3D Cartesian coordinate system.
@@ -51,12 +47,8 @@ function dxdt = launcherDynamicsAndControlECI(t, x,thrustData, mission, configur
         
     totalStageNumber = launcher(1) ;
 
-<<<<<<< HEAD
+    % Inertia Evaluation
     inertia =  InertaEvaluation(mission, configuration, mer, launcher, totalStageNumber );
-=======
-    % Inertia evaluation
-    inertia =  InertaEvaluation(mission, configuration, launcher, totalStageNumber );
->>>>>>> 35cecd2ab0d173035b79906331940eabab1c4744
 
     % Desired position (Interpolated in order to optain guidacePoint at the
     % time step of integration
@@ -69,7 +61,7 @@ function dxdt = launcherDynamicsAndControlECI(t, x,thrustData, mission, configur
     % Desired velocity (first derivative from your efficient spline)
     vxDes = interp1(guidanceTime, guidancePoints(1,:), t, 'pchip', 'extrap');
     vyDes = interp1(guidanceTime, guidancePoints(2,:), t, 'pchip', 'extrap');
-    vyDes = interp1(guidanceTime, guidancePoints(3,:), t, 'pchip', 'extrap');
+    vzDes = interp1(guidanceTime, guidancePoints(3,:), t, 'pchip', 'extrap');
     
     vDes = [vxDes, vyDes, vzDes] ;
 
@@ -80,8 +72,9 @@ function dxdt = launcherDynamicsAndControlECI(t, x,thrustData, mission, configur
     dynamicPressure = 0.5 * rho * vMag^2;
     [soundspeed] = mission.aerodynamics.soundspeedFun(h);
     Mach = vMag/soundspeed;
-
-    BRFtoIRF = [cos(theta) -sin(theta) ; sin(theta) cos(theta)] ;
+    
+    % BRFtoIRF = [cos(theta) -sin(theta) ; sin(theta) cos(theta)] ;
+    BRFtoIRF = mission.target.Rfinal ;
     IRFtoBRF = BRFtoIRF' ;
 
     % alpha computation
@@ -117,7 +110,7 @@ function dxdt = launcherDynamicsAndControlECI(t, x,thrustData, mission, configur
     end
 
     % xCG = f(m) (xCG = 30)
-    xCG = computeXCG(mission, configuration) ;
+    xCG = computeXCG(mission, configuration, launcher, mer) ;
     
     % xCP = f(M,alpha) (xCP = 10)
     xCP = computeXcp(mission, configuration) ;
