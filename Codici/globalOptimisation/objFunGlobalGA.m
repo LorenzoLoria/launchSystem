@@ -12,6 +12,9 @@ end
 totalMass = output.launcherMass ; 
 tof = output.tof ; 
 
+if isempty(output)
+    keyboard
+end
 
 objective = totalMass/200000 + tof/3600 ; 
 

@@ -52,9 +52,13 @@ lOverD = 5;
             thrustValue = opt.stage{i}.engine.thrustVacum;
         end
 
+        if i == 1
+            twLimit = 1.3;
+        else
+            twLimit = 0.75;
+        end
 
-
-        while twRatio < 1.3
+        while twRatio < twLimit
             mStack = mStack-mStage;
             nEngine = nEngine+1;
             mProp = nEngine * thrustValue/9.81 * launcher(4+i);

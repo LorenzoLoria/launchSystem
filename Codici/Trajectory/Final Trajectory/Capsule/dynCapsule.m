@@ -17,9 +17,13 @@ h =rMag-mission.environment.rEarth;
 %rho = mission.environment.rhoFun(h);
 rho = 1.29*exp(-h/8433);
 
-[soundspeed] = mission.aerodynamics.soundspeedFun(h);
+soundspeed = mission.aerodynamics.soundspeedFun(h);
 Mach = vMag/soundspeed;
-Cd = Cd_CrewDragon(Mach);
+%Cd = Cd_CrewDragon(Mach);
+
+%Evaluate Cd of crewDragon
+Cd = (0.68*Mach^2+0.424)*(Mach<= 0.722) + (1.73 * exp(-1.02 * (Mach + 0.25)) - 8.9 * exp(-1.95 * (Mach + 0.35)) + 1.23)*(Mach> 0.722);
+
 aeroForce = - 0.5 .* rho .* vMag .* v .* mission.capsule.Area .* Cd ;
 
 % Initialize right-hand-side

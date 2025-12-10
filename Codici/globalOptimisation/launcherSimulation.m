@@ -43,7 +43,9 @@ else
         [],[],[],[],localLowerBoundsGA,localUpperBoundsGA, ...
         @(x) nlconGATraj( reshape(x,settings.nOptPointsTraj,2,launcher(1)),launcher,configuration, mission,settings),localGAsettings);
 
-
+if isnan(fvalGATraj) || ~isreal(fvalGATraj) || isinf(fvalGATraj)
+    keyboard
+end
     if fvalGATraj > 6000
 
         if nlconFlag
