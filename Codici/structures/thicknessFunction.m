@@ -1,4 +1,4 @@
-function [mission] = thicknessFunction(mission, engineUsed)
+function [mission] = thicknessFunction(mission, configuration, engineUsed)
 
 % Function required to size the launcher thickess of all the different 
 % components of the LV. Evaluation must be done in the most
@@ -20,12 +20,12 @@ function [mission] = thicknessFunction(mission, engineUsed)
 
 % ============================== DATA =====================================
 
-r              = mission.structure.diameter / 2; % radius of cylindrical section of each body [m] (VECTOR)
+r              = mission.structure.radius; % radius of cylindrical section of each body [m] (VECTOR)
 h              = mission.structure.componentLength; % length of each body [m] (VECTOR)
 a              = mission.structure.aMaxQ;
 g0             = mission.environment.g0; 
 nx             = a(1) / g0 + 1; 
-SF             = mission.structure.SF; % safety factor
+SF             = mission.structure.safetyFactor; % safety factor
 
 ultimateStress = mission.structure.ultimate; % ultimate stress for chosen material [Pa]
 E              = mission.structure.E; % Young Modulus for chosen material [Pa]
@@ -70,8 +70,6 @@ T = [payloadT, interT, firstStageT];
 M = [payloadM, interM, firstStageM];
 
 partsNumber = length(N);
-
-r = r * ones(partsNumber, 1);
 
 t = zeros(partsNumber, 1);
 mStruct = zeros(partsNumber, 1);

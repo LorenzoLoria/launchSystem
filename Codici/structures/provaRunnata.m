@@ -90,10 +90,15 @@ N = mission.structure.N;
 T = mission.structure.T;
 M = mission.structure.M;
 
-%%
 % ==================== SPESSORE E MASSA STRUTTURA =========================
 
 engineUsed = 1;
+mission.structure.radius = [mission.capsule.radius];
+
+for ii = launcher(1):-1:1
+    mission.structure.radius = [mission.structure.radius configuration.geometry.stage{ii}.radius configuration.geometry.stage{ii}.radius];
+end
+
 mission    = thicknessFunction(mission, engineUsed);
 
 thick_mm = mission.structure.thickness * 1e3;   % [mm]
