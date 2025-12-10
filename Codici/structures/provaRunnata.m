@@ -12,6 +12,8 @@ addpath(genpath('..\..\'))
 
 mission.structure.alphaQmax = 0;
 
+% launcher = [nStages, nMotore1, nMotore2, nMotore3, %massa1, %massa2,
+% %massa3];
 launcher = [2,1,3,4,0.5605,0.5595,0.7];
 
 for i = 1:launcher(1)
@@ -67,13 +69,13 @@ xcp = computeXcp(mission, configuration,launcher);
 xcp_a = mission.aerodynamics.rootChord - computeFinXcp(mission);
 
 % Length of the element used for structural analysis
-mission.structure.elementLength = [xcp,mission.capsule.height/2-xcp,mission.capsule.height/2];
+mission.structure.elementLength = [mission.capsule.height/2, xcp - mission.capsule.height/2,mission.capsule.height - xcp];
 
 for ii = launcher(1):-1:1
-    mission.structure.elementLength = [ mission.structure.elementLength, mission.structures{ii}.lengthInterstage/2, mission.structures{ii}.lengthInterstage/2, opt.stage{ii}.length/2,opt.stage{ii}.length/2];
+    mission.structure.elementLength = [ mission.structure.elementLength, configuration.geometry.stage{ii}.interstage.length/2, configuration.geometry.stage{ii}.interstage.length/2, configuration.geometry.stage{ii}.length/2,configuration.geometry.stage{ii}.length/2];
 end
 
-mission.structure.elementLength(end) = opt.stage{1}.length / 2 - xcp_a;
+mission.structure.elementLength(end) = configuration.geometry.stage{1}.length/2 - xcp_a;
 mission.structure.elementLength(end+1) = xcp_a;
 
 % ====================== CALCOLO AZIONI INTERNE ===========================

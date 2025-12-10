@@ -18,7 +18,7 @@ be   = mission.aerodynamics.finsGeom.be;
 cmac = mission.aerodynamics.finsGeom.cmac;
 Se   = mission.aerodynamics.finsGeom.Se;
 soundSpeed = mission.aerodynamics.soundspeedFun(mission.structure.hMaxQ);
-launcherSpeed = norm(mission.structure.vMaxQ);
+launcherSpeed = mission.structure.vMaxQ' * mission.structure.vMaxQ;
 
 % ========================= SOLUTION ======================================
 
