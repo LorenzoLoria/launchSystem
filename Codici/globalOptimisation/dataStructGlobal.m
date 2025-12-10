@@ -116,9 +116,11 @@ vyWind = windAngVel .* (mission.environment.rEarth + hVec) .* cos(mission.launch
 mission.environment.windXFun = griddedInterpolant(hVec,vxWind,'linear','linear');
 mission.environment.windYFun = griddedInterpolant(hVec,vyWind,'linear','linear');
 
-alt = linspace(0,500000,100);
 soundSpeedVec = load("soundspeed.mat");
-soundSpeedVec = linspace(soundSpeedVec.soundspeed(1),soundSpeedVec.soundspeed(end),100);
+
+soundSpeedVec = soundSpeedVec.soundspeed(1:70:end);
+alt = linspace(0,500000,length(soundSpeedVec));
+
 
 mission.aerodynamics.soundspeedFun= griddedInterpolant( ...
                                     alt, ...   % grid points
