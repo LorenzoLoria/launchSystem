@@ -1,4 +1,4 @@
-function [timeCollocation, stateCollocation] = totalTrajectoryControlled(launcher,opt,mission,settings,windVelXFun,windVelYFun,stateCollocationRef,timeCollocationRef)
+function [timeCollocation, stateCollocation] = totalTrajectoryControlled(launcher,opt,mission,settings,windVelXFun,windVelYFun,stateCollocationRef,timeCollocationRef,maxThrust,maxGimball,thrustData)
 
  
 
@@ -40,27 +40,22 @@ for i = 1:nStages
         m0 = totalMass;
         x0 = [mission.launchBase.initialPointECI'; vxInitial; vyInitial; 0;  m0];
         t0 = 0;
-        tf = opt.stage{i}.mProp * (length(thrustDataVec(:,1,i))-1)* opt.stage{i}.engine.ispZero * mission.environment.g0 * 2 ;
-        thrustValue = opt.stage{i}.engine.thrustZero;
+        tf = timeCollocationRef(end,i);
     else
         m0 = m0-opt.stage{i-1}.mStage;
         x0 = [stateCollocation(1:3,end,i-1); stateCollocation(4:6,end,i-1); m0];
         t0 = timeCollocation(end,i-1);
-        tf = opt.stage{i}.mProp * (length(thrustDataVec(:,1,i))-1)* opt.stage{i}.engine.ispVac * mission.environment.g0 * 2 ;
-        thrustValue = opt.stage{i}.engine.thrustVacum;
+        tf = timeCollocationRef(end,i);
     end
 
-
-    tf = tf / (opt.stage{i}.nEngines * thrustValue) / (2*sum(thrustDataVec(:,1,i)) - thrustDataVec(1,1,i) - thrustDataVec(end,1,i)) ;
     tSpan = [t0 t0+tf]; %da rivedere nel caso i tempi non vadano bene
 
-    tVec = linspace(tSpan(1),tSpan(end),size(thrustDataVec,1));
-    fThrust = griddedInterpolant(tVec, thrustDataVec(:,:,i), 'linear', 'none');
-    thrustData= @(t) fThrust(t).';
-
     opt.totalMass = m0;
-
-    [tt,xx] = launcherTrajectoryControlled(x0,mission,tSpan,nDeval,i,opt,1,windVelXFun,windVelYFun,stateCollocationRef,timeCollocationRef);
+    stateCollocationRefIdx = stateCollocationRef(:,:,i);
+    timeCollocationRefIdx = timeCollocationRef(:,i);
+    tvec = linspace(timeCollocationRefIdx(1),timeCollocationRefIdx(end),size(thrustData,1));
+    thrustDataFun = griddedInterpolant(tvec,thrustData,"linear","none");
+    [tt,xx] = launcherTrajectoryControlled(x0,mission,tSpan,nDeval,i,opt,1,windVelXFun,windVelYFun,stateCollocationRefIdx,timeCollocationRefIdx,maxThrust,maxGimball,thrustDataFun);
 
     stateCollocation(:,:,i) = xx;
     timeCollocation(:,i) = tt;
