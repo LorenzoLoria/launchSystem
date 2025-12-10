@@ -1,4 +1,3 @@
-
 function dsdt = launcherDynamicsECI(t, x,thrustData, mission,stageNumber,opt,option2D)
 
 % LAUNCHERDYNAMICS  3D launcher equations of motion.

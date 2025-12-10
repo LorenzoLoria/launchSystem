@@ -1,4 +1,4 @@
-function [inertia] = InertaEvaluation(mission, configuration, mer, launcher, totalStageNumber)
+function [inertia] = InertiaEvaluation(mission, configuration, mer, launcher, totalStageNumber)
 % INERTIAEVALUATION evaluate the inertia matrix of launcher + capsule
 
 inertia = zeros(3, 3);
@@ -71,7 +71,10 @@ end
 
 
 function I_global = translate_inertia(I_local, m, r_com)
-    x = r_com(1); y = r_com(2); z = r_com(3);
+    x = r_com(1);
+    y = r_com(2); 
+    z = r_com(3);
+    
     I_global = I_local + m * [ ...
         y^2 + z^2, -x*y, -x*z; ...
         -x*y, x^2 + z^2, -y*z; ...

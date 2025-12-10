@@ -35,12 +35,12 @@ guidanceTime = timeCollocation;
 
 % lowerBounds = [10 1 10 10 10 10 100 100]'; 
 % upperBounds = [1000 1 1000 1000 1000 1000 1000 1000]'; 
-lowerBounds = 1 * ones(8,1) ; 
-upperBounds = 1000 * ones(8,1) ;
+lowerBounds = 1 * ones(12,1) ; 
+upperBounds = 1000 * ones(12,1) ;
 nVars = length(lowerBounds) ;
 
-gains0 = [50 0 10 1 0 60 100 10]' ;
-intCon = 1:8 ;
+gains0 = [50 0 10 1 0 60 100 10 4 2 8]' ;
+intCon = 1:12 ;
 
 options_ga = optimoptions("ga", ...
     "Display","iter", ...

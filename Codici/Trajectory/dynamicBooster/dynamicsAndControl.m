@@ -67,6 +67,7 @@ kAcc = 0 ;
 if posIR(3)<2
     kAcc = 5 ;
 end
+
 aCommand = kPos .* (targetPos - posIR) + kVel .* (targetVel - velIR) - g ;
 
 
@@ -95,21 +96,19 @@ Rdes = [xDes yDes zDes] ;
 qDes = dcm2quat_shepperd(Rdes)' ;
 
 qDesMat =   [qDes(1) -qDes(2) -qDes(3) -qDes(4);...
-             qDes(2) qDes(1) -qDes(4) qDes(3);...
-             qDes(3) qDes(4) qDes(1) -qDes(2);...
-             qDes(4) -qDes(3) qDes(2) qDes(1)];
+             qDes(2) qDes(1) -qDes(4)  qDes(3);...
+             qDes(3) qDes(4) qDes(1)  -qDes(2);...
+             qDes(4) -qDes(3) qDes(2)  qDes(1)];
 
-
-%Attitude control law
-qCurrConj = [qCurr(1) ; - qCurr(2:4)];
+% Attitude control law
+qCurrConj = [q(1) ; - q(2:4)];
 qErrIR = qDesMat * qCurrConj ;
 
-if qErrIR(1) < 0    %short path rotation
+if qErrIR(1) < 0    % short path rotation
 qErrIR = -qErrIR;
 end
 
-
-qErrBR = [qErrIR(1) ; Rib * qErrIR(2:4)] ;
+qErrBR = [qErrIR(1) ; IRFtoBRF * qErrIR(2:4)] ;
 
 torqueCommand = KpAtt * qErrBR(2:4) - KdAtt * omegaBR ; 
 
