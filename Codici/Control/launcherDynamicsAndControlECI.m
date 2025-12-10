@@ -59,9 +59,9 @@ function dxdt = launcherDynamicsAndControlECI(t, x,thrustData, mission, mer, con
     rDes = [xDes, yDes, zDes] ;
 
     % Desired velocity (first derivative from your efficient spline)
-    vxDes = interp1(guidanceTime, guidancePoints(1,:), t, 'pchip', 'extrap');
-    vyDes = interp1(guidanceTime, guidancePoints(2,:), t, 'pchip', 'extrap');
-    vzDes = interp1(guidanceTime, guidancePoints(3,:), t, 'pchip', 'extrap');
+    vxDes = interp1(guidanceTime, guidancePoints(4,:), t, 'pchip', 'extrap');
+    vyDes = interp1(guidanceTime, guidancePoints(5,:), t, 'pchip', 'extrap');
+    vzDes = interp1(guidanceTime, guidancePoints(6,:), t, 'pchip', 'extrap');
     
     vDes = [vxDes, vyDes, vzDes] ;
 

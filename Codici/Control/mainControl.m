@@ -61,6 +61,11 @@ options = odeset('RelTol',1e-6,'AbsTol',1e-6);
 
 
 
+
+
+
+
+
 function [objective] = findGains(x,mission, mer, configuration, settings,launcher, guidancePoints,guidanceTime, thrustDataVec)
 
 gains = x ;

@@ -15,6 +15,9 @@ r_com_capsule = [0; 0; z_capsule];
 % Local inertia matrix for capsule (about its COM)
 Ixx_capsule = (3/80) * mCapsule * (4 * rCapsule^2 + hCapsule^2);
 Izz_capsule = (3/10) * mCapsule * rCapsule^2;
+I_local_capsule = diag([Ixx_capsule, Ixx_capsule, Izz_capsule ]) ;
+
+inertia = inertia + translate_inertia(I_local_capsule, mCapsule, r_com_capsule) ;
 
 %% STAGES AND INTERSTAGES
 stageNumber = launcher(1);
@@ -64,6 +67,8 @@ for ii = totalStageNumber:-1:stageNumber
 end
 
 end
+
+
 
 function I_global = translate_inertia(I_local, m, r_com)
     x = r_com(1); y = r_com(2); z = r_com(3);
