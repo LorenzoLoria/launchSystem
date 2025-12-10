@@ -71,7 +71,7 @@ aCommand = kPos .* (targetPos - posIR) + kVel .* (targetVel - velIR) - g ;
 
 
 
-%Desired attitude retrieval
+% Desired attitude retrieval
 if posIR(3) > terminalHeight
     zDes = aCommand / norm(aCommand) ;
 else
