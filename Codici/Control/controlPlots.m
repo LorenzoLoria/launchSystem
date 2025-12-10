@@ -1,12 +1,15 @@
-function controlPlots(thrustData, configuration, mer, stageNumber, timeCollocation, stateCollocation, y0)
+function controlPlots(thrustData, configuration, mer, stageNumber, y0)
 % =========================================================================
 %   Plots position, velocity, attitude errors + thrust magnitude & gimbal
 %   for FREE trajectory vs CONTROLLED trajectory.
 % =========================================================================
-tspan = timeCollocation(:,1);
-guidancePoints = stateCollocation(1:6, 1);
+
+
 launcher = [2,1,4,4,0.4056,0.4016,0.7];
 [mission,settings] = dataStructGlobal;
+
+x0 = [y0(1:6); 0; 0; y0(7)];
+tspan = [0 500];
 
 % Gains for PD guidance
 gains.Kp_pos = 0.01;
@@ -17,7 +20,7 @@ gains.Kp_omega = 0.05;
 % Integration of Dynamics
 options = odeset('RelTol',1e-6,'AbsTol',1e-6);
 [t, x] = ode113(@(t,x) launcherDynamicsAndControlECI(t, x, thrustData, mission, configuration, mer, launcher, stageNumber, guidancePoints, gains), ...
-                tspan, y0, options);
+                tspan, x0, options);
 
 N = length(t);
 
