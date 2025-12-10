@@ -169,10 +169,11 @@ CNbody = CN_slender + CN_crossflow;
 
 A = be^2/Se;
 M_ale = Mach * cosd(lambdaLE);
+alphafins = 10 * 180 / pi;
 
 % --- Normal force coefficient
 mRef = sqrt(1 + (8/(pi*A))^2);
-CN_surf =( ((4*abs(sin(alpha)*cos(alpha)) / sqrt(Mach^2 - 1)) + 2*sin(alpha)^2) * Se / Sref)*(Mach > mRef) + (((pi*A/2*abs(sin(alpha)*cos(alpha)) + 2*sin(alpha)^2) * Se / Sref))*(Mach <= mRef);
+CN_surf =( ((4*abs(sin(alphafins)*cos(alphafins)) / sqrt(Mach^2 - 1)) + 2*sin(alphafins)^2) * Se / Sref)*(Mach > mRef) + (((pi*A/2*abs(sin(alphafins)*cos(alphafins)) + 2*sin(alphafins)^2) * Se / Sref))*(Mach <= mRef);
 
 
 % --- CD0 surface friction
@@ -185,7 +186,7 @@ CD0_surf_wave = 0 + ((1.429 / M_ale^2) * ((1.2*M_ale^2)^3.5 * (2.4/(2.8*M_ale^2 
 
 CN_fins_tot = Nfins * CN_surf;
 CD0_fins_tot = Nfins * (CD0_surf_friction + CD0_surf_wave);
-CA_fins_tot = CD0_fins_tot * cos(alpha)^2;
+CA_fins_tot = CD0_fins_tot * cos(alphafins)^2;
 
 % Somma totali
 CN = CNbody + CN_fins_tot;
@@ -202,6 +203,6 @@ mainbodyCL = CNbody * cos(alpha) - CAbody * sin(alpha);
 mainbodyCD = CAbody * cos(alpha) + CNbody * sin(alpha);
 
 % CL, CD Fins
-finsCL = CN_fins_tot * cos(alpha) - CA_fins_tot * sin(alpha);
-finsCD = CA_fins_tot * cos(alpha) + CN_fins_tot * sin(alpha);
+finsCL = CN_fins_tot * cos(alphafins) - CA_fins_tot * sin(alphafins);
+finsCD = CA_fins_tot * cos(alphafins) + CN_fins_tot * sin(alphafins);
 end

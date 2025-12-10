@@ -78,11 +78,11 @@ mission.structure.elementLength(end) = configuration.geometry.stage{1}.length/2 
 mission.structure.elementLength(end+1) = xcp_a;
 
 % ====================== CALCOLO AZIONI INTERNE ===========================
-mission.structure.Ftfins = (- mission.structure.tMaxQ(2) * (mission.structure.launcherLength - xcg) + ( mission.structure.dMaxQ(2) + mission.structure.lMaxQ(2)) * (xcg - xcp)) / (mission.structure.launcherLength - xcp_a - xcg);
-clAlpha = 4;
-alphaMax = 1/360*2*pi;
-
-newAreaFins = abs(mission.structure.Ftfins / (mission.structure.dynamicPressure * clAlpha * alphaMax) );
+% mission.structure.Ftfins = (- mission.structure.tMaxQ(2) * (mission.structure.launcherLength - xcg) + ( mission.structure.dMaxQ(2) + mission.structure.lMaxQ(2)) * (xcg - xcp)) / (mission.structure.launcherLength - xcp_a - xcg);
+% clAlpha = 4;
+% alphaMax = 1/360*2*pi;
+% 
+% newAreaFins = abs(mission.structure.Ftfins / (mission.structure.dynamicPressure * clAlpha * alphaMax) );
 
 [mission] = loadsFinder(mission, nComponents, loadNodes);
 
