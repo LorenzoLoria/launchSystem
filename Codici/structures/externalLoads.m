@@ -73,12 +73,12 @@ xcg = computeXCG(mission, opt);
 
 % Deflection angle
 delta = asin((-(lFinsMaxQ(2) + dFinsMaxQ(2)) * (mission.structure.launcherLength - xcp_a - xcg) + (dMaxQ(2) + lMaxQ(2)) * (xcg - xcp))/(norm(tMaxQ)*(mission.structure.launcherLength - xcg)));
-
-% Rotation of thrust
-tMaxQ = sqrt(tMaxQ(1)^2 + tMaxQ(2)^2) * [cos(delta); sin(delta); 0];
-
-% Rotation of the acceleration 
-aMaxQ = gMaxQ + (dMaxQ+lMaxQ+dFinsMaxQ+lFinsMaxQ+tMaxQ) / massMaxQ;
+% delta = 0;
+% % Rotation of thrust
+% tMaxQ = sqrt(tMaxQ(1)^2 + tMaxQ(2)^2) * [cos(delta); sin(delta); 0];
+% 
+% % Rotation of the acceleration 
+% aMaxQ = gMaxQ + (dMaxQ+lMaxQ+dFinsMaxQ+lFinsMaxQ+tMaxQ) / massMaxQ;
 
 
 % ==================== STRUCTURE DA ESTRARRE ==============================

@@ -81,7 +81,7 @@ mission.structure.nComponents = length(mission.structure.componentLength);
 % ====================== CALCOLO AZIONI INTERNE ===========================
 mission.structure.Ftfins = (- mission.structure.tMaxQ(2) * (mission.structure.launcherLength - xcg) + ( mission.structure.dMaxQ(2) + mission.structure.lMaxQ(2)) * (xcg - xcp)) / (mission.structure.launcherLength - xcp_a - xcg);
 qMax = 34 * 10^3 ;
-newAreaFins = abs(mission.structure.Ftfins / qMax / 4 / (1/360*2*pi) )
+newAreaFins = abs(mission.structure.Ftfins / qMax / 4 / (1/360*2*pi) );
 [mission] = loadsFinder(mission);
 
 N = mission.structure.N;
@@ -249,7 +249,3 @@ DfinBody = [Dfin * cos(alphaFin) ; -Dfin * sin(alphaFin)];
 % thrust angle such that the torque is balanced
 mission.structure.delta = asind((-(LfinBody(2) + DfinBody(2)) * (mission.structure.launcherLength - xcp_a - xcg) + (mission.structure.dMaxQ(2) + mission.structure.lMaxQ(2)) * (xcg - xcp))/(norm(mission.structure.tMaxQ)*(mission.structure.launcherLength - xcg)));
 
-
-%%
-momentFins = Ftfins * xcp_a
-CLnew = abs(Ftfins) / (mission.structure.dynamicPressure * mission.aerodynamics.bodyGeom.Aref)
