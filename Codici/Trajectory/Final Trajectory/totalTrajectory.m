@@ -27,7 +27,7 @@ latInitial = mission.launchBase.latInitial;
 lonInitial = mission.launchBase.lonInitial;
 
 if option2D == 1
-    omega =0;
+    omega = 0;
 else
     omega = mission.target.omega ;
 end
@@ -61,7 +61,7 @@ for i = 1:nStages
 
     opt.m0Tot = m0;
     
-    [tt,xx] = launcherTrajectoryControl(x0,mission,thrustData,tSpan,nDeval,i,opt,option2D);
+    [tt,xx] = launcherTrajectory(x0,mission,thrustData,tSpan,nDeval,i,opt,option2D);
     
     stateCollocation(:,:,i) = xx;
     timeCollocation(:,i) = tt;
