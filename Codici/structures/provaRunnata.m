@@ -80,6 +80,8 @@ mission.structure.nComponents = length(mission.structure.componentLength);
 
 % ====================== CALCOLO AZIONI INTERNE ===========================
 mission.structure.Ftfins = (- mission.structure.tMaxQ(2) * (mission.structure.launcherLength - xcg) + ( mission.structure.dMaxQ(2) + mission.structure.lMaxQ(2)) * (xcg - xcp)) / (mission.structure.launcherLength - xcp_a - xcg);
+qMax = 34 * 10^3 ;
+newAreaFins = abs(mission.structure.Ftfins / qMax / 4 / (1/360*2*pi) )
 [mission] = loadsFinder(mission);
 
 N = mission.structure.N;

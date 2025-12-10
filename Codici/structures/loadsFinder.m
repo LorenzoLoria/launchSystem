@@ -110,7 +110,7 @@ end
 b(:, [2 3]) = b(:, [3 2]); % inversione richiesta siccome il CG del payload è prima del CP del corpo
 
 b(:,end-1) = [dragFinsN+liftFinsN; dragFinsT+liftFinsT; 0];
-%b(:,end-1) = [dragFinsN+liftFinsN; -1.119698091469362e+06; 0];
+b(:,end-1) = [dragFinsN+liftFinsN; mission.structure.Ftfins; 0];
 b = b(:);
 
 % =========================== SOLUTION ====================================
