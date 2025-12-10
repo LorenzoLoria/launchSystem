@@ -11,18 +11,18 @@ hCapsule = mission.capsule.height;
 z_capsule = hCapsule / 4; % COM of a cone is at h/4 from the base
 r_com_capsule = [0; 0; z_capsule];
 
-<<<<<<< HEAD
+
 % Local inertia matrix for capsule (about its COM)
 Ixx_capsule = (3/80) * mCapsule * (4 * rCapsule^2 + hCapsule^2);
 Izz_capsule = (3/10) * mCapsule * rCapsule^2;
 I_local_capsule = diag([Ixx_capsule, Ixx_capsule, Izz_capsule]);
-=======
+
 % launcher Data
 for ii = totalStageNumber : -1 : stageNumber
    hStageIter = configuration.geometry.stage{ii}.length;
    rStageIter = configuration.geometry.stage{ii}.radius;
    mStageIter = configuration.stage{ii}.mStage ;
->>>>>>> 35cecd2ab0d173035b79906331940eabab1c4744
+
 
 inertia = inertia + translate_inertia(I_local_capsule, mCapsule, r_com_capsule);
 
