@@ -89,7 +89,28 @@ dMaxQ = -rot2*maxq * mainbodyCD *mission.capsule.Area* [1;0;0];
 lMaxQ = -rot2*maxq * mainbodyCL *mission.capsule.Area * [0;-1;0];
 gMaxQ = -rot3'*mission.target.Rfinal* mission.environment.GM * posMaxQ /norm(posMaxQ)^3;
 
-tMaxQ = (aMaxQ - gMaxQ)*massMaxQ - dMaxQ-lMaxQ;
+alphaFin = 10 * pi / 180;
+dFinsMaxQ = -rot2*maxq * finsCD * mission.aerodynamics.finsGeom.Se * [sin(alphaFin);cos(alphaFin);0];
+lFinsMaxQ = -rot2*maxq * finsCL * mission.aerodynamics.finsGeom.Se * [cos(alphaFin);-sin(alphaFin);0];
+
+tMaxQ = (aMaxQ - gMaxQ)*massMaxQ - dMaxQ-lMaxQ - dFinsMaxQ - lFinsMaxQ;
+
+% Position computation
+mission.structure.hMaxQ = hMaxQ;
+mission.structure.vMaxQ = vMaxQ;
+mission.structure.massMaxQ = massMaxQ;
+xcp = computeXcp(mission, opt, launcher);
+xcp_a = mission.aerodynamics.rootChord - computeFinXcp(mission); % compute position starting from the launcher bottom
+xcg = computeXCG(mission, opt, launcher);
+
+% Deflection angle
+delta = asin((-(lFinsMaxQ(2) + dFinsMaxQ(2)) * (mission.structure.launcherLength - xcp_a - xcg) + (dMaxQ(2) + lMaxQ(2)) * (xcg - xcp))/(norm(tMaxQ)*(mission.structure.launcherLength - xcg)));
+
+% Rotation of thrust
+tMaxQ = sqrt(tMaxQ(1)^2 + tMaxQ(2)^2) * [cos(delta); sin(delta); 0];
+
+% Rotation of the acceleration 
+aMaxQ = gMaxQ + (dMaxQ+lMaxQ+dFinsMaxQ+lFinsMaxQ+tMaxQ) / massMaxQ;
 
 % ==================== STRUCTURE DA ESTRARRE ==============================
 
@@ -112,10 +133,5 @@ for ii = launcher(1):-1:1
 end
 
 mission.structure.massMaxQVec(end) = m1Stage;
-
-% --- DA MODIFICARE
-
-mission.structure.dragFinsMaxQ = -rot2*maxq * finsCD * mission.aerodynamics.finsGeom.Se * [1;0;0];
-mission.structure.liftFinsMaxQ = -rot2*maxq * finsCL * mission.aerodynamics.finsGeom.Se * [0;-1;0];
 
 end

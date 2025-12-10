@@ -33,8 +33,6 @@ thrustData(:,:,2) = [thrustDataGA.xGATraj(11:15)',thrustDataGA.xGATraj(16:20)'];
 %%
 
 [mission] = externalLoads(timeCollocation,stateCollocation,mission,configuration,launcher,thrustData, 0);
-
-
 %%
 if launcher(1) == 1
     nComponents = 8;
@@ -79,7 +77,7 @@ mission.structure.elementLength(end) = configuration.geometry.stage{1}.length/2 
 mission.structure.elementLength(end+1) = xcp_a;
 
 % ====================== CALCOLO AZIONI INTERNE ===========================
-[mission] = loadsFinder(mission);
+[mission] = loadsFinder(mission, nComponents);
 
 N = mission.structure.N;
 T = mission.structure.T;

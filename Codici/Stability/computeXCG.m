@@ -1,4 +1,4 @@
-function Xcg = computeXCG(mission, opt)
+function Xcg = computeXCG(mission, configuration, launcher)
 % Computes the center of gravity Xcg of a three-stage launcher with a nose cone
 % Assumption: Uniform Weight Distribution 
 %
@@ -13,30 +13,30 @@ function Xcg = computeXCG(mission, opt)
 % Output:
 %   Xcg      : center of gravity measured from the top of the launcher
 
-N = opt.nStages;
+N = launcher(1);
 
 % Payload Data
 % m = massMaxQ;
 lco = mission.capsule.height;
-mco = mission.capsule.weigth;
+mco = mission.capsule.weight;
 Xco = lco / 2; 
 
 
 if N == 3
      
-    lc3 = opt.stage{3}.length;
-    lc2 = opt.stage{2}.length;
-    lc1 = opt.stage{1}.length;
-    li1 = mission.structures{1}.lengthInterstage;
-    li2 = mission.structures{2}.lengthInterstage;
-    li3 = mission.structures{3}.lengthInterstage;
+    lc3 = configuration.geometry.stage{3}.length;
+    lc2 = configuration.geometry.stage{2}.length;
+    lc1 = configuration.geometry.stage{1}.length;
+    li1 = configuration.geometry.stage{1}.interstage.length;
+    li2 = configuration.geometry.stage{2}.interstage.length;
+    li3 = configuration.geometry.stage{3}.interstage.length;
   
-    m3 = opt.stage{3}.mStage; 
-    m2 = opt.stage{2}.mStage;
-    m1 = opt.stage{1}.mStage + mission.structure.massMaxQ - opt.m0Tot;
-    mi1 = mission.structures{1}.mInterstage;
-    mi2 = mission.structures{2}.mInterstage;
-    mi3 = mission.structures{3}.mInterstage;
+    m3 = configuration.stage{3}.mStage; 
+    m2 = configuration.stage{2}.mStage;
+    m1 = configuration.stage{1}.mStage + mission.structure.massMaxQ - opt.m0Tot;
+    mi1 = mer.stage{1}.interStage;
+    mi2 = mer.stage{2}.interStage;
+    mi3 = mer.stage{3}.interStage;
     
     X6 = lco + li3/2;
     X5 = lco + li3 + lc3/3;               
@@ -51,15 +51,15 @@ if N == 3
 
 elseif N == 2
 
-    lc2 = opt.stage{2}.length;
-    lc1 = opt.stage{1}.length;
-    li1 = mission.structures{1}.lengthInterstage;
-    li2 = mission.structures{2}.lengthInterstage;
+    lc2 = configuration.geometry.stage{2}.length;
+    lc1 = configuration.geometry.stage{1}.length;
+    li1 = configuration.geometry.stage{1}.interstage.length;
+    li2 = configuration.geometry.stage{2}.interstage.length;
   
-    m2 = opt.stage{2}.mStage;
-    m1 = opt.stage{1}.mStage + mission.structure.massMaxQ - opt.m0Tot;
-    mi1 = mission.structures{1}.mInterstage;
-    mi2 = mission.structures{2}.mInterstage;
+    m2 = configuration.stage{2}.mStage;
+    m1 = configuration.stage{1}.mStage + mission.structure.massMaxQ - opt.m0Tot;
+    mi1 = mer.stage{1}.interStage;
+    mi2 = mer.stage{2}.interStage;
                  
     X4 = lco + li2/2;
     X3 = lco + li2 + lc2 / 2;
@@ -72,18 +72,18 @@ elseif N == 2
 
 elseif N == 1
 
-    lc1 = opt.stage{1}.length;
-    li1 = mission.structures{1}.lengthInterstage;
+    lc1 = configuration.geometry.stage{1}.length;
+    li1 = configuration.geometry.stage{1}.interstage.length;
   
-    m1 = opt.stage{1}.mStage + mission.structure.massMaxQ - opt.m0Tot;
-    mi1 = mission.structures{1}.mInterstage;
+    m1 = configuration.stage{1}.mStage + mission.structure.massMaxQ - opt.m0Tot;
+    mi1 = mer.stage{1}.interStage;
                  
     X2 = lco + li1 / 2;
     X1 = lco + li1 + lc1 / 2;
     
     momentSum = m1*X1 + mi1*X2;
     
-    Xcg = (momentSum + mco*Xco) / (m1 + mi1 + mco)
+    Xcg = (momentSum + mco*Xco) / (m1 + mi1 + mco);
 end
 
 

@@ -1,4 +1,4 @@
-function [mission] = loadsFinder(mission)
+function [mission] = loadsFinder(mission, nComponents)
 
 % Builds matrix A required to solve the linear system Ax = b where:
 % A = matrix that encodes the equilibrium equations
@@ -10,7 +10,6 @@ function [mission] = loadsFinder(mission)
 % mission: struct containing the data needed
 % ======================== DATA CONVERSION ================================
 
-nComponents = mission.structure.nComponents;
 m       = mission.structure.massMaxQVec;   
 
 % Drag
