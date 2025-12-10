@@ -15,16 +15,6 @@ r_com_capsule = [0; 0; z_capsule];
 % Local inertia matrix for capsule (about its COM)
 Ixx_capsule = (3/80) * mCapsule * (4 * rCapsule^2 + hCapsule^2);
 Izz_capsule = (3/10) * mCapsule * rCapsule^2;
-I_local_capsule = diag([Ixx_capsule, Ixx_capsule, Izz_capsule]);
-
-% launcher Data
-for ii = totalStageNumber : -1 : stageNumber
-   hStageIter = configuration.geometry.stage{ii}.length;
-   rStageIter = configuration.geometry.stage{ii}.radius;
-   mStageIter = configuration.stage{ii}.mStage ;
-
-
-inertia = inertia + translate_inertia(I_local_capsule, mCapsule, r_com_capsule);
 
 %% STAGES AND INTERSTAGES
 stageNumber = launcher(1);

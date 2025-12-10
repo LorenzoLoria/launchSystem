@@ -27,15 +27,8 @@ Nstage = launcher(1) ;
 load('stateCollocation.mat') ;
 load('timeCollocation.mat') ;
 
-% Manca il reshape di guidancePoints
-guidanceTime = timeCollocation(:) ;
-guidancePoints = reshape(stateCollocation ,[], Nstage+1) ;
-
-% Initial Condition
-y0 = stateCollocation(:,1,1) ;
-
-% Upload mission data 
-tSpan = [0 500];
+guidancePoints = stateCollocation ;
+guidanceTime = timeCollocation; 
 
 
 %% GA for tuning gains
@@ -53,13 +46,13 @@ options_ga = optimoptions("ga", ...
     "Display","iter", ...
     "MaxGenerations",30, ...
     "PopulationSize",200,...
-    "UseParallel",true,...
+    "UseParallel",false,...
     "FunctionTolerance", 1e-4,...
     "MaxStallGenerations", 10,...
     'EliteCount',  6);
 
 
-[gains] = ga(@(x) findGains(x,guidancePoints,guidanceTime,y0,tSpan), nVars, [],[],[],[],lowerBounds,upperBounds, [] ,intCon, options_ga) ;
+[gains] = ga(@(x) findGains(x,mission, mer, configuration, settings, launcher, guidancePoints,guidanceTime, thrustData), nVars, [],[],[],[],lowerBounds,upperBounds, [] ,intCon, options_ga) ;
 
 
 options = odeset('RelTol',1e-6,'AbsTol',1e-6);
@@ -68,7 +61,7 @@ options = odeset('RelTol',1e-6,'AbsTol',1e-6);
 
 
 
-function [output] = findGains(x,guidancePoints,guidanceTime, y0,tSpan)
+function [objective] = findGains(x,mission, mer, configuration, settings,launcher, guidancePoints,guidanceTime, thrustDataVec)
 
 gains = x ;
 
@@ -76,12 +69,14 @@ if ~iscolumn(gains)
     gains = gains' ;
 end
 
+[~, stateCollocationControlled] = totalTrajectoryControl(mission,mer,configuration, settings, launcher,thrustDataVec, guidancePoints, guidanceTime, gains);
 
-options = odeset('RelTol',1e-6,'AbsTol',1e-6);
-[t, sol] = ode113(@(t,x) launcherDynamicsAndControlECI(t, x,thrustData, mission, configuration, launcher, stageNumber, guidancePoints, guidanceTime, gains), tSpan, y0,options);
+objective = 0 ;
 
-
-output = sum(sol(:, 1:2)' - guidancePoints(1:2,:)) + sum(sol(:, 3:4)' - guidancePoints(3:4, :)) ;
-
+for ii = 1 : launcher(1)
+    output = sum(abs(stateCollocationControlled(1:3, :, ii) - guidancePoints(1:3,:))) +...
+             sum(abs(stateCollocationControlled(4:6, :, ii) - guidancePoints(4:6,:))) ;
+    objective = objective + output ;
+end
 
 end

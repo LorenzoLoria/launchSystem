@@ -1,9 +1,9 @@
-function [timeCollocationControlled, stateCollocationControlled] = totalTrajectoryControl(mission,mer,configuration,launcher,thrustDataVec, guidancePoints, guidanceTime, gains)
+function [timeCollocationControlled, stateCollocationControlled] = totalTrajectoryControl(mission,mer,configuration,settings, launcher,thrustDataVec, guidancePoints, guidanceTime, gains)
 
 nStages = launcher(1);
 m0Tot = configuration.totalMass;
 
-nDeval = setting.nEvalPointsTraj;
+nDeval = settings.nEvalPointsTraj;
 stateCollocationControlled = zeros(7,nDeval, nStages);
 timeCollocationControlled  = zeros(nDeval, nStages+1);
 
@@ -16,7 +16,7 @@ for i = 1:nStages
             t0 = 0;
             tf = configuration.stage{i}.mProp * (length(thrustDataVec(:,1,i))-1)* configuration.stage{i}.engine.ispZero * mission.environment.g0 * 2 ;
             thrustValue = configuration.stage{i}.engine.thrustZero;
-            guidancePointsStage = guidancePoints(:, 1:nDeval) ;
+            guidancePointsStage = squeeze(guidancePoints(1:end-1, 1:nDeval,i)) ;
             guidanceTimeStage = guidanceTime(1:nDeval) ;
         else
             m0 = m0 - configuration.stage{i-1}.mStage;
@@ -24,7 +24,7 @@ for i = 1:nStages
             t0 = timeCollocationControlled(end,i-1);
             tf = configuration.stage{i}.mProp * (length(thrustDataVec(:,1,i))-1)* configuration.stage{i}.engine.ispVac * mission.environment.g0 * 2 ;
             thrustValue = configuration.stage{i}.engine.thrustVacum;
-            guidancePointsStage = guidancePoints(:,(i-1)*nDeval : i*nDeval) ;
+            guidancePointsStage = squeeze(guidancePoints(:,(i-1)*nDeval + 1 : i*nDeval, i)) ;
             guidanceTimeStage = guidanceTime((i-1)*nDeval : i*nDeval) ;
         end
 
@@ -37,7 +37,7 @@ for i = 1:nStages
 
     configuration.totalMass = m0;
     
-    [tt,xx] = launcherTrajectoryControl(x0,mission, mer, configuration, launcher, thrustData,tSpan,nDeval,i, guidancePointsStage, guidanceTimeStage, gains);
+    [tt,xx] = launcherTrajectoryControl(x0, mission, mer, configuration, launcher, thrustData,tSpan,nDeval,i, guidancePointsStage, guidanceTimeStage, gains);
     
     stateCollocationControlled(:,:,i) = xx;
     timeCollocationControlled(:,i) = tt;
