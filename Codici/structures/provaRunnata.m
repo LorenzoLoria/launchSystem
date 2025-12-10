@@ -36,8 +36,6 @@ hold off
 %%
 mission.structure.alphaQmax = deg2rad(0);
 
-[mission] = externalLoads(timeCollocation,stateCollocation,mission,opt,thrustData, mission.structure.alphaQmax);
-
 if opt.nStages == 1
     mission.structure.nElements = 8;
 elseif opt.nStages == 2
@@ -62,19 +60,14 @@ end
 mission.structure.launcherLength = cumsum(mission.structure.componentLength);
 mission.structure.launcherLength = mission.structure.launcherLength(end);
 
+[mission] = externalLoads(timeCollocation,stateCollocation,mission,opt,thrustData, mission.structure.alphaQmax);
+
 mission.diameter = mission.structure.diameter;
 xcp = computeXcp(mission, opt);
 xcp_a = mission.aerodynamics.rootChord - computeFinXcp(mission); % compute position starting from the launcher bottom
 xcg = computeXCG(mission, opt);
 
 % Length of the element used for structural analysis
-
-% Computation of the CGs
-xcg_capsule = computeXCG(mission, opt);
-
-
-
-
 mission.structure.elementLength = [mission.capsule.height/2,xcp-mission.capsule.height/2,mission.capsule.height-xcp];
 
 for ii = opt.nStages:-1:1
@@ -200,7 +193,10 @@ ylabel('Bending Moment [Nm]');
 xlim([0, x_all(end)])
 xline([0, cumsum(mission.structure.elementLength)], 'LineStyle','--')
 xline(xcg, 'k',  'LineWidth',1.5)
+
+
 %%
+
 Mach = mission.structure.machNumber;
 be  = mission.aerodynamics.finsGeom.be;
 Se  = mission.aerodynamics.finsGeom.Se;
@@ -243,13 +239,13 @@ finsCL = CN_fins_tot * cos(alphaFin) - CA_fins_tot * sin(alphaFin);
 finsCD = CA_fins_tot * cos(alphaFin) + CN_fins_tot * sin(alphaFin);
 
 Lfin = mission.structure.dynamicPressure * mission.aerodynamics.bodyGeom.Aref * finsCL * 2;
-Dfin = mission.structure.dynamicPressure * mission.aerodynamics.bodyGeom.Aref * finsCL *2;
+Dfin = mission.structure.dynamicPressure * mission.aerodynamics.bodyGeom.Aref * finsCD *2;
 
 LfinBody = [Lfin * sin(alphaFin) ; Lfin * cos(alphaFin)];
 DfinBody = [Dfin * cos(alphaFin) ; -Dfin * sin(alphaFin)];
 
 % thrust angle such that the torque is balanced
-delta = asind((-(LfinBody(2) + DfinBody(2)) * (mission.structure.launcherLength - xcp_a - xcg) + (mission.structure.dMaxQ(2) + mission.structure.lMaxQ(2)) * (xcg - xcp))/(norm(mission.structure.tMaxQ)*(mission.structure.launcherLength - xcg)))
+mission.structure.delta = asind((-(LfinBody(2) + DfinBody(2)) * (mission.structure.launcherLength - xcp_a - xcg) + (mission.structure.dMaxQ(2) + mission.structure.lMaxQ(2)) * (xcg - xcp))/(norm(mission.structure.tMaxQ)*(mission.structure.launcherLength - xcg)));
 
 
 %%
