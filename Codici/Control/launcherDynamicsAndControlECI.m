@@ -82,8 +82,8 @@ if stageNumber == 1
     iSp           = configuration.stage{stageNumber}.engine.ispZero;
 else
     staticContribution = 0;
-    nominalThrust = configuration.stage{stageNumber}.engine.thrustVacuum;
-    iSp           = configuration.stage{stageNumber}.engine.ispVacuum;
+    nominalThrust = configuration.stage{stageNumber}.engine.thrustVacum;
+    iSp           = configuration.stage{stageNumber}.engine.ispVac;
 end
 
 nEngines = configuration.stage{stageNumber}.nEngines;
@@ -96,7 +96,7 @@ TMax = throttling * nEngines * (nominalThrust + staticContribution);
 xCG = computeXcgGlobal(mission, configuration, launcher, mer, m);       % [m]
 
 % Center of Pressure
-xCP = computeXcpGlobal(mission, configuration, launcher, alpha);                  % [m]
+xCP = computeXcpGlobal(mission, configuration, launcher, alpha);        % [m]
 xCpCg = xCP - xCG;
 thrustArm = launcherLength - xCG;
 

@@ -4,7 +4,7 @@ nStages = launcher(1);
 m0Tot = configuration.totalMass;
 
 nDeval = settings.nEvalPointsTraj;
-stateCollocationControlled = zeros(7,nDeval, nStages);
+stateCollocationControlled = zeros(14,nDeval, nStages);
 timeCollocationControlled  = zeros(nDeval, nStages+1);
 
 
@@ -12,7 +12,7 @@ for i = 1:nStages
 
         if i == 1
             m0 = m0Tot;
-            q0 = [1; 0; 0; 0; 0] ;
+            q0 = [1; 0; 0; 0] ;
             x0 = [mission.launchBase.initialPointECI'; 0; 0; 0; q0; 0; 0; 0; m0];
             t0 = 0;
             tf = configuration.stage{i}.mProp * (length(thrustDataVec(:,1,i))-1)* configuration.stage{i}.engine.ispZero * mission.environment.g0 * 2 ;
@@ -25,7 +25,7 @@ for i = 1:nStages
             t0 = timeCollocationControlled(end,i-1);
             tf = configuration.stage{i}.mProp * (length(thrustDataVec(:,1,i))-1)* configuration.stage{i}.engine.ispVac * mission.environment.g0 * 2 ;
             thrustValue = configuration.stage{i}.engine.thrustVacum;
-            guidancePointsStage = squeeze(guidancePoints(:,:, i)) ;
+            guidancePointsStage = squeeze(guidancePoints(1:end-1,:, i)) ;
             guidanceTimeStage = guidanceTime(:,i) ;
         end
 
@@ -50,7 +50,8 @@ windDirection = [1 0 0]';
 
 [ttCaps,xxCaps] = ballisticTrajectory(x0Capsule,mission,windDirection,t0Capsule,nDeval);
 
-stateCollocationControlled(:,:,end) = [xxCaps;mission.capsule.weigth*ones(1,nDeval)];
+stateCollocationControlled(1:6,:,end) = xxCaps ;
+stateCollocationControlled(end, :, end) = mission.capsule.weight*ones(1,nDeval) ;
 timeCollocationControlled(:,end) = ttCaps;
 
 end

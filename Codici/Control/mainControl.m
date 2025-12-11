@@ -4,6 +4,7 @@ clear all
 
 % Optimal Solution form an old GA
 launcher = [2,1,4,4,0.4056,0.4016,0.7];
+% launcher = [2,2,3,3,0.45,0.77, 0.5] ;
 
 [mission,settings] = dataStructGlobal;
 
@@ -21,14 +22,7 @@ end
 
 thrustData = reshape(xGATraj,settings.nOptPointsTraj,2,2);
 
-Nstage = launcher(1) ;
-
-% Upload state and time from Traj2D
-load('stateCollocation.mat') ;
-load('timeCollocation.mat') ;
-
-guidancePoints = stateCollocation ;
-guidanceTime = timeCollocation; 
+[guidanceTime, guidancePoints] = totalTrajectoryGlobalGA(launcher,configuration,mission,settings,thrustData);
 
 
 %% GA for tuning gains
@@ -52,7 +46,7 @@ options_ga = optimoptions("ga", ...
     'EliteCount',  6);
 
 
-[gains] = ga(@(x) findGains(x,mission, mer, configuration, settings, launcher, guidancePoints,guidanceTime, thrustData), nVars, [],[],[],[],lowerBounds,upperBounds, [] ,intCon, options_ga) ;
+[gains] = ga(@(x) findGains(x, mission, mer, configuration, settings, launcher, guidancePoints, guidanceTime, thrustData), nVars, [],[],[],[],lowerBounds,upperBounds, [] ,intCon, options_ga) ;
 
 
 options = odeset('RelTol',1e-6,'AbsTol',1e-6);
@@ -70,18 +64,13 @@ function [objective] = findGains(x,mission, mer, configuration, settings,launche
 
 gains = x ;
 
-if ~iscolumn(gains)
-    gains = gains' ;
-end
+    if ~iscolumn(gains)
+        gains = gains' ;
+    end
 
 [~, stateCollocationControlled] = totalTrajectoryControl(mission,mer,configuration, settings, launcher,thrustDataVec, guidancePoints, guidanceTime, gains);
 
-objective = 0 ;
+objective = stateCollocationControlled(1:6, end, end)  -  guidancePoints()
 
-for ii = 1 : launcher(1)
-    output = sum(abs(stateCollocationControlled(1:3, :, ii) - guidancePoints(1:3,:))) +...
-             sum(abs(stateCollocationControlled(4:6, :, ii) - guidancePoints(4:6,:))) ;
-    objective = objective + output ;
-end
 
 end
