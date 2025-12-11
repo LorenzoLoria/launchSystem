@@ -4,7 +4,7 @@ nStages = launcher(1);
 m0Tot = configuration.totalMass;
 
 nDeval = settings.nEvalPointsTraj;
-stateCollocationControlled = zeros(14,nDeval, nStages);
+stateCollocationControlled = zeros(14,nDeval, nStages+1);
 timeCollocationControlled  = zeros(nDeval, nStages+1);
 
 
