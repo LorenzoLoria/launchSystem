@@ -1,4 +1,4 @@
-function controlPlots(thrustData, configuration, mer, stageNumber, y0)
+function controlPlots(thrustData, configuration, mer, stageNumber)
 % =========================================================================
 %   Plots position, velocity, attitude errors + thrust magnitude & gimbal
 %   for FREE trajectory vs CONTROLLED trajectory.
@@ -8,19 +8,21 @@ function controlPlots(thrustData, configuration, mer, stageNumber, y0)
 launcher = [2,1,4,4,0.4056,0.4016,0.7];
 [mission,settings] = dataStructGlobal;
 
-x0 = [y0(1:6); 0; 0; y0(7)];
+
 tspan = [0 500];
 
-% Gains for PD guidance
-gains.Kp_pos = 0.01;
-gains.Kd_vel = 0.01;
-gains.Kp_theta = 0.1;
-gains.Kp_omega = 0.05;
 
-% Integration of Dynamics
-options = odeset('RelTol',1e-6,'AbsTol',1e-6);
-[t, x] = ode113(@(t,x) launcherDynamicsAndControlECI(t, x, thrustData, mission, configuration, mer, launcher, stageNumber, guidancePoints, gains), ...
-                tspan, x0, options);
+
+% control on
+
+[timeCollocationControlled, stateCollocationControlled] = totalTrajectoryControl(mission,mer,configuration,settings, launcher,thrustDataVec, guidancePoints, guidanceTime, gains);
+x_control = stateCollocationControlled;
+% control off
+
+gains = [0 0 0 0 0 0 0 0 0 0 0 0]';
+
+[timeCollocationUnControlled, stateCollocationUnControlled] = totalTrajectoryControl(mission,mer,configuration,settings, launcher,thrustDataVec, guidancePoints, guidanceTime, gains);
+x_nocontrol = stateCollocationUnControlled;
 
 N = length(t);
 
@@ -33,10 +35,23 @@ GimbalLog = zeros(N,1);
 
 for k = 1:N
     % -------- Extract free-flight states --------
-    r = x(k,1:2).'; % Only x and y positions
-    v = x(k,3:4).'; % Only x and y velocities
-    m = x(k,7);
-    theta = x(k,5); % Attitude angle
+    r     = x(1:3);
+    v     = x(4:6);
+    q     = x(7:10);
+    omega = x(11:13);
+    m     = x(14); % Attitude angle
+
+    r_control     = x_control(1:3);
+    v_control     = x_control(4:6);
+    q_control     = x_control(7:10);
+    omega_control = x_control(11:13);
+    m_control     = x_control(14);
+
+    r_nocontrol     = x_nocontrol(1:3);
+    v_nocontrol     = x_nocontrol(4:6);
+    q_nocontrol     = x_nocontrol(7:10);
+    omega_nocontrol = x_nocontrol(11:13);
+    m_nocontrol     = x_nocontrol(14);
 
     % -------- Desired values from guidance --------
     r_des = guidancePoints(1:2);
