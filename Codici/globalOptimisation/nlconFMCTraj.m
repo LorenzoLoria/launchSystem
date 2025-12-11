@@ -26,7 +26,7 @@ thrustDataVec = x;
 
 
 %cin = [abs(angleWrtVelMax)-20;(accMax-6*mission.environment.g0)/mission.environment.g0 ; (norm(stateCollocation(1:3,end,end) - mission.target.initialPointECI))/1e3 - 2] ; 
-cin = [(accMax-6*mission.environment.g0)/mission.environment.g0 ; (norm(stateCollocation(1:3,end,end)-mission.target.initialPointECI))/1e3-2;angleWrtVelMax-20] ; 
+cin = [(accMax-6*mission.environment.g0)/mission.environment.g0 ; (norm(stateCollocation(1:3,end,end)-mission.target.initialPointECI))/1e3-2] ; 
 ceq = [] ;
 
 
