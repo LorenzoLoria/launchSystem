@@ -1,4 +1,4 @@
-function [timeCollocation, stateCollocation] = totalTrajectoryControlled(launcher,opt,mission,settings,windVelXFun,windVelYFun,stateCollocationRef,timeCollocationRef,maxThrust,maxGimball,thrustData)
+function [timeCollocation, stateCollocation] = totalTrajectoryControlled(launcher,opt,mission,settings,windVelXFun,windVelYFun,stateCollocationRef,timeCollocationRef,maxThrust,maxGimball,thrustData,gainGA)
 
  
 
@@ -55,7 +55,7 @@ for i = 1:nStages
     timeCollocationRefIdx = timeCollocationRef(:,i);
     tvec = linspace(timeCollocationRefIdx(1),timeCollocationRefIdx(end),size(thrustData,1));
     thrustDataFun = griddedInterpolant(tvec,thrustData,"linear","none");
-    [tt,xx] = launcherTrajectoryControlled(x0,mission,tSpan,nDeval,i,opt,1,windVelXFun,windVelYFun,stateCollocationRefIdx,timeCollocationRefIdx,maxThrust,maxGimball,thrustDataFun);
+    [tt,xx] = launcherTrajectoryControlled(x0,mission,tSpan,nDeval,i,opt,1,windVelXFun,windVelYFun,stateCollocationRefIdx,timeCollocationRefIdx,maxThrust,maxGimball,thrustDataFun,gainGA);
 
     stateCollocation(:,:,i) = xx;
     timeCollocation(:,i) = tt;
