@@ -6,7 +6,7 @@ nDeval = settings.nEvalPointsTraj;
 nEl = settings.nOptPointsTraj;
 cosangleWrtVelMaxStage = zeros(launcher(1),1);
 accMaxStage = zeros(launcher(1),1);
-RIRF = mission.target.Rfinal.';
+RIRF = mission.target.Rfinal';
 
     for i = 1:launcher(1)
         dtime      = timeCollocation(2,i) - timeCollocation(1,i);
@@ -30,8 +30,8 @@ RIRF = mission.target.Rfinal.';
         else
         thetaGimball = interp1(time2,thrustDataVec(:,3,i),timeCollocation(:,i),'linear','extrap');
         end
-    
-        ThrustBRF = percThrustVec' .* opt.stage{i}.nEngines .*(thrustValue+staticContribution).* [cos(thetaGimball).*cos(gammaGimball'); cos(thetaGimball).*sin(gammaGimball'); sin(thetaGimball)];
+        
+        ThrustBRF = percThrustVec' .* opt.stage{i}.nEngines .*(thrustValue+staticContribution).* [cos(thetaGimball).*cos(gammaGimball'*pi/180); cos(thetaGimball*pi/180).*sin(gammaGimball'*pi/180); sin(thetaGimball*pi/180)];
         ThrustIRF = RIRF*ThrustBRF;
         ThrustIRFNorm = sqrt(ThrustIRF(1,:).^2 + ThrustIRF(2,:).^2 + ThrustIRF(3,:).^2 );
         cosangleWrtVelMaxStage(i) = min(sum(ThrustIRF .* vel, 1)./ThrustIRFNorm./vNorm);
