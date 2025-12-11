@@ -23,8 +23,8 @@ timeStage = timeStage(:);
 
 
 acc = [diff(vel(1,:))'./diff(timeStage),diff(vel(2,:))'./diff(timeStage),diff(vel(3,:))'./diff(timeStage)]';
-
-
+% acc(:,end+1) = acc(:,end);
+acc = [acc, acc(:,end)] ;
 [maxq,idx] = max(q);
 
 vMaxQ = vel(:,idx);
