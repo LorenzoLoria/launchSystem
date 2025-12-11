@@ -4,7 +4,7 @@ ceq = [];
 
 nlconFlag = 1; 
 
-[output] = launcherSimulation(launcher,mission,settings,nlconFlag);
+[~,output] = launcherSimulation(launcher,mission,settings,nlconFlag);
 
 if isnan(output)
     keyboard
