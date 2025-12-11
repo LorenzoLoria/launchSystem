@@ -15,26 +15,26 @@ addpath(genpath("..\..\"))
 [x_ga, fval_ga] = ga(@(x) objFunGlobalGA(x,mission,settings),...
                     settings.globalGAoptVariables,[],[],[],[],...
                     settings.lowerBoundsGlobalGA,settings.upperBoundsGlobalGA,...
-                    @(x) nlconGlobalGA(x,mission,settings),...
+                    [],...
                     settings.intconGlobalGA,settings.globalGAOptions);
 
 %% Skip GA
 
-launcher = [2,1,4,4,0.4056,0.4016,0.7];
-for i = 1:launcher(1)
-    configuration.stage{i}.engine = mission.engines{launcher(1+i)};
-end
-
-[mer,staging,configuration] = initialMassEstimation(mission,configuration,settings,launcher);
-
-[xGATraj, fvalGATraj] = ga( @(x) objFunGATraj( reshape(x,settings.nOptPointsTraj,2,launcher(1)),launcher,configuration, mission,settings), ...
-                        launcher(1)*2*settings.nOptPointsTraj,...
-                        [],[],[],[],settings.lowerBoundsGA,settings.upperBoundsGA, ...
-                        @(x) nlconGATraj( reshape(x,settings.nOptPointsTraj,2,launcher(1)),launcher,configuration, mission,settings),settings.gaTrajOptions);
-
-thrustData(:,:,1) = [xGATraj(1:5)',xGATraj(6:10)'];
-thrustData(:,:,2) = [xGATraj(11:15)',xGATraj(16:20)'];
-
+% launcher = [2,1,4,4,0.4056,0.4016,0.7];
+% for i = 1:launcher(1)
+%     configuration.stage{i}.engine = mission.engines{launcher(1+i)};
+% end
+% 
+% [mer,staging,configuration] = initialMassEstimation(mission,configuration,settings,launcher);
+% 
+% [xGATraj, fvalGATraj] = ga( @(x) objFunGATraj( reshape(x,settings.nOptPointsTraj,2,launcher(1)),launcher,configuration, mission,settings), ...
+%                         launcher(1)*2*settings.nOptPointsTraj,...
+%                         [],[],[],[],settings.lowerBoundsGA,settings.upperBoundsGA, ...
+%                         @(x) nlconGATraj( reshape(x,settings.nOptPointsTraj,2,launcher(1)),launcher,configuration, mission,settings),settings.gaTrajOptions);
+% 
+% thrustData(:,:,1) = [xGATraj(1:5)',xGATraj(6:10)'];
+% thrustData(:,:,2) = [xGATraj(11:15)',xGATraj(16:20)'];
+% 
 
 %% Plots
 
