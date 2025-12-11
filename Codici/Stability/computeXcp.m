@@ -16,24 +16,8 @@ alpha = 0;
 lco = mission.capsule.height;
 
 % ============================ SOLUTION ===================================
-if N == 3
-    lc1 = opt.geometry.stage{1}.length;
-    lc2 = opt.geometry.stage{2}.length;
-    lc3 = opt.geometry.stage{3}.length;
-    li1 = opt.geometry.stage{1}.interstage.length;
-    li2 = opt.geometry.stage{2}.interstage.length;
-    li3 = opt.geometry.stage{3}.interstage.length;
+if N == 3 && N == 2 && N == 1
     l   = opt.geometry.totalLength; 
-elseif N == 2
-    lc1 = opt.geometry.stage{1}.length;
-    lc2 = opt.geometry.stage{2}.length;
-    li1 = opt.geometry.stage{1}.interstage.length;
-    li2 = opt.geometry.stage{2}.interstage.length;
-    l   = opt.geometry.totalLength;
-elseif N == 1
-    lc1 = opt.geometry.stage{1}.length;
-    li1 = opt.geometry.stage{1}.interstage.length;
-    l   = opt.geometry.totalLength;
 else
     l = lco;
 end

@@ -14,9 +14,9 @@ function Xcp = computeFinXcp(mission)
 
 
 % ========================== DATA CONVERSION ==============================
-be   = mission.aerodynamics.finsGeom.be;
+bfin   = mission.aerodynamics.finsGeom.bfin;
 cmac = mission.aerodynamics.finsGeom.cmac;
-Se   = mission.aerodynamics.finsGeom.Se;
+Sfin   = mission.aerodynamics.finsGeom.Sfin;
 soundSpeed = mission.aerodynamics.soundspeedFun(mission.structure.hMaxQ);
 launcherSpeed = mission.structure.vMaxQ' * mission.structure.vMaxQ;
 
@@ -24,7 +24,7 @@ launcherSpeed = mission.structure.vMaxQ' * mission.structure.vMaxQ;
 
 Mach = launcherSpeed / soundSpeed;  
 
-A = be^2 / Se;            
+A = bfin^2 / Sfin;            
 
 Mach0 = 0.7;    Xcp_sub = 0.25;
 Mach1 = 2.0;    Xcp_sup = (A*sqrt(Mach1^2 - 1) - 0.67)/(2*A*sqrt(Mach1^2 - 1) - 1);

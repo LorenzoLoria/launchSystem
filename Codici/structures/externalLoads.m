@@ -80,17 +80,20 @@ dimensions = [stageRadius,lCylinder,dCylinder,lNose,Anose,stage1Radius,boatTailR
 nEngines = configurationStage{stageNumber}.nEngines;
 aTotZero = configurationStage{stageNumber}.engine.effAreaZero;
 aTotVacum = configurationStage{stageNumber}.engine.effAreaVac;
-
+finsVec   = [mission.aerodynamics.finsGeom.rootChord, mission.aerodynamics.finsGeom.tipChord, ...
+    mission.aerodynamics.finsGeom.bfin, mission.aerodynamics.finsGeom.Nfins, mission.aerodynamics.finsGeom.Sfin, ...
+    mission.aerodynamics.finsGeom.cmac, mission.aerodynamics.finsGeom.delta_le, ...
+    mission.aerodynamics.finsGeom.Lambda_le, mission.aerodynamics.finsGeom.tmac];
 engineVec = [nEngines,aTotZero,aTotVacum];
 
-[~,~,~,~, mainbodyCL, mainbodyCD, finsCL, finsCD] = CLCDcomputation(machNumber,alpha,maxq,1,mission,1,dimensions,engineVec);
+[~,~,~,~, mainbodyCL, mainbodyCD, finsCL, finsCD] = CLCDcomputation(machNumber,alpha,maxq,1,mission,1,dimensions,engineVec, finsVec);
 
 dMaxQ = -rot2*maxq * mainbodyCD *mission.capsule.Area* [1;0;0];
 lMaxQ = -rot2*maxq * mainbodyCL *mission.capsule.Area * [0;-1;0];
 gMaxQ = -rot3'*mission.target.Rfinal* mission.environment.GM * posMaxQ /norm(posMaxQ)^3;
 alphaFin = 10 * pi / 180;
-dFinsMaxQ = -rot2*maxq * finsCD * mission.aerodynamics.finsGeom.Se * [sin(alphaFin);cos(alphaFin);0];
-lFinsMaxQ = -rot2*maxq * finsCL * mission.aerodynamics.finsGeom.Se * [cos(alphaFin);-sin(alphaFin);0];
+dFinsMaxQ = -rot2*maxq * finsCD * mission.aerodynamics.finsGeom.Sfin * [cos(alphaFin);sin(alphaFin);0];
+lFinsMaxQ = -rot2*maxq * finsCL * mission.aerodynamics.finsGeom.Sfin * [-sin(alphaFin);cos(alphaFin);0];
 
 tMaxQ = (aMaxQ - gMaxQ)*massMaxQ - dMaxQ-lMaxQ - dFinsMaxQ - lFinsMaxQ;
 
@@ -99,7 +102,7 @@ mission.structure.hMaxQ = hMaxQ;
 mission.structure.vMaxQ = vMaxQ;
 mission.structure.massMaxQ = massMaxQ;
 xcp = computeXcp(mission, configuration, launcher);
-xcp_a = mission.aerodynamics.rootChord - computeFinXcp(mission); % compute position starting from the launcher bottom
+xcp_a = mission.aerodynamics.finsGeom.rootChord - computeFinXcp(mission); % compute position starting from the launcher bottom
 xcg = computeXCG(mission, configuration, launcher, mer);
 
 % Deflection angle

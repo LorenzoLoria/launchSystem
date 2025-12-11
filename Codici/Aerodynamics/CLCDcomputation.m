@@ -1,4 +1,4 @@
-function[CL,CD,CN,CA, mainbodyCL, mainbodyCD, finsCL, finsCD] = CLCDcomputation(Mach,alpha,dynamicPressure,isPoweredFlag,mission,currentStage,dimensions,engineVec)
+function[CL,CD,CN,CA, mainbodyCL, mainbodyCD, finsCL, finsCD] = CLCDcomputation(Mach,alpha,dynamicPressure,isPoweredFlag,mission,currentStage,dimensions,engineVec, finsVec)
 
 
 
@@ -36,24 +36,23 @@ else
 end
 
 stage1Radius = dimensions(6);
-boatTailRadius = dimensions(7) ;                                      %boat tail not present r=radius of the current stagev
-Abase = pi * boatTailRadius^2 ;                                                                 % area base [m^2] se è presente una boattail non coincide con l'area dello stadio corrente
-Ab = pi/4 * dCylinder^2;                                                                        %area max cross section
-Ap = dCylinder * lCylinder ;                                                                    %area razzo vista da lato
-ce = 4.525 * stage1Radius*2 / 10;                                               %mean chord fins??? mediato rispetto a saturn5?
-be = 4.525 * stage1Radius*2 / 10;                                               %semi span delle fin mediato rispetto a saturn5?
-Se = 0.5 * be^2;                                                                                %superficie di una fin
-cmac = 2/3 * ce;                                                                                %mean aerochord fin
-deltaLE = pi/4;                                                                                   %angolo rombo ???
-lambdaLE = 0;                                                                                   % sweep leading edge
-b = 2 * be ;                                                                                    % 2*be
-tmac = 0.08 * cmac;                                                                             %spessore massimo sezione
-Nfins = 4;                                                                                      %numero fins
-aSub = 0;                                                                                       %parametri wave drag
-bSub = 1;                                                                                       %parametri wave drag
+boatTailRadius = dimensions(7) ;      % boat tail not present r=radius of the current stagev
+Abase = pi * boatTailRadius^2 ;       % area base [m^2] se è presente una boattail non coincide con l'area dello stadio corrente
+Ab = pi/4 * dCylinder^2;              % area max cross section
+Ap = dCylinder * lCylinder ;          % area razzo vista da lato
 
-
-
+% Fins Data
+cr = finsVec(1);                      % root chord [m]
+ct = finsVec(2);                       % tip chord [m] (triangolo puro)
+bfin = finsVec(3);                      % semispan [m]
+Nfins = finsVec(4);              
+Sfin = finsVec(5);       % area della fin [m^2]
+cmac = finsVec(6);       % mean aerodynamic chord [m]
+deltaLE = finsVec(7); % [deg]
+lambdaLE = finsVec(8); % [deg]
+tmac = finsVec(9);    
+aSub = 0;
+bSub = 1;
 
 
 %--------------------------------------------------------------------------
@@ -185,24 +184,24 @@ else
     %------------------------------FINS----------------------------------------
     %--------------------------------------------------------------------------
     
-    A = be^2/Se;
+    A = (bfin*2)^2/(Sfin*2);
     M_ale = Mach * cosd(lambdaLE);
-    alphafins = 10 * 180 / pi;
+    alphafins = 10 * pi / 180;
     
     % --- Normal force coefficient
     mRef = sqrt(1 + (8/(pi*A))^2);
-    CN_surf =( ((4*abs(sin(alphafins)*cos(alphafins)) / sqrt(Mach^2 - 1)) + 2*sin(alphafins)^2) * Se / Sref)*(Mach > mRef) + (((pi*A/2*abs(sin(alphafins)*cos(alphafins)) + 2*sin(alphafins)^2) * Se / Sref))*(Mach <= mRef);
+    CN_surf =( ((4*abs(sin(alphafins)*cos(alphafins)) / sqrt(Mach^2 - 1)) + 2*sin(alphafins)^2) * Sfin / Sref)*(Mach > mRef) + (((pi*A/2*abs(sin(alphafins)*cos(alphafins)) + 2*sin(alphafins)^2) * Sfin / Sref))*(Mach <= mRef);
     
     
     % --- CD0 surface friction
     
-    CD0_surf_friction = 0.0133 * (Mach / (dynamicPressure*cmac))^0.2 * 2 * Se / Sref;
+    CD0_surf_friction = 0.0133 * (Mach / (dynamicPressure*cmac))^0.2 * 2 * Sfin / Sref;
     
     
     
     % --- CD0 surface wave
     
-    CD0_surf_wave = 0 + ((1.429 / M_ale^2) * ((1.2*M_ale^2)^3.5 * (2.4/(2.8*M_ale^2 - 0.4))^2.5 - 1) * (sin((deltaLE))^2 * cos((lambdaLE)) * tmac * b) / Sref).*(M_ale>=1);
+    CD0_surf_wave = 0 + ((1.429 / M_ale^2) * ((1.2*M_ale^2)^3.5 * (2.4/(2.8*M_ale^2 - 0.4))^2.5 - 1) * (sin((deltaLE))^2 * cos((lambdaLE)) * tmac * bfin) / Sref).*(M_ale>=1);
     
     
     CN_fins_tot = Nfins * CN_surf;

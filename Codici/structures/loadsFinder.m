@@ -91,7 +91,7 @@ for i = 1:nElements
     
     A(rM, cM_down) =  1;   % + M(i+1)
     A(rM, cM_up)   = -1;   % - M(i)
-    A(rM, cT_down) = h(i);   % T(i+1) * lunghezza
+    A(rM, cT_up) = h(i);   % T(i+1) * lunghezza
     
 end
 
