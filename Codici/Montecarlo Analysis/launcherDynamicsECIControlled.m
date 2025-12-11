@@ -1,4 +1,4 @@
-function dsdt = launcherDynamicsECIControlled(t, x,stateCollocation,timeCollocation, mission,stageNumber,opt,option2D,dimensions,engineVec,windVelXFun,windVelYFun,maxThrust,maxGimball,thrustData)
+function dsdt = launcherDynamicsECIControlled(t, x,stateCollocation,timeCollocation, mission,stageNumber,opt,option2D,dimensions,engineVec,windVelXFun,windVelYFun,maxThrust,maxGimball,thrustData,gainGA)
     
 
     % stateCollocation è quella del singolo stadio
@@ -48,6 +48,8 @@ function dsdt = launcherDynamicsECIControlled(t, x,stateCollocation,timeCollocat
         isp = opt.stage{stageNumber}.engine.ispVac;
         thrustValue = opt.stage{stageNumber}.engine.thrustVacum;
     end
+    thrustMax = maxThrust(stageNumber) + staticContribution;
+    gain = gainGA([1:6]+6*(stageNumber-1))';
 
     if t < 15
         optVar = thrustData(t); 
@@ -72,14 +74,11 @@ function dsdt = launcherDynamicsECIControlled(t, x,stateCollocation,timeCollocat
         end
     
         
-        % Da ricavare in seguito
-        gain = 1000.*ones(7,1);
-        
-        ThrustIRF = m * (gain(1:3) .* err(1:3) + 0 .* err(4:6)); %+ gain(7) .* err(7);
+        ThrustIRF = m * (gain(1:3) .* err(1:3) + gain(4:6) .* err(4:6)); %+ gain(7) .* err(7);
         dirThrust = ThrustIRF/sqrt(ThrustIRF' * ThrustIRF);
 
-        if sqrt(ThrustIRF' * ThrustIRF) > maxThrust
-            ThrustIRF = maxThrust .* dirThrust;
+        if sqrt(ThrustIRF' * ThrustIRF) > thrustMax
+            ThrustIRF = thrustMax .* dirThrust;
         end
 
         

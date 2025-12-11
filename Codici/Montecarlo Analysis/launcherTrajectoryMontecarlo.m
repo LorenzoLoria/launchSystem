@@ -1,4 +1,4 @@
-function [tt,xx] = launcherTrajectoryMontecarlo(x0,mission,thrustData,tSpan,nDeval,stageNumber,opt,option2D,windVelXFun,windVelYFun,stateCollocationRef,timeCollocationRef)
+function [tt,xx] = launcherTrajectoryMontecarlo(x0,mission,thrustData,tSpan,nDeval,stageNumber,opt,option2D,windVelXFun,windVelYFun)
 
 options = odeset('RelTol',1e-6,'AbsTol',1e-2 ,'Events',@(t,x) propEvent(t,x, mission,opt.stage{stageNumber}.mProp,opt,stageNumber));
 
@@ -32,7 +32,7 @@ aTotVacum = optStage{stageNumber}.engine.effAreaVac;
 
 engineVec = [nEngines,aTotZero,aTotVacum];
 
-solution = ode113(@(t,x) launcherDynamicsECIMontecarlo(t, x,thrustData, mission,stageNumber,opt,option2D,dimensions,engineVec,windVelXFun,windVelYFun,stateCollocationRef,timeCollocationRef), tSpan, x0,options);
+solution = ode113(@(t,x) launcherDynamicsECIMontecarlo(t, x,thrustData, mission,stageNumber,opt,option2D,dimensions,engineVec,windVelXFun,windVelYFun), tSpan, x0,options);
 
 tt = linspace(solution.x(1),solution.x(end),nDeval);
 
