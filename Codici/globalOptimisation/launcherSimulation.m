@@ -73,7 +73,11 @@ end
     localLowerBoundsFMC = settings.lowerBoundsFMC(:,:,1:launcher(1)) ;
     localUpperBoundsFMC = settings.upperBoundsFMC(:,:,1:launcher(1)) ;
 
-    while error > maxMassErr
+    count = 1 ;
+    maxIter = 3 ;
+    while error > maxMassErr && count <= maxIter
+        
+        count = count + 1 ;
 
         [thrustDataVecFMC,fvalFMCTraj] = fmincon ( @(x)objFunFMCTraj(x,launcher,configuration,mission,settings),...
             xGATrajRS,[],[],[],[],...
