@@ -3,9 +3,14 @@ close all
 clear all
 
 % Optimal Solution form an old GA
-launcher = [2,1,4,4,0.4056,0.4016,0.7];
-% launcher = [2,2,3,3,0.45,0.77, 0.5] ;
+% launcher = [2,1,4,4,0.4056,0.4016,0.7];
+launcher = [2,2,3,3,0.45,0.77, 0.5] ;
 
+% Path Directory
+
+addpath(genpath("..\..\"))
+
+% Upload Mission Struct
 [mission,settings] = dataStructGlobal;
 
 for i = 1:launcher(1)
@@ -49,9 +54,6 @@ options_ga = optimoptions("ga", ...
 [gains] = ga(@(x) findGains(x, mission, mer, configuration, settings, launcher, guidancePoints, guidanceTime, thrustData), nVars, [],[],[],[],lowerBounds,upperBounds, [] ,[], options_ga) ;
 
 
-
-options = odeset('RelTol',1e-6,'AbsTol',1e-6);
-[t, sol] = ode113(@(t,x) launcherDynamicsAndControlECI(t, x, mission, configuration, launcher, stageNumber, guidancePoints, guidanceTime, gains), tSpan, y0,options);
 
 
 

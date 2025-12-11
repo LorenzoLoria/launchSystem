@@ -46,15 +46,8 @@ IRFtoBRF = BRFtoIRF';   % inertial -> body
 I = InertiaEvaluation(mission, configuration, mer, launcher, totalStageNumber, m);
 
 % Desire Position evaluation
-xDes = interp1(guidanceTime, guidancePoints(1,:), t, 'pchip', 'extrap');
-yDes = interp1(guidanceTime, guidancePoints(2,:), t, 'pchip', 'extrap');
-zDes = interp1(guidanceTime, guidancePoints(3,:), t, 'pchip', 'extrap');
-rDes = [xDes; yDes; zDes];
-
-vxDes = interp1(guidanceTime, guidancePoints(4,:), t, 'pchip');
-vyDes = interp1(guidanceTime, guidancePoints(5,:), t, 'pchip');
-vzDes = interp1(guidanceTime, guidancePoints(6,:), t, 'pchip');
-vDes = [vxDes; vyDes; vzDes];
+rDes = interp1(guidanceTime, guidancePoints(1:3,:)', t, 'pchip', 'extrap');
+vDes = interp1(guidanceTime, guidancePoints(4:6,:)', t, 'pchip', 'extrap');
 
 h   = rMag - mission.environment.rEarth;
 rho = mission.environment.rhoFun(h);
@@ -64,14 +57,14 @@ Mach            = vMag / soundspeed ;
 
 % Angle of attack: angle between body x-axis and velocity in BRF
 vBRF  = IRFtoBRF * v;
-alpha = atan2( sqrt(vBRF(2)^2 + vBRF(3)^2), vBRF(1));
+alpha = atan2(norm(vBRF(1:2)), vBRF(3));
 
 % Aerodynamic coefficients
 if Mach == 0
     Cd = 0.01;
     Cl = 0.0;
 else
-    [Cl,Cd,~,~, ~, ~, ~, ~] = CLCDcomputation(Mach,alpha,dynamicPressure,isPoweredFlag,mission,currentStage,dimensions,engineVec, finsVec) ;
+    [Cl,Cd,~,~, ~, ~, ~, ~] = CLCDcomputation(Mach,alpha,dynamicPressure,1,mission,stageNumber,dimensions,engineVec, finsVec) ;
 
 end
 
@@ -126,8 +119,8 @@ end
 gravityIRF = -GM * r / rMag^3;
 
 % Guidance Law
-aCommandIRF = gains(1:3) .* (rDes - r) + ...
-              gains(4:6) .* (vDes - v) - gravityIRF;
+aCommandIRF = gains(1:3) .* (rDes' - r) + ...
+              gains(4:6) .* (vDes' - v) - gravityIRF;
 
 % --- ATTITUDE: align body z-axis with vDes direction in inertial frame ---
 % Prefer to align with desired velocity; fall back to commanded accel
@@ -141,6 +134,7 @@ if norm(vRef) < 1e-8
     ezDes = BRFtoIRF(:,3);      % fallback: keep current attitude (body z axis now)
 else
     ezDes = vRef / norm(vRef);  % desired body z-axis in inertial frame
+   % ezDes = aCommandIRF / norm(aCommandIRF) ;
 end
 
 % Limit tilt angle wrt inertial Z axis
@@ -160,6 +154,17 @@ end
 exDes = cross(yRef, ezDes); 
 exDes = exDes / norm(exDes);  % body x-axis
 eyDes = cross(ezDes, exDes);  % body y-axis
+
+% Ensure exDes, eyDes, and ezDes are column vectors
+if isrow(exDes)
+    exDes = exDes';
+end
+if isrow(eyDes)
+    eyDes = eyDes';
+end
+if isrow(ezDes)
+    ezDes = ezDes';
+end
 
 Rdes = [exDes, eyDes, ezDes];  
 

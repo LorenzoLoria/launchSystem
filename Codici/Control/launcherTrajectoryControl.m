@@ -33,7 +33,7 @@ finsVec   = [mission.aerodynamics.finsGeom.rootChord, mission.aerodynamics.finsG
     mission.aerodynamics.finsGeom.Lambda_le, mission.aerodynamics.finsGeom.tmac];
 
 
-options = odeset('RelTol',1e-6,'AbsTol',1e-6 ,'Events',@(t,x) propEvent(t,x, mission,configuration.stage{stageNumber}.mProp,configuration,stageNumber));
+options = odeset('RelTol',1e-6,'AbsTol',1e-2 ,'Events',@(t,x) propEvent(t,x, mission,configuration.stage{stageNumber}.mProp,configuration,stageNumber));
 
 
 solution = ode113(@(t,x) launcherDynamicsAndControlECI(t, x, mission, mer, configuration, launcher, stageNumber, guidancePoints, guidanceTime, gains, dimensions, engineVec, finsVec), tSpan, x0, options);
