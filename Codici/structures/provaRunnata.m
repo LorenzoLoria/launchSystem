@@ -51,38 +51,29 @@ loadNodes = [2,3:2:nNodes-1,nNodes-1];
 mission.structure.componentLength = [mission.capsule.height];
 
 for ii = launcher(1):-1:1
-    if ii == 1
-        mission.structure.componentLength = [ mission.structure.componentLength, configuration.geometry.stage{ii}.interstage.length, configuration.geometry.stage{ii}.length - configuration.stage{1}.engine.length];
-    else
-    mission.structure.componentLength = [ mission.structure.componentLength, configuration.geometry.stage{ii}.interstage.length, configuration.geometry.stage{ii}.length];
-    end
+    mission.structure.componentLength = [ mission.structure.componentLength, configuration.geometry.stage{ii}.interstage.length, configuration.geometry.stage{ii}.tanksLength];
 end
+mission.structure.componentLength(end) = mission.structure.componentLength(end) - configuration.stage{1}.engine.length;
 
-% Computation of position of xCp and xCp_a (fins)
-mission.structure.launcherLength = cumsum(mission.structure.componentLength);
-mission.structure.launcherLength = mission.structure.launcherLength(end);
-
-%mission.diameter = mission.structure.diameter;
 xcp = computeXcp(mission, configuration,launcher);
 xcp_a = mission.aerodynamics.rootChord - computeFinXcp(mission);
 % xcg = computeXCG(mission, configuration, launcher, mer);
 
 % Length of the element used for structural analysis
-mission.structure.elementLength = [mission.capsule.height/2, xcp - mission.capsule.height/2,mission.capsule.height - xcp];
+mission.structure.elementLength = [mission.capsule.height/2, xcp - mission.capsule.height/2, mission.capsule.height - xcp];
 
 for ii = launcher(1):-1:1
-    mission.structure.elementLength = [ mission.structure.elementLength, configuration.geometry.stage{ii}.interstage.length/2, configuration.geometry.stage{ii}.interstage.length/2, configuration.geometry.stage{ii}.length/2,configuration.geometry.stage{ii}.length/2];
+    if ii == 1
+        mission.structure.elementLength = [ mission.structure.elementLength, configuration.geometry.stage{ii}.interstage.length/2, configuration.geometry.stage{ii}.interstage.length/2, (configuration.geometry.stage{ii}.tanksLength-configuration.stage{1}.engine.length)/2,(configuration.geometry.stage{ii}.tanksLength-configuration.stage{1}.engine.length)/2];
+    else
+        mission.structure.elementLength = [ mission.structure.elementLength, configuration.geometry.stage{ii}.interstage.length/2, configuration.geometry.stage{ii}.interstage.length/2, configuration.geometry.stage{ii}.tanksLength/2,configuration.geometry.stage{ii}.tanksLength/2];
+    end
 end
 
-mission.structure.elementLength(end) = configuration.geometry.stage{1}.length/2 - xcp_a;
+mission.structure.elementLength(end) = (configuration.geometry.stage{1}.tanksLength-configuration.stage{1}.engine.length)/2 - xcp_a;
 mission.structure.elementLength(end+1) = xcp_a;
 
 % ====================== CALCOLO AZIONI INTERNE ===========================
-% mission.structure.Ftfins = (- mission.structure.tMaxQ(2) * (mission.structure.launcherLength - xcg) + ( mission.structure.dMaxQ(2) + mission.structure.lMaxQ(2)) * (xcg - xcp)) / (mission.structure.launcherLength - xcp_a - xcg);
-% clAlpha = 4;
-% alphaMax = 1/360*2*pi;
-% 
-% newAreaFins = abs(mission.structure.Ftfins / (mission.structure.dynamicPressure * clAlpha * alphaMax) );
 
 [mission] = loadsFinder(mission, nElements, loadNodes);
 

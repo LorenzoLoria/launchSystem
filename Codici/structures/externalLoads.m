@@ -83,12 +83,11 @@ aTotVacum = configurationStage{stageNumber}.engine.effAreaVac;
 
 engineVec = [nEngines,aTotZero,aTotVacum];
 
-[CL,CD,CN,CA, mainbodyCL, mainbodyCD, finsCL, finsCD] = CLCDcomputation(machNumber,alpha,maxq,1,mission,1,dimensions,engineVec);
+[~,~,~,~, mainbodyCL, mainbodyCD, finsCL, finsCD] = CLCDcomputation(machNumber,alpha,maxq,1,mission,1,dimensions,engineVec);
 
 dMaxQ = -rot2*maxq * mainbodyCD *mission.capsule.Area* [1;0;0];
 lMaxQ = -rot2*maxq * mainbodyCL *mission.capsule.Area * [0;-1;0];
 gMaxQ = -rot3'*mission.target.Rfinal* mission.environment.GM * posMaxQ /norm(posMaxQ)^3;
-
 alphaFin = 10 * pi / 180;
 dFinsMaxQ = -rot2*maxq * finsCD * mission.aerodynamics.finsGeom.Se * [sin(alphaFin);cos(alphaFin);0];
 lFinsMaxQ = -rot2*maxq * finsCL * mission.aerodynamics.finsGeom.Se * [cos(alphaFin);-sin(alphaFin);0];
@@ -126,12 +125,14 @@ mission.structure.vMaxQ             = vMaxQ;
 mission.structure.liftFinsMaxQ      = lFinsMaxQ;
 mission.structure.dragFinsMaxQ      = dFinsMaxQ;
 
-m1Stage = configuration.stage{1}.mStage + massMaxQ - configuration.totalMass;
+m1Stage = configuration.stage{1}.mStage - mer.stage{1}.interStage + massMaxQ - configuration.totalMass;
 
 mission.structure.massMaxQVec = [mission.capsule.weight];
 
 for ii = launcher(1):-1:1
-    mission.structure.massMaxQVec = [mission.structure.massMaxQVec, mer.stage{ii}.interStage, configuration.stage{ii}.mStage];
+
+    mission.structure.massMaxQVec = [mission.structure.massMaxQVec, mer.stage{ii}.interStage, configuration.stage{ii}.mStage-mer.stage{ii}.interStage];
+
 end
 
 mission.structure.massMaxQVec(end) = m1Stage;
