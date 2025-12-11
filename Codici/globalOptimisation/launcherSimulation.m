@@ -1,6 +1,6 @@
-function [outputOBJ,outputNLC] = launcherSimulation(launcher,mission,settings,nlconFlag)
+function [output] = launcherSimulation(launcher,mission,settings,nlconFlag)
 
-persistent previousLauncher previousTof previousLauncherMass previousConstraintViolation
+persistent previousLauncher previousTof previousLauncherMass
 
 if isempty(previousLauncher)
     previousLauncher = zeros(length(launcher),1);
@@ -10,7 +10,7 @@ if launcher([1,2:launcher(1)+1,5:4+launcher(1)]) == previousLauncher([1,2:launch
 
     totalMass = previousLauncherMass ;
     tof = previousTof ;
-    constraintViolation  = previousConstraintViolation;
+
 else
 
     % retrive launcher engines
@@ -48,9 +48,12 @@ if isnan(fvalGATraj) || ~isreal(fvalGATraj) || isinf(fvalGATraj)
 end
     if fvalGATraj > 6000
 
-            outputNLC = 1e9;
-            outputOBJ.launcherMass = 1e9 ;
-            outputOBJ.tof = 1e9 ;
+        if nlconFlag
+            output = 1e9;
+        else
+            output.launcherMass = 1e9 ;
+            output.tof = 1e9 ;
+        end
 
         return
 
@@ -66,7 +69,7 @@ end
 
     while error > 100
 
-        [~,fvalFMCTraj,~,constrr] = fmincon ( @(x)objFunFMCTraj(x,launcher,configuration,mission,settings),...
+        [~,fvalFMCTraj] = fmincon ( @(x)objFunFMCTraj(x,launcher,configuration,mission,settings),...
             xGATrajRS,[],[],[],[],...
             localLowerBoundsFMC-eps,localUpperBoundsFMC+eps,...
             @(x) nlconFMCTraj(x,launcher,configuration,mission,settings),...
@@ -77,17 +80,19 @@ end
 
     totalMass = configuration.totalMass ;
     tof = fvalFMCTraj ;
-    constraintViolation = constrr.constrviolation;
+
     previousLauncherMass = totalMass ;
     previousTof = tof ;
-    previousConstraintViolation = constraintViolation;
 
 end
 
+if nlconFlag
+    output = [];
+else
 
-    outputNLC = constraintViolation;
-    outputOBJ.launcherMass = totalMass;
-    outputOBJ.tof = tof;
+    output.launcherMass = totalMass;
+    output.tof = tof;
 
+end
 
 end

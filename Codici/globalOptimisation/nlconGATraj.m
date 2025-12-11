@@ -1,4 +1,4 @@
-function [cin,ceq] = nlconGATraj(x,launcher,opt,mission,settings)
+function[cin,ceq] = nlconGATraj(x,launcher,opt,mission,settings)
 
 option2D = settings.trajectoryOption2D ;
 thrustDataVec = x;
