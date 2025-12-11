@@ -142,30 +142,26 @@ mission.environment.pressure=   griddedInterpolant( ...
 
 
 
-mission.aerodynamics.rootChord   = 1.81;                      % root chord [m]
-mission.aerodynamics.tipChord   = 0.45;                       % tip chord [m] (triangolo puro)
-mission.aerodynamics.semispan    = 1.81;                      % semispan [m]
+mission.aerodynamics.finsGeom.rootChord   = 1.81;                      % root chord [m]
+mission.aerodynamics.finsGeom.tipChord   = 0.45;                       % tip chord [m] (triangolo puro)
+mission.aerodynamics.finsGeom.bfin    = 1.81;                      % semispan [m]
 
-mission.aerodynamics.finsGeom.Nfins = 1;
-mission.aerodynamics.finsGeom.be = mission.aerodynamics.semispan;                  % span equivalente ~ semispan reale
-mission.aerodynamics.finsGeom.Se = 0.5 * mission.aerodynamics.rootChord * mission.aerodynamics.semispan;       % area della fin [m^2]
-mission.aerodynamics.finsGeom.cmac = (2/3) * mission.aerodynamics.rootChord;       % mean aerodynamic chord [m]
-mission.aerodynamics.finsGeom.delta_le = 45;
-mission.aerodynamics.finsGeom.lambda_le = 0;
-mission.aerodynamics.finsGeom.b = 2 * mission.aerodynamics.rootChord;
-mission.aerodynamics.finsGeom.tmac = 0.08 * mission.aerodynamics.finsGeom.cmac;    
+mission.aerodynamics.finsGeom.Nfins = 4;              
+mission.aerodynamics.finsGeom.Sfin = 0.5 * (mission.aerodynamics.finsGeom.rootChord+mission.aerodynamics.finsGeom.tipChord) * mission.aerodynamics.finsGeom.bfin;       % area della fin [m^2]
+mission.aerodynamics.finsGeom.lambda = mission.aerodynamics.finsGeom.tipChord / mission.aerodynamics.finsGeom.rootChord;
+mission.aerodynamics.finsGeom.cmac = (2/3) * mission.aerodynamics.finsGeom.rootChord * (1 + mission.aerodynamics.finsGeom.lambda + mission.aerodynamics.finsGeom.lambda^2) / (1 + mission.aerodynamics.finsGeom.lambda);       % mean aerodynamic chord [m]
+
+mission.aerodynamics.finsGeom.delta_le = 10; % [deg]
+mission.aerodynamics.finsGeom.Lambda_le = 36.9; % [deg]
+
+mission.aerodynamics.finsGeom.tmac = 0.1;    
 
 
 
-mission.aerodynamics.bodyInfo.isPowered = false;
+mission.aerodynamics.bodyInfo.isPowered = true;
 mission.aerodynamics.bodyInfo.a_sub = 0;
 mission.aerodynamics.bodyInfo.b_sub = 1;
 mission.aerodynamics.bodyInfo.Cdn = 1.2;
-
-
-
-mission.aerodynamics.finsInfo.rho = 1.225;
-mission.aerodynamics.finsInfo.vsound = 340;
 
 % ============================ Materials and structures ===============================
 

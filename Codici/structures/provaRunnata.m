@@ -56,8 +56,8 @@ end
 mission.structure.componentLength(end) = mission.structure.componentLength(end) - configuration.stage{1}.engine.length;
 
 xcp = computeXcp(mission, configuration,launcher);
-xcp_a = mission.aerodynamics.rootChord - computeFinXcp(mission);
-% xcg = computeXCG(mission, configuration, launcher, mer);
+xcp_a = mission.aerodynamics.finsGeom.rootChord - computeFinXcp(mission);
+xcg = computeXCG(mission, configuration, launcher, mer);
 
 % Length of the element used for structural analysis
 mission.structure.elementLength = [mission.capsule.height/2, xcp - mission.capsule.height/2, mission.capsule.height - xcp];
@@ -165,6 +165,7 @@ grid on;
 xlabel('x [m]');
 ylabel('Axial Load [N]');
 xlim([0, x_all(end)])
+xline([0, cumsum(mission.structure.elementLength)], 'LineStyle','--')
 
 % --- Figura 2: Shear Load ---
 figure(2); 
@@ -180,6 +181,7 @@ grid on;
 xlabel('x [m]');
 ylabel('Shear Load [N]');
 xlim([0, x_all(end)])
+xline([0, cumsum(mission.structure.elementLength)], 'LineStyle','--')
 
 % --- Figura 3: Bending Moment ---
 figure(3); 
@@ -195,3 +197,5 @@ grid on;
 xlabel('x [m]');
 ylabel('Bending Moment [Nm]');
 xlim([0, x_all(end)])
+xline([0, cumsum(mission.structure.elementLength)], 'LineStyle','--')
+xline(xcg, 'k',  'LineWidth',1.5)
