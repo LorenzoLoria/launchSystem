@@ -1,4 +1,4 @@
-function [inertia] = InertiaEvaluation(mission, configuration, mer, launcher, totalStageNumber)
+function [inertia] = InertiaEvaluation(mission, configuration, mer, launcher, totalStageNumber, m)
 % INERTIAEVALUATION evaluate the inertia matrix of launcher + capsule
 
 inertia = zeros(3, 3);
@@ -28,7 +28,12 @@ for ii = totalStageNumber:-1:stageNumber
     % Stage data
     hStageIter = configuration.geometry.stage{ii}.length;
     rStageIter = configuration.geometry.stage{ii}.radius;
-    mStageIter = configuration.stage{ii}.mStage;
+    if ii == stageNumber
+    mStageIter =  configuration.stage{ii}.mStage - (configuration.totalMass - m) ;
+    else
+    mStageIter = configuration.stage{ii}.mStage ;
+    end
+
 
     % Local inertia matrix for stage (cylinder)
     Ixx_stage = (1/12) * mStageIter * (3 * rStageIter^2 + hStageIter^2);

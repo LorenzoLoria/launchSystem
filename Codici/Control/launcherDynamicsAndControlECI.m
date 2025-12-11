@@ -43,7 +43,7 @@ BRFtoIRF = [ 1-2*(q(3)^2+q(4)^2),       2*(q(2)*q(3) - q(4)*q(1)),   2*(q(2)*q(4
 
 IRFtoBRF = BRFtoIRF';   % inertial -> body
 
-I = InertiaEvaluation(mission, configuration, mer, launcher, totalStageNumber);
+I = InertiaEvaluation(mission, configuration, mer, launcher, totalStageNumber, m);
 
 % Desire Position evaluation
 xDes = interp1(guidanceTime, guidancePoints(1,:), t, 'pchip', 'extrap');
@@ -51,9 +51,9 @@ yDes = interp1(guidanceTime, guidancePoints(2,:), t, 'pchip', 'extrap');
 zDes = interp1(guidanceTime, guidancePoints(3,:), t, 'pchip', 'extrap');
 rDes = [xDes; yDes; zDes];
 
-vxDes = interp1(guidanceTime, guidancePoints(4,:), t, 'pchip', 'extrap');
-vyDes = interp1(guidanceTime, guidancePoints(5,:), t, 'pchip', 'extrap');
-vzDes = interp1(guidanceTime, guidancePoints(6,:), t, 'pchip', 'extrap');
+vxDes = interp1(guidanceTime, guidancePoints(4,:), t, 'pchip');
+vyDes = interp1(guidanceTime, guidancePoints(5,:), t, 'pchip');
+vzDes = interp1(guidanceTime, guidancePoints(6,:), t, 'pchip');
 vDes = [vxDes; vyDes; vzDes];
 
 h   = rMag - mission.environment.rEarth;
@@ -64,7 +64,7 @@ Mach            = vMag / soundspeed ;
 
 % Angle of attack: angle between body x-axis and velocity in BRF
 vBRF  = IRFtoBRF * v;
-alpha = atan2( sqrt(vBRF(2)^2 + vBRF(3)^2), vBRF(1) );
+alpha = atan2( sqrt(vBRF(2)^2 + vBRF(3)^2), vBRF(1));
 
 % Aerodynamic coefficients
 if Mach == 0
@@ -128,7 +128,8 @@ gravityIRF = -GM * r / rMag^3;
 aCommandIRF = gains(1:3) .* (rDes - r) + ...
               gains(4:6) .* (vDes - v) - gravityIRF;
 
-%  ATTITUDE: align body x-axis with vDes direction
+% --- ATTITUDE: align body z-axis with vDes direction in inertial frame ---
+% Prefer to align with desired velocity; fall back to commanded accel
 if norm(vDes) < 1e-6
     vRef = aCommandIRF;
 else
@@ -136,28 +137,29 @@ else
 end
 
 if norm(vRef) < 1e-8
-    exDes = BRFtoIRF(:,1);      % fallback: keep current attitude
+    ezDes = BRFtoIRF(:,3);      % fallback: keep current attitude (body z axis now)
 else
-    exDes = vRef / norm(vRef);  % desired body x-axis in inertial frame
+    ezDes = vRef / norm(vRef);  % desired body z-axis in inertial frame
 end
 
-% Limit tilt angle wrt inertial Z
-tiltAngle = acosd( exDes(3) / norm(exDes) );
+% Limit tilt angle wrt inertial Z axis
+tiltAngle = acosd( ezDes(3) / norm(ezDes) );  % angle between ezDes and [0;0;1]
 if tiltAngle > maxTiltAngle
-    exDes(3) = norm(exDes(1:2)) / tand(maxTiltAngle);
-    exDes    = exDes / norm(exDes);
+    ezDes(3) = norm(ezDes(1:2)) / tand(maxTiltAngle);
+    ezDes    = ezDes / norm(ezDes);
 end
 
-% Build desired rotation matrix 
+% Build desired rotation matrix R_des (columns = body axes in inertial frame)
+% Choose a reference vector not almost parallel to ezDes
 yRef = [0; 1; 0];
-if abs(dot(exDes, yRef)) > 0.99
-    yRef = [0; 0; 1];
+if abs(dot(ezDes, yRef)) > 0.99
+    yRef = [1; 0; 0];
 end
-ezDes = cross(exDes, yRef); 
-ezDes = ezDes / norm(ezDes);
-eyDes = cross(ezDes, exDes);
 
-Rdes = [exDes, eyDes, ezDes];
+exDes = cross(yRef, ezDes); exDes = exDes / norm(exDes);  % body x-axis
+eyDes = cross(ezDes, exDes);                              % body y-axis
+
+Rdes = [exDes, eyDes, ezDes];  
 
 % Quaternion from desired DCM 
 qDes = dcm2quat_shepperd(Rdes)';  

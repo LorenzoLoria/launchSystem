@@ -33,24 +33,24 @@ lowerBounds = 1 * ones(12,1) ;
 upperBounds = 1000 * ones(12,1) ;
 nVars = length(lowerBounds) ;
 
-gains0 = [50 0 10 1 0 60 100 10 4 2 8]' ;
-intCon = 1:12 ;
+% gains0 = [50 0 10 1 0 60 100 10 4 2 8]' ;
+% intCon = 1:12 ;
 
 options_ga = optimoptions("ga", ...
     "Display","iter", ...
     "MaxGenerations",30, ...
     "PopulationSize",200,...
-    "UseParallel",false,...
+    "UseParallel",true,...
     "FunctionTolerance", 1e-4,...
     "MaxStallGenerations", 10,...
     'EliteCount',  6);
 
 
-[gains] = ga(@(x) findGains(x, mission, mer, configuration, settings, launcher, guidancePoints, guidanceTime, thrustData), nVars, [],[],[],[],lowerBounds,upperBounds, [] ,intCon, options_ga) ;
+[gains] = ga(@(x) findGains(x, mission, mer, configuration, settings, launcher, guidancePoints, guidanceTime, thrustData), nVars, [],[],[],[],lowerBounds,upperBounds, [] ,[], options_ga) ;
 
 
 options = odeset('RelTol',1e-6,'AbsTol',1e-6);
-[t, sol] = ode113(@(t,x) launcherDynamicsAndControlECI(t, x,thrustData, mission, configuration, launcher, stageNumber, guidancePoints, guidanceTime, gains), tSpan, y0,options);
+[t, sol] = ode113(@(t,x) launcherDynamicsAndControlECI(t, x, mission, configuration, launcher, stageNumber, guidancePoints, guidanceTime, gains), tSpan, y0,options);
 
 
 
@@ -62,15 +62,17 @@ options = odeset('RelTol',1e-6,'AbsTol',1e-6);
 
 function [objective] = findGains(x,mission, mer, configuration, settings,launcher, guidancePoints,guidanceTime, thrustDataVec)
 
-gains = x ;
+ gains = x ;
 
     if ~iscolumn(gains)
         gains = gains' ;
     end
 
-[~, stateCollocationControlled] = totalTrajectoryControl(mission,mer,configuration, settings, launcher,thrustDataVec, guidancePoints, guidanceTime, gains);
+ [~, stateCollocationControlled] = totalTrajectoryControl(mission,mer,configuration, settings, launcher,thrustDataVec, guidancePoints, guidanceTime, gains);
 
-objective = stateCollocationControlled(1:6, end, end)  -  guidancePoints()
+ finalError = norm(stateCollocationControlled(1:6, end, end)  -  guidancePoints(1:6, end, end));
 
+ error = vecnorm(stateCollocationControlled(1:3, :, :) - guidancePoints(1:3, :, :));
+ objective = sum(error, 'all') + 10 * norm(finalError); % Weighted sum
 
 end
