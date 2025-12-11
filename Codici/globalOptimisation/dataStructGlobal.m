@@ -183,7 +183,7 @@ mission.structure.rho = [2840, 2720, 2780, 2810];
 mission.structure.E   = [72e9, 75e9, 73e9, 72e9];
 mission.structure.ultimate = [480e6, 560e6, 483e6, 572e6];
 mission.structure.yield = [390e6, 500e6, 345e6, 503e6];
-
+mission.structure.minThickness = 1e-3 ;
 
 mission.structure.tankPressure       = 3.4e5;
 mission.structure.safetyFactor       = 1.5;
@@ -239,14 +239,14 @@ settings.lowerBoundsGA = settings.lowerBoundsFMC(:);
 settings.upperBoundsGA = settings.upperBoundsFMC(:);
 
 
-settings.lowerBoundsGlobalGA = [1,1,1,1,0.4,0.4,0.4];
-settings.upperBoundsGlobalGA = [3,4,4,4,0.7,0.7,0.7];
+settings.lowerBoundsGlobalGA = [2,2,3,3,0.45,0.77,0.4];
+settings.upperBoundsGlobalGA = [2,2,3,3,0.45,0.77,0.4];
 
 
 % ============================ Function options ===============================
 
 settings.gaTrajOptions = optimoptions("ga", ...
-                        "Display","iter", ...
+                        "Display","none", ...
                         "MaxGenerations",20, ...
                         "PopulationSize",50,...
                         "UseParallel",false,...

@@ -1,4 +1,4 @@
-function [mission] = externalLoads(timeCollocation,stateCollocation,mission,configuration,thrustData,launcher,mer, alpha)
+function [maxQData] = externalLoads(timeCollocation,stateCollocation,mission,configuration,launcher,mer, alpha)
 
 vel = stateCollocation(4:6,:,1:end-1)-stateCollocation(4:6,1,1);
 vel = mission.target.Rfinal* vel(1:3,:);
@@ -6,7 +6,6 @@ absVel = sqrt ( vel(1,:).^2+ vel(2,:).^2 + vel(3,:).^2 );
 
 stageNumber = 1;
 
-normRocket = vel./absVel ;
 
 pos = stateCollocation(1:3,:,1:end-1);
 pos = pos(1:3,:);
@@ -98,12 +97,12 @@ lFinsMaxQ = -rot2*maxq * finsCL * mission.aerodynamics.finsGeom.Sfin * [-sin(alp
 tMaxQ = (aMaxQ - gMaxQ)*massMaxQ - dMaxQ-lMaxQ - dFinsMaxQ - lFinsMaxQ;
 
 % Position computation
-mission.structure.hMaxQ = hMaxQ;
-mission.structure.vMaxQ = vMaxQ;
-mission.structure.massMaxQ = massMaxQ;
+maxQData.hMaxQ = hMaxQ;
+maxQData.vMaxQ = vMaxQ;
+maxQData.massMaxQ = massMaxQ;
 xcp = computeXcp(mission, configuration, launcher);
-xcp_a = mission.aerodynamics.finsGeom.rootChord - computeFinXcp(mission); % compute position starting from the launcher bottom
-xcg = computeXCG(mission, configuration, launcher, mer);
+xcp_a = mission.aerodynamics.finsGeom.rootChord - computeFinXcp(mission,maxQData); % compute position starting from the launcher bottom
+xcg = computeXCG(mission, configuration, launcher, mer, maxQData);
 
 % Deflection angle
 delta = asin((-(lFinsMaxQ(2) + dFinsMaxQ(2)) * (configuration.geometry.totalLength - xcp_a - xcg) + (dMaxQ(2) + lMaxQ(2)) * (xcg - xcp))/(norm(tMaxQ)*(configuration.geometry.totalLength - xcg)));
@@ -116,28 +115,28 @@ aMaxQ = gMaxQ + (dMaxQ+lMaxQ+dFinsMaxQ+lFinsMaxQ+tMaxQ) / massMaxQ;
 
 % ==================== STRUCTURE DA ESTRARRE ==============================
 
-mission.structure.dynamicPressure   = maxq;
-mission.structure.dMaxQ             = dMaxQ;
-mission.structure.lMaxQ             = lMaxQ;
-mission.structure.aMaxQ             = aMaxQ;
-mission.structure.tMaxQ             = tMaxQ;
-mission.structure.massMaxQ          = massMaxQ;
-mission.structure.gMaxQ             = gMaxQ;
-mission.structure.hMaxQ             = hMaxQ;
-mission.structure.vMaxQ             = vMaxQ;
-mission.structure.liftFinsMaxQ      = lFinsMaxQ;
-mission.structure.dragFinsMaxQ      = dFinsMaxQ;
+maxQData.dynamicPressure   = maxq;
+maxQData.dMaxQ             = dMaxQ;
+maxQData.lMaxQ             = lMaxQ;
+maxQData.aMaxQ             = aMaxQ;
+maxQData.tMaxQ             = tMaxQ;
+maxQData.massMaxQ          = massMaxQ;
+maxQData.gMaxQ             = gMaxQ;
+maxQData.hMaxQ             = hMaxQ;
+maxQData.vMaxQ             = vMaxQ;
+maxQData.liftFinsMaxQ      = lFinsMaxQ;
+maxQData.dragFinsMaxQ      = dFinsMaxQ;
 
 m1Stage = configuration.stage{1}.mStage - mer.stage{1}.interStage + massMaxQ - configuration.totalMass;
 
-mission.structure.massMaxQVec = [mission.capsule.weight];
+maxQData.massMaxQVec = [mission.capsule.weight];
 
 for ii = launcher(1):-1:1
 
-    mission.structure.massMaxQVec = [mission.structure.massMaxQVec, mer.stage{ii}.interStage, configuration.stage{ii}.mStage-mer.stage{ii}.interStage];
+    maxQData.massMaxQVec = [maxQData.massMaxQVec, mer.stage{ii}.interStage, configuration.stage{ii}.mStage-mer.stage{ii}.interStage];
 
 end
 
-mission.structure.massMaxQVec(end) = m1Stage;
+maxQData.massMaxQVec(end) = m1Stage;
 
 end

@@ -1,4 +1,4 @@
-function [mission] = thicknessFunction(mission, engineUsed)
+function [updatedStructuralMass] = thicknessFunction(mission, launcher, configuration, maxQData, internalActions)
 
 % Function required to size the launcher thickess of all the different 
 % components of the LV. Evaluation must be done in the most
@@ -20,9 +20,28 @@ function [mission] = thicknessFunction(mission, engineUsed)
 
 % ============================== DATA =====================================
 
-r              = mission.structure.radius; % radius of cylindrical section of each body [m] (VECTOR)
-h              = mission.structure.componentLength; % length of each body [m] (VECTOR)
-a              = mission.structure.aMaxQ;
+r = [mission.capsule.radius];                  % radius of cylindrical section of each body [m] (VECTOR)
+h = [mission.capsule.height];                         % length of each body [m] (VECTOR)
+rhoOx = 0;                                      % density of the oxidizer [kg/m^3]
+rhoFu = 0;                                      % density of the fuel [kg/m^3]
+
+nStages = launcher(1) ;
+
+for ii = 1:nStages
+    enginesUsed{ii} =  mission.engines{launcher(1+ii)};
+end
+
+for ii = launcher(1):-1:1
+    r = [r , configuration.geometry.stage{ii}.interstage.meanRadius, configuration.geometry.stage{ii}.radius ] ;
+    h = [ h, configuration.geometry.stage{ii}.interstage.length, configuration.geometry.stage{ii}.tanksLength] ;
+    
+    rhoOx = [rhoOx, 0, enginesUsed{ii}.oxDens] ;
+    rhoFu = [rhoFu, 0, enginesUsed{ii}.fuelDens] ;
+
+end
+
+
+a              = maxQData.aMaxQ;
 g0             = mission.environment.g0; 
 nx             = a(1) / g0 + 1; 
 SF             = mission.structure.safetyFactor; % safety factor
@@ -33,13 +52,11 @@ shearAllowable = ultimateStress / 2; % ultimate shear stress for chosen material
 rhoMaterial    = mission.structure.rho; % density of the chosen material [kg/m^3] 
 materialNumber = length(E);
 
-rhoOX          = mission.engines{engineUsed}.oxDens; % density of the oxidizer [kg/m^3]
-rhoFu          = mission.engines{engineUsed}.fuelDens; % density of the fuel [kg/m^3]
 
-p              = mission.structure.pressurization; % pressure of component [Pa] [partsNumber x 1]
-N              = mission.structure.N; % Axial Load [N] (from loadFinder) (VECTOR)
-T              = mission.structure.T; % Shear Load [N] (from loadFinder) (VECTOR)
-M              = mission.structure.M; % Bending Moment [Nm] (from loadFinder) (VECTOR)
+
+N              = internalActions.N; % Axial Load [N] (from loadFinder) (VECTOR)
+T              = internalActions.T; % Shear Load [N] (from loadFinder) (VECTOR)
+M              = internalActions.M; % Bending Moment [Nm] (from loadFinder) (VECTOR)
 
 % ============================ SOLUTION ===================================
 
@@ -75,6 +92,14 @@ M = [payloadM, interM, firstStageM];
 
 partsNumber = length(N);
 
+
+pressurization = zeros(partsNumber, 1);
+
+for ii = 3:2:partsNumber
+    pressurization(ii) = mission.structure.tankPressure;
+end
+
+
 t = zeros(partsNumber, materialNumber);
 tVec = zeros(partsNumber, 1);
 mStruct = zeros(partsNumber, 1);
@@ -83,10 +108,10 @@ idx = zeros(partsNumber, 1);
 
 for i = 1 : partsNumber
     
-    if p(i) ~= 0
+    if pressurization(i) ~= 0
         for j = 1 : materialNumber
         % Minimum Allowable Thicknesses
-        tAxial = abs((- N(i) / (2 * pi * r(i)) - M(i) / (pi * r(i)^2)) * SF + p(i) * r(i) / 2 + rhoFu * nx * g0 * r(i) * h(i) / 2) / ultimateStress(j);
+        tAxial = abs((- N(i) / (2 * pi * r(i)) - M(i) / (pi * r(i)^2)) * SF + pressurization(i) * r(i) / 2 + max(rhoFu(i), rhoOx(i)) * nx * g0 * r(i) * h(i) / 2) / ultimateStress(j);
         tShear = T(i) / (2 * pi * r(i) * shearAllowable(j)) * SF;
 
         t(i, j) = max(tAxial, tShear);
@@ -95,19 +120,19 @@ for i = 1 : partsNumber
         bucklingEq = @(t_var) abs( ...
                     - abs(N(i) / (pi*(r(i)^2-(r(i)-t_var)^2))) * SF ...
                     - abs(M(i) / (pi/4*(r(i)^4-(r(i)-t_var)^4)) * r(i)) * SF ...
-                    + abs((p(i) * r(i)) / (2 * t_var)) ...
-                    + abs((rhoFu * nx * g0 * h(i) * r(i)) / (2 * t_var)) ...
-                    ) - (((9 * (t_var/r(i))^0.6 + 0.16 * (r(i)/h(i))^1.3 * (t_var/r(i))^0.3) + min(0.191 * (p(i)/E(j)) * (r(i)/t_var)^2, 0.229)) * E(j) * t_var / r(i));
+                    + abs((pressurization(i) * r(i)) / (2 * t_var)) ...
+                    + abs((max(rhoFu(i), rhoOx(i)) * nx * g0 * h(i) * r(i)) / (2 * t_var)) ...
+                    ) - (((9 * (t_var/r(i))^0.6 + 0.16 * (r(i)/h(i))^1.3 * (t_var/r(i))^0.3) + min(0.191 * (pressurization(i)/E(j)) * (r(i)/t_var)^2, 0.229)) * E(j) * t_var / r(i));
 
         options = optimoptions('fsolve', 'Display', 'off', 'TolFun', 1e-6);
         tBuckling = fsolve(bucklingEq, t(i), options);
         t(i, j) = max(t(i, j), tBuckling);
         end
-
-        [tVec(i), idx(i)] = min(t(i, :));
+        
+        [tVec(i), idx(i)] = min( t(i, :) .* (t(i,:)>=mission.structure.minThickness) + mission.structure.minThickness .* (t(i,:)<mission.structure.minThickness) );
 
         % Hydrostatic pressure
-        pHydro = rhoFu .* nx .* g0 .* h(i);
+        pHydro = max(rhoFu(i), rhoOx(i)) .* nx .* g0 .* h(i);
 
         % Area of the cylinder
         A = pi * (r(i)^2 - (r(i)-tVec(i)).^2);
@@ -116,12 +141,12 @@ for i = 1 : partsNumber
         I = pi / 4 * (r(i)^4 - (r(i) - tVec(i)).^4);
         
         % Mass computation
-        volume = pi .* h(i) .* (r(i)^2 - (r(i) - tVec(i)).^2);
+        volume = pi .* h(i) .* (r(i)^2 - (r(i) - tVec(i)).^2) + 2*pi*(r(i)^3 - (r(i)-tVec(i))^3);
         mStruct(i) = volume .* rhoMaterial(idx(i));
         
         % Buckling for Pressurized Cylinders
         k0 = 9 * (tVec(i) / r(i)).^(0.6) + 0.16 .* (r(i) / h(i)).^(1.3) .* (tVec(i) / r(i)).^(0.3);
-        kp = 0.191 * (p(i) / E(idx(i))) .* (r(i) / tVec(i)).^2;
+        kp = 0.191 * (pressurization(i) / E(idx(i))) .* (r(i) / tVec(i)).^2;
         
         sigmaBuckling = ((k0 + min(kp, 0.229)) * E(idx(i)) .* tVec(i)) / r(i);
         
@@ -133,7 +158,7 @@ for i = 1 : partsNumber
         longitudinalStress = N(i) / A; 
         bendingStress = M(i) ./ I .* r(i);
         shearStress = T(i) ./ A;
-        hoopStress = (p(i) .* r(i) + pHydro .* r(i)) ./ tVec(i);
+        hoopStress = (pressurization(i) .* r(i) + pHydro .* r(i)) ./ tVec(i);
         axialStress = hoopStress / 2;
         
         stressMatrix(i, :) = [longitudinalStress, bendingStress, shearStress, hoopStress, axialStress, sigmaBuckling];
@@ -165,13 +190,13 @@ for i = 1 : partsNumber
         end
         
 
-        [tVec(i), idx(i)] = min(t(i, :));
+        [tVec(i), idx(i)] = min( t(i, :) .* (t(i,:)>=mission.structure.minThickness) + mission.structure.minThickness .* (t(i,:)<mission.structure.minThickness) );
 
         % Area 
         A = pi * (r(i)^2 - (r(i)-tVec(i)).^2);
         
         % Inertia
-        I = pi / 4 * (r(i)^4 - (r(i) - tVec(i)).^4);
+        I = pi / 4 * (r(i)^4 - (r(i) - tVec(i)).^4) ;
         
         % Stresses (MAGNITUDE)
         longitudinalStress = N(i) / A; 
@@ -191,10 +216,9 @@ for i = 1 : partsNumber
 end
 
 % =========================== ESTRAZIONE ==================================
-
-mission.structure.mStruct = mStruct;
-mission.structure.thickness = tVec;
-mission.structure.stressMatrix = stressMatrix;
-mission.structure.materials = idx;
+updatedStructuralMass = sum(mStruct) ;
+% mission.structure.thickness = tVec;
+% mission.structure.stressMatrix = stressMatrix;
+% mission.structure.materials = idx;
 
 end

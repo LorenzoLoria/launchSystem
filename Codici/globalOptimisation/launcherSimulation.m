@@ -19,7 +19,7 @@ else
     end
 
 
-    [~,~,configuration] = initialMassEstimation(mission,configuration,settings,launcher);
+    [mer,staging,configuration] = initialMassEstimation(mission,configuration,settings,launcher);
 
 
     if launcher(1) == 1
@@ -59,23 +59,37 @@ end
 
     end
 
+    
+    currentStructuralMass = 0 ;
+    for i = 1:launcher(1)
+        currentStructuralMass = currentStructuralMass + mer.stage{i}.tankMassFuel + mer.stage{i}.tankMassOx + mer.stage{i}.interStage ;
+    end
+    
 
+    maxMassErr = 0.05 ; 
+    error = maxMassErr + 1 ;
 
-    error = 101;
     xGATrajRS = reshape(xGATraj,settings.nOptPointsTraj,2,launcher(1));
-
     localLowerBoundsFMC = settings.lowerBoundsFMC(:,:,1:launcher(1)) ;
     localUpperBoundsFMC = settings.upperBoundsFMC(:,:,1:launcher(1)) ;
 
-    while error > 100
+    while error > maxMassErr
 
-        [~,fvalFMCTraj] = fmincon ( @(x)objFunFMCTraj(x,launcher,configuration,mission,settings),...
+        [thrustDataVecFMC,fvalFMCTraj] = fmincon ( @(x)objFunFMCTraj(x,launcher,configuration,mission,settings),...
             xGATrajRS,[],[],[],[],...
             localLowerBoundsFMC-eps,localUpperBoundsFMC+eps,...
             @(x) nlconFMCTraj(x,launcher,configuration,mission,settings),...
             settings.fminconTrajOptions);
-        error = 99;
 
+        [timeCollocation,stateCollocation] = totalTrajectoryGlobalGA(launcher,configuration,mission,settings,thrustDataVecFMC);
+        [maxQData] = externalLoads(timeCollocation, stateCollocation, mission, configuration, launcher, mer, 0) ;
+        [internalActions] = loadsFinder(mission, launcher, configuration, maxQData) ; 
+        [updatedStructuralMass] = thicknessFunction(mission, launcher, configuration, maxQData, internalActions) ; 
+
+        configuration.totalMass = configuration.totalMass - currentStructuralMass + updatedStructuralMass ;
+        error = abs(updatedStructuralMass - currentStructuralMass) / currentStructuralMass ;
+        currentStructuralMass = updatedStructuralMass ;   
+        
     end
 
     totalMass = configuration.totalMass ;

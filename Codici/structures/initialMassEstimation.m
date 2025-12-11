@@ -191,9 +191,11 @@ lOverD = 5;
         if i == nStages
     opt.geometry.stage{i}.interstage.length = abs(opt.geometry.stage{i}.radius - mission.capsule.radius)*tan(pi/4);
     opt.geometry.stage{i}.interstage.angle = 45;
+    opt.geometry.stage{i}.interstage.meanRadius = (opt.geometry.stage{i}.radius + mission.capsule.radius)/2 ;
         else
     opt.geometry.stage{i}.interstage.length = 1.1 * (opt.geometry.stage{i+1}.thrustFrame + opt.stage{i+1}.engine.length);
     opt.geometry.stage{i}.interstage.angle  = atand(opt.geometry.stage{i}.interstage.length/abs(( opt.geometry.stage{i}.radius- opt.geometry.stage{i+1}.radius)));
+    opt.geometry.stage{i}.interstage.meanRadius = (opt.geometry.stage{i}.radius + opt.geometry.stage{i+1}.radius)/2 ;
         end
     totalLength = totalLength + opt.geometry.stage{i}.interstage.length + opt.geometry.stage{i}.tanksLength;
     end

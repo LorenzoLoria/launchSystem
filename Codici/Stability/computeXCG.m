@@ -1,4 +1,4 @@
-function Xcg = computeXCG(mission, configuration, launcher, mer)
+function Xcg = computeXCG(mission, configuration, launcher, mer, maxQData)
 % Computes the center of gravity Xcg of a three-stage launcher with a nose cone
 % Assumption: Uniform Weight Distribution 
 %
@@ -33,7 +33,7 @@ if N == 3
 
     m3 = configuration.stage{3}.mStage-mer.stage{3}.interStage; 
     m2 = configuration.stage{2}.mStage-mer.stage{2}.interStage;
-    m1 = configuration.stage{1}.mStage-mer.stage{1}.interStage + mission.structure.massMaxQ - configuration.totalMass;
+    m1 = configuration.stage{1}.mStage-mer.stage{1}.interStage + maxQData.massMaxQ - configuration.totalMass;
     mi1 = mer.stage{1}.interStage;
     mi2 = mer.stage{2}.interStage;
     mi3 = mer.stage{3}.interStage;
@@ -57,7 +57,7 @@ elseif N == 2
     li2 = configuration.geometry.stage{2}.interstage.length;
 
     m2 = configuration.stage{2}.mStage-mer.stage{2}.interStage;
-    m1 = configuration.stage{1}.mStage-mer.stage{1}.interStage + mission.structure.massMaxQ - configuration.totalMass;
+    m1 = configuration.stage{1}.mStage-mer.stage{1}.interStage + maxQData.massMaxQ - configuration.totalMass;
     mi1 = mer.stage{1}.interStage;
     mi2 = mer.stage{2}.interStage;
 
@@ -75,7 +75,7 @@ elseif N == 1
     lc1 = configuration.geometry.stage{1}.tanksLength-configuration.stage{1}.engine.length;
     li1 = configuration.geometry.stage{1}.interstage.length;
 
-    m1 = configuration.stage{1}.mStage-mer.stage{1}.interStage + mission.structure.massMaxQ - configuration.totalMass;
+    m1 = configuration.stage{1}.mStage-mer.stage{1}.interStage + maxQData.massMaxQ - configuration.totalMass;
     mi1 = mer.stage{1}.interStage;
 
     X2 = lco + li1 / 2;

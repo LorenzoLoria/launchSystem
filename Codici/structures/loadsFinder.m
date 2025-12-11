@@ -1,4 +1,4 @@
-function [mission] = loadsFinder(mission, nElements, loadNodes)
+function [internalActions] = loadsFinder(mission, launcher, configuration, maxQData)
 
 % Builds matrix A required to solve the linear system Ax = b where:
 % A = matrix that encodes the equilibrium equations
@@ -10,38 +10,68 @@ function [mission] = loadsFinder(mission, nElements, loadNodes)
 % mission: struct containing the data needed
 % ======================== DATA CONVERSION ================================
 
-m  = mission.structure.massMaxQVec;   
+if launcher(1) == 1
+    nElements = 8;
+elseif launcher(1) == 2
+    nElements = 12;
+elseif launcher(1) == 3
+    nElements = 16;
+end
+
+nNodes = nElements + 1;
+
+% Nodes
+loadNodes = [2,3:2:nNodes-1,nNodes-1];
+
+xcp = computeXcp(mission, configuration,launcher);
+xcp_a = mission.aerodynamics.finsGeom.rootChord - computeFinXcp(mission, maxQData);
+
+% Length of the element used for structural analysis
+h = [mission.capsule.height/2, xcp - mission.capsule.height/2, mission.capsule.height - xcp];
+
+for ii = launcher(1):-1:1
+    if ii == 1
+        h = [ h, configuration.geometry.stage{ii}.interstage.length/2, configuration.geometry.stage{ii}.interstage.length/2, (configuration.geometry.stage{ii}.tanksLength-configuration.stage{1}.engine.length)/2,(configuration.geometry.stage{ii}.tanksLength-configuration.stage{1}.engine.length)/2];
+    else
+        h = [ h, configuration.geometry.stage{ii}.interstage.length/2, configuration.geometry.stage{ii}.interstage.length/2, configuration.geometry.stage{ii}.tanksLength/2,configuration.geometry.stage{ii}.tanksLength/2];
+    end
+end
+
+h(end) = (configuration.geometry.stage{1}.tanksLength-configuration.stage{1}.engine.length)/2 - xcp_a;
+h(end+1) = xcp_a;
+
+    
+
+
+m  = maxQData.massMaxQVec;   
 
 % Drag
-drag    = mission.structure.dMaxQ;
+drag    = maxQData.dMaxQ;
 dragN = drag(1);
 dragT = drag(2);
 
 % Lift
-lift    = mission.structure.lMaxQ;   
+lift    = maxQData.lMaxQ;   
 liftN   = lift(1);
 liftT   = lift(2);
 
 % Gravity
-g0      = mission.structure.gMaxQ;
+g0      = maxQData.gMaxQ;
 gN      = g0(1);
 gT      = g0(2);
 
 % Acceleration
-a       = mission.structure.aMaxQ;
+a       = maxQData.aMaxQ;
 aN      = a(1); 
 aT      = a(2);    
 
-% Length of the elements
-h       = mission.structure.elementLength;
-
 % Fins' Lift
-liftFins  = mission.structure.liftFinsMaxQ;
+liftFins  = maxQData.liftFinsMaxQ;
 liftFinsN = liftFins(1);
 liftFinsT = liftFins(2);
 
 % Fins' Drag
-dragFins  = mission.structure.dragFinsMaxQ;
+dragFins  = maxQData.dragFinsMaxQ;
 dragFinsN = dragFins(1);
 dragFinsT = dragFins(2);
 
@@ -114,7 +144,7 @@ b = b(:);
 % =========================== SOLUTION ====================================
 loads = A \ b;
 
-mission.structure.N = loads(1:3:end);
-mission.structure.T = loads(2:3:end);
-mission.structure.M = loads(3:3:end);
+internalActions.N = loads(1:3:end);
+internalActions.T = loads(2:3:end);
+internalActions.M = loads(3:3:end);
 end

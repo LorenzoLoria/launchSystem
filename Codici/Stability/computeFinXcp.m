@@ -1,4 +1,4 @@
-function Xcp = computeFinXcp(mission)
+function Xcp = computeFinXcp(mission, maxQData)
 % computeFinXcp Computes the center of pressure (xCP) for a fin-stabilized launch vehicle
 %
 % Inputs:
@@ -17,8 +17,8 @@ function Xcp = computeFinXcp(mission)
 bfin   = mission.aerodynamics.finsGeom.bfin;
 cmac = mission.aerodynamics.finsGeom.cmac;
 Sfin   = mission.aerodynamics.finsGeom.Sfin;
-soundSpeed = mission.aerodynamics.soundspeedFun(mission.structure.hMaxQ);
-launcherSpeed = mission.structure.vMaxQ' * mission.structure.vMaxQ;
+soundSpeed = mission.aerodynamics.soundspeedFun(maxQData.hMaxQ);
+launcherSpeed = maxQData.vMaxQ' * maxQData.vMaxQ;
 
 % ========================= SOLUTION ======================================
 
