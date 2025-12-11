@@ -236,6 +236,6 @@ dxdt(1:3)     = v;
 dxdt(4:6)     = (thrustIRF + dragIRF + liftIRF) / m + gravityIRF;
 dxdt(7:10)    = 0.5 * OmegaMat * q;
 dxdt(11:13)   = omegaDot;
-dxdt(14)      = -norm(thrustBRF) / (g0 * iSp);
+dxdt(14)      = - norm(thrustBRF) / (g0 * iSp);
 
 end
