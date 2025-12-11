@@ -1,0 +1,79 @@
+clc
+close all
+clear all
+
+% Optimal Solution form an old GA
+launcher = [2,1,4,4,0.4056,0.4016,0.7];
+% launcher = [2,2,3,3,0.45,0.77, 0.5] ;
+
+[mission,settings] = dataStructGlobal;
+
+for i = 1:launcher(1)
+    configuration.stage{i}.engine = mission.engines{launcher(1+i)};
+end
+
+[mer,staging,configuration] = initialMassEstimation(mission,configuration,settings,launcher);
+
+[xGATraj, fvalGATraj] = ga( @(x) objFunGATraj( reshape(x,settings.nOptPointsTraj,2,launcher(1)),launcher,configuration, mission,settings), ...
+                        launcher(1)*2*settings.nOptPointsTraj,...
+                        [],[],[],[],settings.lowerBoundsGA,settings.upperBoundsGA, ...
+                        @(x) nlconGATraj( reshape(x,settings.nOptPointsTraj,2,launcher(1)),launcher,configuration, mission,settings),settings.gaTrajOptions);
+
+
+thrustData = reshape(xGATraj,settings.nOptPointsTraj,2,2);
+
+[guidanceTime, guidancePoints] = totalTrajectoryGlobalGA(launcher,configuration,mission,settings,thrustData);
+
+
+%% GA for tuning gains
+
+% lowerBounds = [10 1 10 10 10 10 100 100]'; 
+% upperBounds = [1000 1 1000 1000 1000 1000 1000 1000]'; 
+lowerBounds = 0 * ones(12,1) ; 
+upperBounds = inf * ones(12,1) ;
+nVars = length(lowerBounds) ;
+
+% gains0 = [50 0 10 1 0 60 100 10 4 2 8]' ;
+% intCon = 1:12 ;
+
+options_ga = optimoptions("ga", ...
+    "Display","iter", ...
+    "MaxGenerations",30, ...
+    "PopulationSize",200,...
+    "UseParallel",true,...
+    "FunctionTolerance", 1e-4,...
+    "MaxStallGenerations", 10,...
+    'EliteCount',  6);
+
+
+[gains] = ga(@(x) findGains(x, mission, mer, configuration, settings, launcher, guidancePoints, guidanceTime, thrustData), nVars, [],[],[],[],lowerBounds,upperBounds, [] ,[], options_ga) ;
+
+
+
+options = odeset('RelTol',1e-6,'AbsTol',1e-6);
+[t, sol] = ode113(@(t,x) launcherDynamicsAndControlECI(t, x, mission, configuration, launcher, stageNumber, guidancePoints, guidanceTime, gains), tSpan, y0,options);
+
+
+
+
+
+
+
+
+
+function [objective] = findGains(x,mission, mer, configuration, settings,launcher, guidancePoints,guidanceTime, thrustDataVec)
+
+ gains = x ;
+
+    if ~iscolumn(gains)
+        gains = gains' ;
+    end
+
+ [~, stateCollocationControlled] = totalTrajectoryControl(mission,mer,configuration, settings, launcher,thrustDataVec, guidancePoints, guidanceTime, gains);
+
+ finalError = norm(stateCollocationControlled(1:6, end, end)  -  guidancePoints(1:6, end, end));
+
+ error = vecnorm(stateCollocationControlled(1:3, :, :) - guidancePoints(1:3, :, :));
+ objective = sum(error, 'all') + 10 * finalError; % Weighted sum
+
+end
