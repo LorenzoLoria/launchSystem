@@ -1,4 +1,4 @@
-function dxdt = launcherDynamicsAndControlECI(t, x, mission, mer, configuration, launcher, stageNumber, guidancePoints, guidanceTime, gains)
+function dxdt = launcherDynamicsAndControlECI(t, x, mission, mer, configuration, launcher, stageNumber, guidancePoints, guidanceTime, gains, dimentions, engineVec, finsVec)
 
 % STATE:
 % x(1:3)   = r_ECI   [m]
@@ -156,8 +156,9 @@ if abs(dot(ezDes, yRef)) > 0.99
     yRef = [1; 0; 0];
 end
 
-exDes = cross(yRef, ezDes); exDes = exDes / norm(exDes);  % body x-axis
-eyDes = cross(ezDes, exDes);                              % body y-axis
+exDes = cross(yRef, ezDes); 
+exDes = exDes / norm(exDes);  % body x-axis
+eyDes = cross(ezDes, exDes);  % body y-axis
 
 Rdes = [exDes, eyDes, ezDes];  
 
@@ -172,18 +173,18 @@ Q_des = [ qDes(1) -qDes(2) -qDes(3) -qDes(4);
           qDes(3)  qDes(4)  qDes(1) -qDes(2);
           qDes(4) -qDes(3)  qDes(2)  qDes(1) ];
 
-qErr = Q_des * qCurrConj;
+qErrIRF = Q_des * qCurrConj;
 
 % Short-rotation convention
-if qErr(1) < 0
-    qErr = -qErr;
+if qErrIRF(1) < 0
+    qErrIRF = -qErrIRF;
 end
 
 % Error vector in body frame 
-qErrVec = qErr(2:4);
+qErrBRF = [qErrIRF(1) ; IRFtoBRF * qErrIRF(2:4)] ;
 
 % PD torque command (body frame)
-torqueCommandBRF = gains(7:9) .* qErrVec + gains(10:12) .* (0 - omega);
+torqueCommandBRF = gains(7:9) .* qErrBRF(2:4) + gains(10:12) .* (0 - omega);
 
 % Longitudinal thrust to realise commanded acceleration along body x
 aCommandBRF = IRFtoBRF * aCommandIRF;
