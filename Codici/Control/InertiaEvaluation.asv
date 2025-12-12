@@ -33,37 +33,13 @@ for ii = launcher(1):-1:stageNumber
     mStageIter = configuration.stage{ii}.mStage ;
     end
 
-    hInterstageIter = configuration.geometry.stage{ii}.interstage.length;
-    if ii == launcher(1)
-        rBottom = configuration.geometry.stage{ii}.radius; % bottom = lower stage
-        rTop = mission.capsule.radius;
-    else
-        rBottom = configuration.geometry.stage{ii}.radius; % bottom = lower stage
-        rTop = configuration.geometry.stage{ii+1}.radius;
-    end
-    mInterstageIter = mer.stage{ii}.interStage;
-
-    % Center of mass for frustum
-    z_com_local = hInterstageIter - hInterstageIter * (rBottom^2 + 2*rBottom*rTop + 3*rTop^2) / ...
-                  (4 * (rBottom^2 + rBottom*rTop + rTop^2));
-
-    % Moments of inertia for frustum (approximation)
-    Izz_interstage = (3/10) * mInterstageIter * (rBottom^5 - rTop^5) / (rBottom^3 - rTop^3);
-    Ixx_interstage = (3/20) * mInterstageIter * (rBottom^5 - rTop^5) / (rBottom^3 - rTop^3);
-    I_local_inter = diag([Ixx_interstage, Ixx_interstage, Izz_interstage]);
-
-    z_interstage = Xcg - (cumulative_height + z_com_local);
-    r_com_interstage = [0; 0; z_interstage];
-
-    inertia = inertia + translate_inertia(I_local_inter, mInterstageIter, r_com_interstage);
-    cumulative_height = cumulative_height + hInterstageIter;
 
     % Local inertia matrix for stage (cylinder)
     Ixx_stage = (1/12) * mStageIter * (3 * rStageIter^2 + hStageIter^2);
     Izz_stage = (1/2) * mStageIter * rStageIter^2;
     I_local_stage = diag([Ixx_stage, Ixx_stage, Izz_stage]);
 
-    z_stage = Xcg - (cumulative_height + hStageIter / 2); % z-coordinate of the stage's COM
+    z_stage = cumulative_height + hStageIter / 2; % z-coordinate of the stage's COM
     r_com_stage = [0; 0; z_stage];
 
     inertia = inertia + translate_inertia(I_local_stage, mStageIter, r_com_stage);
@@ -71,7 +47,25 @@ for ii = launcher(1):-1:stageNumber
     cumulative_height = cumulative_height + hStageIter;
 
 
+        hInterstageIter = configuration.geometry.stage{ii}.interstage.length;
+        rBottom = configuration.geometry.stage{ii-1}.radius; % bottom = lower stage
+        rTop = configuration.geometry.stage{ii}.radius;
+        mInterstageIter = mer.stage{ii}.interStage;
 
+        % Center of mass for frustum
+        z_com_local = hInterstageIter - hInterstageIter * (rBottom^2 + 2*rBottom*rTop + 3*rTop^2) / ...
+                      (4 * (rBottom^2 + rBottom*rTop + rTop^2));
+
+        % Moments of inertia for frustum (approximation)
+        Izz_interstage = (3/10) * mInterstageIter * (rBottom^5 - rTop^5) / (rBottom^3 - rTop^3);
+        Ixx_interstage = (3/20) * mInterstageIter * (rBottom^5 - rTop^5) / (rBottom^3 - rTop^3);
+        I_local_inter = diag([Ixx_interstage, Ixx_interstage, Izz_interstage]);
+
+        z_interstage = cumulative_height + z_com_local;
+        r_com_interstage = [0; 0; z_interstage];
+
+        inertia = inertia + translate_inertia(I_local_inter, mInterstageIter, r_com_interstage);
+        cumulative_height = cumulative_height + hInterstageIter;
 end
 
 end
