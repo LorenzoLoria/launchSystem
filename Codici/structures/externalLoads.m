@@ -73,7 +73,7 @@ end
 
 lNose = mission.capsule.height + geoStages{nStages}.interstage.length;
 Anose = max(mission.capsule.Area , pi*stageRadius^2) ;
-Aref  = pi / 4 * dCylinder^2;
+Aref  = mission.capsule.Area;
 stage1Radius = geoStages{1}.radius;
 boatTailRadius = geoStages{stageNumber}.radius ;
 dimensions = [stageRadius,lCylinder,dCylinder,lNose,Anose,stage1Radius,boatTailRadius,interstageLength];
