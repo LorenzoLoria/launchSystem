@@ -23,7 +23,7 @@ dCylinder = dCylinder / lCylinder ;
 lambda = lCylinder / dCylinder;                                                                 % Fineness ratio
 
 lNose = dimensions(4);                % lunghezza nose [m] lunghezza capsula + interstage
-Aref = mission.capsule.Area;          % area di riferimento [m^2] cross section cilindro mediato
+Aref = pi/4 * dCylinder^2 ;          % area di riferimento [m^2] cross section cilindro mediato
 Sref = Aref ;
 Anose = dimensions(5);              % area nose [m^2] max tra cross section capsula e ultimo stadio
 phi = pi/4 ;                                                                                    % angolo di giunzione [rad] angolo tra ultimo stadio e interstage di connessione alla capsula
