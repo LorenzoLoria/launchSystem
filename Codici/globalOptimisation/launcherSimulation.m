@@ -71,8 +71,8 @@ end
     localUpperBoundsFMC = settings.upperBoundsFMC(:,:,1:launcher(1)) ;
 
     count = 1 ;
-    maxIter = 1 ;
-    while error > maxMassErr || count <= maxIter
+    maxIter = 3 ;
+    while error > maxMassErr && count <= maxIter
         
         count = count + 1 ;
 
@@ -96,9 +96,9 @@ end
         [internalActions] = loadsFinder(mission, launcher, configuration, maxQData) ; 
         [updatedStructuralMass] = thicknessFunction(mission, launcher, configuration, maxQData, internalActions) ; 
 
-        %configuration.totalMass = configuration.totalMass - currentStructuralMass + updatedStructuralMass ;
-        %error = abs(updatedStructuralMass - currentStructuralMass) / currentStructuralMass ;
-        %currentStructuralMass = updatedStructuralMass ;   
+        configuration.totalMass = configuration.totalMass - currentStructuralMass + updatedStructuralMass ;
+        error = abs(updatedStructuralMass - currentStructuralMass) / currentStructuralMass ;
+        currentStructuralMass = updatedStructuralMass ;   
         
     end
 

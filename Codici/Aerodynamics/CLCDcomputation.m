@@ -223,8 +223,8 @@ else
     mainbodyCD = CAbody * cos(alpha) + CNbody * sin(alpha);
     
     % CL, CD Fins
-    finsCL = CN_fins_tot * cos(alphafins) - CA_fins_tot * sin(alphafins);
-    finsCD = CA_fins_tot * cos(alphafins) + CN_fins_tot * sin(alphafins);
+    finsCL = CL-mainbodyCL;%CN_fins_tot * cos(alphafins) - CA_fins_tot * sin(alphafins);
+    finsCD = CD-mainbodyCD; %CA_fins_tot * cos(alphafins) + CN_fins_tot * sin(alphafins);
 
 end
 

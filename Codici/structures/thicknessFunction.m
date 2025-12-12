@@ -125,7 +125,7 @@ for i = 1 : partsNumber
                     ) - (((9 * (t_var/r(i))^0.6 + 0.16 * (r(i)/h(i))^1.3 * (t_var/r(i))^0.3) + min(0.191 * (pressurization(i)/E(j)) * (r(i)/t_var)^2, 0.229)) * E(j) * t_var / r(i));
 
         options = optimoptions('fsolve', 'Display', 'off', 'TolFun', 1e-6);
-        tBuckling = fsolve(bucklingEq, t(i), options);
+        tBuckling = fsolve(bucklingEq, t(i,j), options);
         t(i, j) = max(t(i, j), tBuckling);
         end
         

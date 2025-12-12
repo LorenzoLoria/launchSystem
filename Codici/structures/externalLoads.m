@@ -86,7 +86,7 @@ finsVec   = [mission.aerodynamics.finsGeom.rootChord, mission.aerodynamics.finsG
     mission.aerodynamics.finsGeom.Lambda_le, mission.aerodynamics.finsGeom.tmac];
 engineVec = [nEngines,aTotZero,aTotVacum];
 
-[~,~,~,~, mainbodyCL, mainbodyCD, finsCL, finsCD] = CLCDcomputation(machNumber,alpha,maxq,1,mission,1,dimensions,engineVec, finsVec);
+[ClProva,cdProva,~,~, mainbodyCL, mainbodyCD, finsCL, finsCD] = CLCDcomputation(machNumber,alpha,maxq,1,mission,1,dimensions,engineVec, finsVec);
 
 dMaxQ = -rot2*maxq * mainbodyCD * Aref * [1;0;0];
 lMaxQ = -rot2*maxq * mainbodyCL * Aref * [0;-1;0];

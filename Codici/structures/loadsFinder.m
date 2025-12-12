@@ -31,13 +31,13 @@ h = [mission.capsule.height/2, xcp - mission.capsule.height/2, mission.capsule.h
 
 for ii = launcher(1):-1:1
     if ii == 1
-        h = [ h, configuration.geometry.stage{ii}.interstage.length/2, configuration.geometry.stage{ii}.interstage.length/2, (configuration.geometry.stage{ii}.tanksLength-configuration.stage{1}.engine.length)/2,(configuration.geometry.stage{ii}.tanksLength-configuration.stage{1}.engine.length)/2];
+        h = [ h, configuration.geometry.stage{ii}.interstage.length/2, configuration.geometry.stage{ii}.interstage.length/2, (configuration.geometry.stage{ii}.tanksLength)/2,(configuration.geometry.stage{ii}.tanksLength)/2];
     else
         h = [ h, configuration.geometry.stage{ii}.interstage.length/2, configuration.geometry.stage{ii}.interstage.length/2, configuration.geometry.stage{ii}.tanksLength/2,configuration.geometry.stage{ii}.tanksLength/2];
     end
 end
 
-h(end) = (configuration.geometry.stage{1}.tanksLength-configuration.stage{1}.engine.length)/2 - xcp_a;
+h(end) = (configuration.geometry.stage{1}.tanksLength)/2 - xcp_a;
 h(end+1) = xcp_a;
 
     
