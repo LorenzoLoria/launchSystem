@@ -49,6 +49,18 @@ posMaxQ = pos(:,idx);
 hMaxQ = absH(idx);
 %dsdt(4:6) = (ThrustIRF + D ) / m + G;  
 
+m1Stage = configuration.stage{1}.mStage - mer.stage{1}.interStage + massMaxQ - configuration.totalMass;
+
+maxQData.massMaxQVec = [mission.capsule.weight];
+
+for ii = launcher(1):-1:1
+
+    maxQData.massMaxQVec = [maxQData.massMaxQVec, mer.stage{ii}.interStage, configuration.stage{ii}.mStage-mer.stage{ii}.interStage];
+
+end
+
+maxQData.massMaxQVec(end) = m1Stage;
+
 soundSpeed = mission.aerodynamics.soundspeedFun(hMaxQ);
 
 machNumber = norm(vMaxQ) / soundSpeed;
@@ -103,7 +115,7 @@ maxQData.vMaxQ = vMaxQ;
 maxQData.massMaxQ = massMaxQ;
 xcp = computeXcp(mission, configuration, launcher);
 xcp_a = mission.aerodynamics.finsGeom.rootChord - computeFinXcp(mission,maxQData); % compute position starting from the launcher bottom
-xcg = computeXcgGlobal(mission, configuration, launcher, mer, massMaxQ, 1);
+xcg = computeXCG(mission, configuration, launcher, mer, maxQData);
 
 % Deflection angle
 delta = asin((-(lFinsMaxQ(2) + dFinsMaxQ(2)) * (configuration.geometry.totalLength - xcp_a - xcg) + (dMaxQ(2) + lMaxQ(2)) * (xcg - xcp))/(norm(tMaxQ)*(configuration.geometry.totalLength - xcg)));
@@ -127,17 +139,4 @@ maxQData.hMaxQ             = hMaxQ;
 maxQData.vMaxQ             = vMaxQ;
 maxQData.liftFinsMaxQ      = lFinsMaxQ;
 maxQData.dragFinsMaxQ      = dFinsMaxQ;
-
-m1Stage = configuration.stage{1}.mStage - mer.stage{1}.interStage + massMaxQ - configuration.totalMass;
-
-maxQData.massMaxQVec = [mission.capsule.weight];
-
-for ii = launcher(1):-1:1
-
-    maxQData.massMaxQVec = [maxQData.massMaxQVec, mer.stage{ii}.interStage, configuration.stage{ii}.mStage-mer.stage{ii}.interStage];
-
-end
-
-maxQData.massMaxQVec(end) = m1Stage;
-
 end

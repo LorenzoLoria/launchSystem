@@ -52,7 +52,7 @@ if N == 3
 elseif N == 2
 
     lc2 = configuration.geometry.stage{2}.tanksLength;
-    lc1 = configuration.geometry.stage{1}.tanksLength-configuration.stage{1}.engine.length;
+    lc1 = configuration.geometry.stage{1}.tanksLength;
     li1 = configuration.geometry.stage{1}.interstage.length;
     li2 = configuration.geometry.stage{2}.interstage.length;
 
