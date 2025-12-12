@@ -1,4 +1,4 @@
-function Xcp = computeXcpGlobal(mission, opt,launcher, alpha)
+function Xcp = computeXcpGlobal(mission, configuration,launcher, alpha, stageNumber)
 % Calculates the center of pressure of the launcher
 % Inputs:
 %   N : number of stage (variable, depends on flight condition)
@@ -11,33 +11,20 @@ function Xcp = computeXcpGlobal(mission, opt,launcher, alpha)
 
 
 % ========================== DATA CONVERSION ==============================
-N = launcher(1);
+N = launcher(1) - (stageNumber - 1);
 lco = mission.capsule.height;
-
+lc = zeros(1, N);
 % ============================ SOLUTION ===================================
-if N == 3
-    lc1 = opt.geometry.stage{1}.length;
-    lc2 = opt.geometry.stage{2}.length;
-    lc3 = opt.geometry.stage{3}.length;
-    li1 = opt.geometry.stage{1}.interstage.length;
-    li2 = opt.geometry.stage{2}.interstage.length;
-    li3 = opt.geometry.stage{3}.interstage.length;
-    l   = opt.geometry.totalLength; 
-elseif N == 2
-    lc1 = opt.geometry.stage{1}.length;
-    lc2 = opt.geometry.stage{2}.length;
-    li1 = opt.geometry.stage{1}.interstage.length;
-    li2 = opt.geometry.stage{2}.interstage.length;
-    l   = opt.geometry.totalLength;
-elseif N == 1
-    lc1 = opt.geometry.stage{1}.length;
-    li1 = opt.geometry.stage{1}.interstage.length;
-    l   = opt.geometry.totalLength;
-else
-    l = lco;
+
+for i = (launcher(1)-stageNumber+1) : -1 : 1
+    lc(i) = configuration.geometry.stage{i}.tanksLength;
+    li(i) = configuration.geometry.stage{i}.interstage.length;
 end
+
+l = lco + sum(lc) ;
 
 Xcp_over_l = 0.63*(1-(sin(alpha))^2)+ 0.5*l/lco*(sin(alpha))^2;
 Xcp = Xcp_over_l*lco;
+
 
 end
