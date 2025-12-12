@@ -200,7 +200,7 @@ lOverD = 5;
     totalLength = totalLength + opt.geometry.stage{i}.interstage.length + opt.geometry.stage{i}.tanksLength;
     end
     
-opt.geometry.totalLength = totalLength - opt.stage{1}.engine.length;
-opt.geometry.totalLengthwEngine = totalLength ;
+opt.geometry.totalLength = totalLength ;
+opt.geometry.totalLengthwEngine = totalLength + opt.stage{1}.engine.length ;
     
 end
