@@ -4,20 +4,20 @@ ceq = [];
 
 nlconFlag = 1; 
 
-[output] = launcherSimulation(launcher,mission,settings,nlconFlag);
+[~,outputNLC] = launcherSimulation(launcher,mission,settings,nlconFlag);
 
-if isnan(output)
+if isnan(outputNLC)
     keyboard
 end
-if isinf(output)
+if isinf(outputNLC)
     keyboard
 end
-if ~isreal(output)
+if ~isreal(outputNLC)
     keyboard
 end
 
 
-cin = [output];
+cin = [outputNLC];
 
 
 

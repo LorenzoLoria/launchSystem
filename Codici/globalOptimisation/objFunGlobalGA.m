@@ -2,17 +2,17 @@ function  [objective] = objFunGlobalGA(launcher,mission,settings)
 
 nlconFlag = 0;
 
-[output] = launcherSimulation(launcher,mission,settings,nlconFlag);
+[outputOBJ] = launcherSimulation(launcher,mission,settings,nlconFlag);
 
-if ~isstruct(output)
+if ~isstruct(outputOBJ)
     keyboard
 end
 
 
-totalMass = output.launcherMass ; 
-tof = output.tof ; 
+totalMass = outputOBJ.launcherMass ; 
+tof = outputOBJ.tof ; 
 
-if isempty(output)
+if isempty(outputOBJ)
     keyboard
 end
 

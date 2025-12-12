@@ -56,7 +56,7 @@ function dsdt = launcherDynamicsECI(t, x,thrustData, mission,stageNumber,opt,opt
     
     rMag = sqrt(r'*r);
     
-    A   = mission.capsule.Area;
+    A   = dimensions(1)*pi^2;
     g0  = mission.environment.g0; 
     GM  = mission.environment.GM;
  
@@ -69,8 +69,9 @@ function dsdt = launcherDynamicsECI(t, x,thrustData, mission,stageNumber,opt,opt
     
     if Mach == 0
         Cd = 0.01;
+        Cl = 0;
     else
-    [~,Cd,~,~] = CLCDcomputation(Mach,0,dynamicPressure,1,mission,stageNumber,dimensions,engineVec, finsVec);
+    [Cl,Cd,~,~,~,~,~] = CLCDcomputation(Mach,0,dynamicPressure,1,mission,stageNumber,dimensions,engineVec, finsVec);
     end
     optVar = thrustData(t); 
     
@@ -98,10 +99,17 @@ end
 ThrustBRF = percVec * engineVec(1) *(thrustValue+staticContribution)* [cos(thetaGimball)*cos(gammaGimball); cos(thetaGimball)*sin(gammaGimball); sin(thetaGimball)];
 ThrustIRF = mission.target.Rfinal'*ThrustBRF;
 
+n =  mission.target.Rfinal(3,:)' ; 
 
-    % Drag contribution
+lDir = cross(v,n);
+lDir = lDir/norm(lDir);
+if isnan(lDir)
+    lDir = [0,0,0]';
+end
+
+% Drag contribution
     D = - 0.5 .* rho .* vMag .* A .* Cd .* vRel; 
-
+    L = 0.5 .*rho .*vMag^2 * A .* Cl * lDir;
     % Gravity contribution
     G = - GM * r /rMag^3;
 
@@ -116,11 +124,18 @@ ThrustIRF = mission.target.Rfinal'*ThrustBRF;
     dsdt(1:3) = v;
 
     % Acceleration derivatives (Velocity rates)
-    dsdt(4:6) = (ThrustIRF + D ) / m + G;  
+    dsdt(4:6) = (ThrustIRF + D + L ) / m + G;  
 
     
     % Mass derivative
     dsdt(7) = mDot; 
 
+% 
+% nigga = acosd(dot(ThrustIRF,v)/norm(ThrustIRF)/norm(v));
+% if isnan(nigga)
+%    nigga = 0;
+% end
+% scatter(t,nigga)
+% hold on
 
 end
