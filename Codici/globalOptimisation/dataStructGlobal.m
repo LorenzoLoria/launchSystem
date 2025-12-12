@@ -200,17 +200,17 @@ settings.nOptPointsTraj = 5 ;
 
 % ============================ Initial population internal GA ===============================
 
-settings.initialPopulationGATraj.oneStage = load("/Users/matildeformiconi/Desktop/GitHub/launchSystem/Codici/globalOptimisation/InitialPop1stages.mat") ;
+settings.initialPopulationGATraj.oneStage = load("InitialPop1stages.mat") ;
 settings.initialPopulationGATraj.oneStage = settings.initialPopulationGATraj.oneStage.X ;
 clear settings.initialPopulationGATraj.oneStage.X ;
 
 
-settings.initialPopulationGATraj.twoStages = load("/Users/matildeformiconi/Desktop/GitHub/launchSystem/Codici/globalOptimisation/InitialPop2stages.mat") ;
+settings.initialPopulationGATraj.twoStages = load("InitialPop2stages.mat") ;
 settings.initialPopulationGATraj.twoStages = settings.initialPopulationGATraj.twoStages.X ;
 clear settings.initialPopulationGATraj.twoStages.X ;
 
 
-settings.initialPopulationGATraj.threeStages = load("/Users/matildeformiconi/Desktop/GitHub/launchSystem/Codici/globalOptimisation/InitialPop3stages.mat") ;
+settings.initialPopulationGATraj.threeStages = load("InitialPop3stages.mat") ;
 settings.initialPopulationGATraj.threeStages = settings.initialPopulationGATraj.threeStages.X ;
 clear settings.initialPopulationGATraj.threeStages.X ;
 
