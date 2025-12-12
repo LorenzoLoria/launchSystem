@@ -1,4 +1,4 @@
-function [landLoads] = landLoads(mission)
+function [landLoads] = landLoads(mission, configuration, mer, launcher)
 
 % Function required to compute the loads to which the launcher is subject
 % to when on the launchpad
@@ -10,14 +10,17 @@ function [landLoads] = landLoads(mission)
 
 % ======================== DATA CONVERSION ================================
 
+
+
+
 % =========================== SOLUTION ====================================
 
 if launcher(1) == 1
-    nElements = 8;
+    nElements = 6;
 elseif launcher(1) == 2
-    nElements = 12;
+    nElements = 10;
 elseif launcher(1) == 3
-    nElements = 16;
+    nElements = 14;
 end
 
 nNodes = nElements + 1;
@@ -25,14 +28,8 @@ nNodes = nElements + 1;
 % Nodes
 loadNodes = [2,3:2:nNodes-1,nNodes-1];
 
-xcp = computeXcp(mission, configuration,launcher);
-xcp_a = mission.aerodynamics.finsGeom.rootChord - computeFinXcp(mission, maxQData);
-
-% Computation of centroids
-centroidCapsule = mission.capsule.height / 3;
-
 % Length of the element used for structural analysis
-h = [centroidCapsule];
+h = [mission.capsule.height / 2]; % centroid of payload
 
 for ii = launcher(1):-1:1
     if ii == 1
