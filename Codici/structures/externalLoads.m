@@ -73,6 +73,7 @@ end
 
 lNose = mission.capsule.height + geoStages{nStages}.interstage.length;
 Anose = max(mission.capsule.Area , pi*stageRadius^2) ;
+Aref  = mission.capsule.Area;
 stage1Radius = geoStages{1}.radius;
 boatTailRadius = geoStages{stageNumber}.radius ;
 dimensions = [stageRadius,lCylinder,dCylinder,lNose,Anose,stage1Radius,boatTailRadius,interstageLength];
@@ -87,12 +88,12 @@ engineVec = [nEngines,aTotZero,aTotVacum];
 
 [~,~,~,~, mainbodyCL, mainbodyCD, finsCL, finsCD] = CLCDcomputation(machNumber,alpha,maxq,1,mission,1,dimensions,engineVec, finsVec);
 
-dMaxQ = -rot2*maxq * mainbodyCD *mission.capsule.Area* [1;0;0];
-lMaxQ = -rot2*maxq * mainbodyCL *mission.capsule.Area * [0;-1;0];
+dMaxQ = -rot2*maxq * mainbodyCD * Aref * [1;0;0];
+lMaxQ = -rot2*maxq * mainbodyCL * Aref * [0;-1;0];
 gMaxQ = -rot3'*mission.target.Rfinal* mission.environment.GM * posMaxQ /norm(posMaxQ)^3;
 alphaFin = 10 * pi / 180;
-dFinsMaxQ = -rot2*maxq * finsCD * mission.aerodynamics.finsGeom.Sfin * [cos(alphaFin);sin(alphaFin);0];
-lFinsMaxQ = -rot2*maxq * finsCL * mission.aerodynamics.finsGeom.Sfin * [-sin(alphaFin);cos(alphaFin);0];
+dFinsMaxQ = -rot2*maxq * finsCD * Aref * [cos(alphaFin);sin(alphaFin);0];
+lFinsMaxQ = -rot2*maxq * finsCL * Aref * [-sin(alphaFin);cos(alphaFin);0];
 
 tMaxQ = (aMaxQ - gMaxQ)*massMaxQ - dMaxQ-lMaxQ - dFinsMaxQ - lFinsMaxQ;
 
@@ -102,7 +103,7 @@ maxQData.vMaxQ = vMaxQ;
 maxQData.massMaxQ = massMaxQ;
 xcp = computeXcp(mission, configuration, launcher);
 xcp_a = mission.aerodynamics.finsGeom.rootChord - computeFinXcp(mission,maxQData); % compute position starting from the launcher bottom
-xcg = computeXCG(mission, configuration, launcher, mer, maxQData);
+xcg = computeXcgGlobal(mission, configuration, launcher, mer, massMaxQ, 1);
 
 % Deflection angle
 delta = asin((-(lFinsMaxQ(2) + dFinsMaxQ(2)) * (configuration.geometry.totalLength - xcp_a - xcg) + (dMaxQ(2) + lMaxQ(2)) * (xcg - xcp))/(norm(tMaxQ)*(configuration.geometry.totalLength - xcg)));

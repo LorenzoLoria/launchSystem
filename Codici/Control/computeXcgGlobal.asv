@@ -37,7 +37,7 @@ for i = (launcher(1)-stageNumber+1) : -1 : 1
     end
     if i == launcher(1)
         rBottom = configuration.geometry.stage{i}.radius; % bottom = lower stage
-        rTop = mission.capsule.radius;
+        rTop = configuration.geometry.stage{i+1}.radius;
     else
         rBottom = configuration.geometry.stage{i}.radius; % bottom = lower stage
         rTop = configuration.geometry.stage{i+1}.radius;

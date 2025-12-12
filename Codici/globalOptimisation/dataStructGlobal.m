@@ -146,7 +146,7 @@ mission.aerodynamics.finsGeom.rootChord   = 1.81;                      % root ch
 mission.aerodynamics.finsGeom.tipChord   = 0.45;                       % tip chord [m] (triangolo puro)
 mission.aerodynamics.finsGeom.bfin    = 1.81;                      % semispan [m]
 
-mission.aerodynamics.finsGeom.Nfins = 4;              
+mission.aerodynamics.finsGeom.Nfins = 2;              
 mission.aerodynamics.finsGeom.Sfin = 0.5 * (mission.aerodynamics.finsGeom.rootChord+mission.aerodynamics.finsGeom.tipChord) * mission.aerodynamics.finsGeom.bfin;       % area della fin [m^2]
 mission.aerodynamics.finsGeom.lambda = mission.aerodynamics.finsGeom.tipChord / mission.aerodynamics.finsGeom.rootChord;
 mission.aerodynamics.finsGeom.cmac = (2/3) * mission.aerodynamics.finsGeom.rootChord * (1 + mission.aerodynamics.finsGeom.lambda + mission.aerodynamics.finsGeom.lambda^2) / (1 + mission.aerodynamics.finsGeom.lambda);       % mean aerodynamic chord [m]
