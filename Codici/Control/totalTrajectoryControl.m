@@ -15,7 +15,7 @@ for i = 1:nStages
             q0 = [1; 0; 0; 0] ;
             x0 = [mission.launchBase.initialPointECI'; 0; 0; 0; q0; 0; 0; 0; m0];
             t0 = 0;
-            tf = configuration.stage{i}.mProp * (length(thrustDataVec(:,1,i))-1)* configuration.stage{i}.engine.ispZero * mission.environment.g0 * 2 ;
+            tf = guidanceTime(end,i);
             thrustValue = configuration.stage{i}.engine.thrustZero;
             guidancePointsStage = squeeze(guidancePoints(1:end-1, :,i)) ;
             guidanceTimeStage = guidanceTime(:,i) ;
@@ -23,13 +23,12 @@ for i = 1:nStages
             m0 = m0 - configuration.stage{i-1}.mStage;
             x0 = [stateCollocationControlled(1:end-1,end,i-1); m0];
             t0 = timeCollocationControlled(end,i-1);
-            tf = configuration.stage{i}.mProp * (length(thrustDataVec(:,1,i))-1)* configuration.stage{i}.engine.ispVac * mission.environment.g0 * 2 ;
+            tf = guidanceTime(end,i);
             thrustValue = configuration.stage{i}.engine.thrustVacum;
             guidancePointsStage = squeeze(guidancePoints(1:end-1,:, i)) ;
             guidanceTimeStage = guidanceTime(:,i) ;
         end
 
-    tf = tf / (configuration.stage{i}.nEngines * thrustValue) / (2*sum(thrustDataVec(:,1,i)) - thrustDataVec(1,1,i) - thrustDataVec(end,1,i)) ;
     tSpan = [t0 t0+tf]; 
     
     tVec = linspace(tSpan(1),tSpan(end),size(thrustDataVec,1));    

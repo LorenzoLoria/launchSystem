@@ -33,14 +33,37 @@ m = 150e3;
 thrustData = reshape(xGATraj,settings.nOptPointsTraj,2,2);
 
 [guidanceTime, guidancePoints] = totalTrajectoryGlobalGA(launcher,configuration,mission,settings,thrustData);
+%%
+figure
+EarthPlot(mission.environment.rEarth)
+hold on
+plot3(guidancePoints(1,:,1),guidancePoints(2,:,1),guidancePoints(3,:,1))
+plot3(guidancePoints(1,:,2),guidancePoints(2,:,2),guidancePoints(3,:,2))
+plot3(guidancePoints(1,:,3),guidancePoints(2,:,3),guidancePoints(3,:,3))
+plot3(mission.target.initialPointECI(1),mission.target.initialPointECI(2),mission.target.initialPointECI(3),'ro')
 
+guidancePoints2D(:,:,1) = [mission.target.Rfinal*guidancePoints(1:3,:,1);mission.target.Rfinal*guidancePoints(4:6,:,1)];
+guidancePoints2D(:,:,2) = [mission.target.Rfinal*guidancePoints(1:3,:,2);mission.target.Rfinal*guidancePoints(4:6,:,2)];
+guidancePoints2D(:,:,3) = [mission.target.Rfinal*guidancePoints(1:3,:,3);mission.target.Rfinal*guidancePoints(4:6,:,3)];
+
+%%
+gains = ones(8,1);
+gains(7)=100;
+[timeCollocationControlled, stateCollocationControlled] = totalTrajectoryControl(mission,mer,configuration,settings, launcher,thrustData, guidancePoints, guidanceTime, gains)
+figure
+EarthPlot(mission.environment.rEarth)
+hold on
+plot3(stateCollocationControlled(1,:,1),stateCollocationControlled(2,:,1),stateCollocationControlled(3,:,1))
+plot3(stateCollocationControlled(1,:,2),stateCollocationControlled(2,:,2),stateCollocationControlled(3,:,2))
+plot3(stateCollocationControlled(1,:,3),stateCollocationControlled(2,:,3),stateCollocationControlled(3,:,3))
+plot3(mission.target.initialPointECI(1),mission.target.initialPointECI(2),mission.target.initialPointECI(3),'ro')
 
 %% GA for tuning gains
 
 % lowerBounds = [10 1 10 10 10 10 100 100]'; 
 % upperBounds = [1000 1 1000 1000 1000 1000 1000 1000]'; 
-lowerBounds = 0 * ones(12,1) ; 
-upperBounds = inf * ones(12,1) ;
+lowerBounds = 0 * ones(7,1) ; 
+upperBounds = inf * ones(7,1) ;
 nVars = length(lowerBounds) ;
 
 % gains0 = [50 0 10 1 0 60 100 10 4 2 8]' ;
@@ -48,8 +71,8 @@ nVars = length(lowerBounds) ;
 
 options_ga = optimoptions("ga", ...
     "Display","iter", ...
-    "MaxGenerations",30, ...
-    "PopulationSize",200,...
+    "MaxGenerations",20, ...
+    "PopulationSize",100,...
     "UseParallel",true,...
     "FunctionTolerance", 1e-4,...
     "MaxStallGenerations", 10,...
@@ -58,6 +81,16 @@ options_ga = optimoptions("ga", ...
 
 [gains] = ga(@(x) findGains(x, mission, mer, configuration, settings, launcher, guidancePoints, guidanceTime, thrustData), nVars, [],[],[],[],lowerBounds,upperBounds, [] ,[], options_ga) ;
 
+
+%%
+[timeCollocationControlled, stateCollocationControlled] = totalTrajectoryControl(mission,mer,configuration,settings, launcher,thrustData, guidancePoints, guidanceTime, gains)
+figure
+EarthPlot(mission.environment.rEarth)
+hold on
+plot3(stateCollocationControlled(1,:,1),stateCollocationControlled(2,:,1),stateCollocationControlled(3,:,1))
+plot3(stateCollocationControlled(1,:,2),stateCollocationControlled(2,:,2),stateCollocationControlled(3,:,2))
+plot3(stateCollocationControlled(1,:,3),stateCollocationControlled(2,:,3),stateCollocationControlled(3,:,3))
+plot3(mission.target.initialPointECI(1),mission.target.initialPointECI(2),mission.target.initialPointECI(3),'ro')
 
 
 
@@ -78,9 +111,9 @@ function [objective] = findGains(x,mission, mer, configuration, settings,launche
 
  [~, stateCollocationControlled] = totalTrajectoryControl(mission,mer,configuration, settings, launcher,thrustDataVec, guidancePoints, guidanceTime, gains);
 
- finalError = norm(stateCollocationControlled(1:6, end, end)  -  guidancePoints(1:6, end, end));
+ objective = norm(stateCollocationControlled(1:3, end, end)  -  guidancePoints(1:3, end, end));
 
- error = vecnorm(stateCollocationControlled(1:3, :, :) - guidancePoints(1:3, :, :));
- objective = sum(error, 'all') + 10 * finalError; % Weighted sum
+ %error = vecnorm(stateCollocationControlled(1:3, :, :) - guidancePoints(1:3, :, :));
+ %objective = sum(error, 'all') + 10 * finalError; % Weighted sum
 
 end

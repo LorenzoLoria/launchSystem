@@ -1,4 +1,4 @@
-function dsdt = launcherDynamicsECIControlled(t, x,stateCollocation,timeCollocation, mission,stageNumber,opt,option2D,dimensions,engineVec,windVelXFun,windVelYFun,maxThrust,maxGimball,thrustData,gainGA)
+function dsdt = launcherDynamicsECIControlled(t, x,stateCollocation,timeCollocation, mission,stageNumber,opt,option2D,dimensions,engineVec,windVelXFun,windVelYFun,maxGimball,thrustData,gainGA,finsVec)
     
 
     % stateCollocation è quella del singolo stadio
@@ -36,19 +36,21 @@ function dsdt = launcherDynamicsECIControlled(t, x,stateCollocation,timeCollocat
     if Mach == 0
         Cd = 0.01;
     else
-    [~,Cd,~,~] = CLCDcomputation(Mach,0,dynamicPressure,1,mission,stageNumber,dimensions,engineVec);
+    [~,Cd,~,~] = CLCDcomputation(Mach,0,dynamicPressure,1,mission,stageNumber,dimensions,engineVec,finsVec);
     end 
 
     if stageNumber == 1
         staticContribution = (101325-mission.environment.pressure(h))*opt.stage{stageNumber}.engine.effAreaZero;
         isp = opt.stage{stageNumber}.engine.ispZero;
         thrustValue = opt.stage{stageNumber}.engine.thrustZero;
+        thrustMax = (thrustValue + staticContribution) * opt.stage{stageNumber}.nEngines;
     else
         staticContribution = 0;
         isp = opt.stage{stageNumber}.engine.ispVac;
         thrustValue = opt.stage{stageNumber}.engine.thrustVacum;
+        thrustMax = (thrustValue + staticContribution) * opt.stage{stageNumber}.nEngines;
     end
-    thrustMax = maxThrust(stageNumber) + staticContribution;
+    
     gain = gainGA([1:6]+6*(stageNumber-1))';
 
     if t < 15

@@ -27,7 +27,7 @@ end
 thrustData(:,:,1) = [xGATraj(1:5)',xGATraj(6:10)'];
 thrustData(:,:,2) = [xGATraj(11:15)',xGATraj(16:20)'];
 
-% Nominal Trajectory
+%% Nominal Trajectory
 [timeCollocationRef, stateCollocationRef] = totalTrajectoryGlobalGA(launcher,configuration,mission,settings,thrustData);
 %% Create a wind different from nominal to get the gains from the GA
 
@@ -49,7 +49,6 @@ montecarlo.vyWind = windAngVel .* (mission.environment.rEarth + hVec) .* cos(lon
 windVelXFun = griddedInterpolant(hVec,montecarlo.vxWind(1,:),'linear','linear');
 windVelYFun = griddedInterpolant(hVec,montecarlo.vyWind(1,:),'linear','linear');
 
-maxThrust = [mission.engines{1}.thrustZero*4 ; mission.engines{4}.thrustVacum];
 
 settings.gaControl = optimoptions("ga", ...
                         "Display","iter", ...
@@ -62,7 +61,7 @@ settings.gaControl = optimoptions("ga", ...
 
 % set the GA
 nVarsGA = launcher(1) * 6;
-fun = @(gainGA) objGAGainsMonte(gainGA,launcher,configuration,mission,settings,windVelXFun,windVelYFun,stateCollocationRef,timeCollocationRef,maxThrust,10,thrustData);
+fun = @(gainGA) objGAGainsMonte(gainGA,launcher,configuration,mission,settings,windVelXFun,windVelYFun,stateCollocationRef,timeCollocationRef,10,thrustData);
 lb = zeros(nVarsGA,1);
 ub = inf * ones(nVarsGA,1);
 
@@ -101,7 +100,7 @@ parfor parforiter = 1:sizeMC
     windVelYFun = griddedInterpolant(hVec,montecarlo.vyWind(parforiter,:),'linear','linear');
 
     % Integration of the trajectory
-    [timeCollocation, stateCollocation] = totalTrajectoryControlled(launcher,configuration,mission,settings,windVelXFun,windVelYFun,stateCollocationRef,timeCollocationRef,maxThrust,10,thrustData,gainGA);
+    [timeCollocation, stateCollocation] = totalTrajectoryControlled(launcher,configuration,mission,settings,windVelXFun,windVelYFun,stateCollocationRef,timeCollocationRef,10,thrustData,gainGA);
 
     % Error
     distanceFromTargetControlled(parforiter) = norm(stateCollocation(1:3,end,end)-mission.target.initialPointECI);
