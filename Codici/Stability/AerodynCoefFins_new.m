@@ -1,4 +1,4 @@
-function [CN_surf, CD0_surf_friction, CD0_surf_wave] = AerodynCoefFins_new(mission, cmac, lambda_le, Se, delta_le, tmac)
+function [CN_surf, CD0_surf_friction, CD0_surf_wave] = AerodynCoefFins_new(mission)
 % Calculates aerodynamic coefficients for fins
 % Inputs:
 %   alpha_p    : local angle of attack [rad]
@@ -27,18 +27,19 @@ soundSpeed = mission.aerodynamics.soundspeedFun(mission.structure.hMaxQ);
 launcherSpeed = norm(mission.structure.vMaxQ);
 q = mission.structure.dynamicPressure;
 Sref = mission.aerodynamics.bodyGeom.Aref;
+delta_le = mission.aerodynamics.finsGeomStage.delta_le;
+lambda_le = mission.aerodynamics.finsGeomStage.lambda_le;
+bfin   = mission.aerodynamics.finsGeomStage.bfin;
+be = 2*bfin;
+Sfin   = mission.aerodynamics.finsGeomStage.Sfin;
+Se = 2*Sfin;
+cmac = mission.aerodynamics.finsGeomStage.cmac;
+tmac = mission.aerodynamics.finsGeomStage.tmac;
 
 
 % =============================== SOLUTION ================================
 Mach = launcherSpeed/soundSpeed;
 M_ale = Mach * cosd(lambda_le);
-
-
-%Data proportional SaturnV 
-% A = 5.3;
-% Se = be^2*0.1875;
-% delta_le = 20.6;
-% lambda_le = 36.9;
 
 
 % --- Normal force coefficient
