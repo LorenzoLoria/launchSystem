@@ -139,8 +139,8 @@ end
 %CG evaluation
 h4CG = cumsum(h);
 h4CG = h4CG([1,3:end]);
-h4cgFinal = h4CG(1:2:end);
-xcg = centerOfGravity(maxQData.massMaxQVec, h4cgFinal );
+maxQData.h4cgFinal = h4CG(1:2:end);
+xcg = centerOfGravity(maxQData.massMaxQVec, maxQData.h4cgFinal );
 
 
 % Deflection angle
