@@ -34,7 +34,7 @@ thrustData(:,:,2) = [thrustDataGA.xGATraj(11:15)',thrustDataGA.xGATraj(16:20)'];
 
 [maxQData] = externalLoads(timeCollocation, stateCollocation, mission, configuration, launcher, mer, 0, staging) ;
 [internalActions] = loadsFinder(mission, launcher, configuration, maxQData) ; 
-[updatedStructuralMass] = thicknessFunction(mission, launcher, configuration, maxQData, internalActions) ; 
+%[updatedStructuralMass] = thicknessFunction(mission, launcher, configuration, maxQData, internalActions) ; 
 
 N = internalActions.N;
 T = internalActions.T;
@@ -124,21 +124,22 @@ M = internalActions.M;
 
 xcp = computeXcp(mission, configuration,launcher);
 xcp_a = mission.aerodynamics.finsGeom.rootChord - computeFinXcp(mission, maxQData);
-xcg = computeXcgGlobal(mission, configuration, launcher, mer, maxQData.massMaxQ, 1);
+xcg = centerOfGravity(mission, configuration, launcher, mer, maxQData.massMaxQ, 1);
 
 % Length of the element used for structural analysis
 h = [mission.capsule.height/2, xcp - mission.capsule.height/2, mission.capsule.height - xcp];
 
 for ii = launcher(1):-1:1
-    if ii == 1
-        h = [ h, configuration.geometry.stage{ii}.interstage.length/2, configuration.geometry.stage{ii}.interstage.length/2, (configuration.geometry.stage{ii}.tanksLength)/2,(configuration.geometry.stage{ii}.tanksLength)/2];
-    else
-        h = [ h, configuration.geometry.stage{ii}.interstage.length/2, configuration.geometry.stage{ii}.interstage.length/2, configuration.geometry.stage{ii}.tanksLength/2,configuration.geometry.stage{ii}.tanksLength/2];
-    end
+        h = [ h, configuration.geometry.stage{ii}.interstage.length/2, ...
+            configuration.geometry.stage{ii}.interstage.length/2, ...
+            configuration.stage{ii}.fuelTankH/2, configuration.stage{ii}.fuelTankH/2, ...
+            configuration.stage{ii}.oxTankH/2, configuration.stage{ii}.oxTankH/2, ...
+            configuration.geometry.stage{ii}.thrustFrame/2,configuration.geometry.stage{ii}.thrustFrame/2];
 end
 
-h(end) = (configuration.geometry.stage{1}.tanksLength)/2 - xcp_a;
+h(end) = configuration.geometry.stage{ii}.thrustFrame/2 - xcp_a;
 h(end+1) = xcp_a;
+
 nPointsPerComponent = 100;
 
 x_all = [];

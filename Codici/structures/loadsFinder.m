@@ -24,7 +24,7 @@ nNodes = nElements + 1;
 
 % 2stages: [xcgpay, xcp, xgcintII, xcgfuII, xcgOxII, xcgintI, xcgfuI, xcgOxI, xcpFins] 
 loadNodes = [2,3:2:nNodes-1,nNodes-1];
-loadNodes([2,3]) = loadNodes([3,2]);
+loadNodes([1,2]) = loadNodes([2,1]);
 
 xcp = computeXcp(mission, configuration,launcher);
 xcp_a = mission.aerodynamics.finsGeom.rootChord - computeFinXcp(mission, maxQData);
