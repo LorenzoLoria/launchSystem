@@ -27,6 +27,6 @@ thrustDataVec = x;
 
 
 
-cin = [(accMax-6*mission.environment.g0)/mission.environment.g0];
+cin = [(accMax-6*mission.environment.g0)/mission.environment.g0,angleWrtVelMax-20];
 ceq = [];
 end
