@@ -32,7 +32,7 @@ thrustData(:,:,2) = [thrustDataGA.xGATraj(11:15)',thrustDataGA.xGATraj(16:20)'];
 
 %%
 
-[maxQData] = externalLoads(timeCollocation, stateCollocation, mission, configuration, launcher, mer, 0) ;
+[maxQData] = externalLoads(timeCollocation, stateCollocation, mission, configuration, launcher, mer, 0, staging) ;
 [internalActions] = loadsFinder(mission, launcher, configuration, maxQData) ; 
 [updatedStructuralMass] = thicknessFunction(mission, launcher, configuration, maxQData, internalActions) ; 
 

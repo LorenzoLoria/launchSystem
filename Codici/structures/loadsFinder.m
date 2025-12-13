@@ -11,17 +11,20 @@ function [internalActions] = loadsFinder(mission, launcher, configuration, maxQD
 % ======================== DATA CONVERSION ================================
 
 if launcher(1) == 1
-    nElements = 8;
-elseif launcher(1) == 2
-    nElements = 12;
-elseif launcher(1) == 3
     nElements = 16;
+elseif launcher(1) == 2
+    nElements = 20;
+elseif launcher(1) == 3
+    nElements = 24;
 end
 
 nNodes = nElements + 1;
 
 % Nodes
+
+% 2stages: [xcgpay, xcp, xgcintII, xcgfuII, xcgOxII, xcgintI, xcgfuI, xcgOxI, xcpFins] 
 loadNodes = [2,3:2:nNodes-1,nNodes-1];
+loadNodes([2,3]) = loadNodes([3,2]);
 
 xcp = computeXcp(mission, configuration,launcher);
 xcp_a = mission.aerodynamics.finsGeom.rootChord - computeFinXcp(mission, maxQData);
@@ -30,18 +33,15 @@ xcp_a = mission.aerodynamics.finsGeom.rootChord - computeFinXcp(mission, maxQDat
 h = [mission.capsule.height/2, xcp - mission.capsule.height/2, mission.capsule.height - xcp];
 
 for ii = launcher(1):-1:1
-    if ii == 1
-        h = [ h, configuration.geometry.stage{ii}.interstage.length/2, configuration.geometry.stage{ii}.interstage.length/2, (configuration.geometry.stage{ii}.tanksLength)/2,(configuration.geometry.stage{ii}.tanksLength)/2];
-    else
-        h = [ h, configuration.geometry.stage{ii}.interstage.length/2, configuration.geometry.stage{ii}.interstage.length/2, configuration.geometry.stage{ii}.tanksLength/2,configuration.geometry.stage{ii}.tanksLength/2];
-    end
+        h = [ h, configuration.geometry.stage{ii}.interstage.length/2, ...
+            configuration.geometry.stage{ii}.interstage.length/2, ...
+            configuration.stage{ii}.fuelTankH/2, configuration.stage{ii}.fuelTankH/2, ...
+            configuration.stage{ii}.oxTankH/2, configuration.stage{ii}.oxTankH/2, ...
+            configuration.geometry.stage{ii}.thrustFrame/2,configuration.geometry.stage{ii}.thrustFrame/2];
 end
 
-h(end) = (configuration.geometry.stage{1}.tanksLength)/2 - xcp_a;
+h(end) = configuration.geometry.stage{ii}.thrustFrame/2 - xcp_a;
 h(end+1) = xcp_a;
-
-    
-
 
 m  = maxQData.massMaxQVec;   
 
@@ -135,7 +135,7 @@ for i = loadNodes(2:end-1)
     k = k + 1;
 end
 
-b(:, [2 3]) = b(:, [3 2]); % inversione richiesta siccome il CG del payload è prima del CP del corpo
+% b(:, [2 3]) = b(:, [3 2]); % inversione richiesta siccome il CG del payload è prima del CP del corpo
 
 b(:,end-1) = [dragFinsN+liftFinsN; dragFinsT+liftFinsT; 0];
 

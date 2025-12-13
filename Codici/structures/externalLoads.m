@@ -1,4 +1,4 @@
-function [maxQData] = externalLoads(timeCollocation,stateCollocation,mission,configuration,launcher,mer, alpha)
+function [maxQData] = externalLoads(timeCollocation,stateCollocation,mission,configuration,launcher,mer, alpha, staging)
 
 vel = stateCollocation(4:6,:,1:end-1)-stateCollocation(4:6,1,1);
 vel = mission.target.Rfinal* vel(1:3,:);
@@ -49,17 +49,25 @@ posMaxQ = pos(:,idx);
 hMaxQ = absH(idx);
 %dsdt(4:6) = (ThrustIRF + D ) / m + G;  
 
-m1Stage = configuration.stage{1}.mStage - mer.stage{1}.interStage + massMaxQ - configuration.totalMass;
+% m1Stage = configuration.stage{1}.mStage - mer.stage{1}.interStage + massMaxQ - configuration.totalMass;
+mPropUsed = configuration.totalMass - massMaxQ;
+mPropRemaining = staging{1}.mProp - mPropUsed;
+mFuRemaining = mPropRemaining / (1 + configuration.stage{1}.engine.OF);
+mOxRemaining = mPropRemaining * configuration.stage{1}.engine.OF / (1 + configuration.stage{1}.engine.OF);
 
 maxQData.massMaxQVec = [mission.capsule.weight];
 
 for ii = launcher(1):-1:1
-
-    maxQData.massMaxQVec = [maxQData.massMaxQVec, mer.stage{ii}.interStage, configuration.stage{ii}.mStage-mer.stage{ii}.interStage];
-
+    maxQData.massMaxQVec = [maxQData.massMaxQVec, mer.stage{ii}.interStage, ...
+        mer.stage{ii}.tankMassFuel+mer.stage{ii}.cryoInsuFuel+staging{ii}.mProp/(1 + configuration.stage{ii}.engine.OF), ...
+        mer.stage{ii}.tankMassOx+mer.stage{ii}.cryoInsuOx+staging{ii}.mProp*configuration.stage{ii}.engine.OF/(1 + configuration.stage{ii}.engine.OF), ...
+        mer.stage{ii}.thrustFrame + mer.stage{ii}.engineWeight + ...
+        mer.stage{ii}.avionics + mer.stage{ii}.wiring + mer.stage{ii}.tvc +  ...
+        mer.stage{ii}.battery + mer.stage{ii}.pressurant];
 end
 
-maxQData.massMaxQVec(end) = m1Stage;
+maxQData.massMaxQVec(end-2) = mer.stage{1}.tankMassFuel + mFuRemaining + mer.stage{1}.cryoInsuFuel;
+maxQData.massMaxQVec(end-1) = mer.stage{1}.tankMassOx + mOxRemaining + mer.stage{1}.cryoInsuOx;
 
 soundSpeed = mission.aerodynamics.soundspeedFun(hMaxQ);
 
@@ -98,7 +106,7 @@ finsVec   = [mission.aerodynamics.finsGeom.rootChord, mission.aerodynamics.finsG
     mission.aerodynamics.finsGeom.Lambda_le, mission.aerodynamics.finsGeom.tmac];
 engineVec = [nEngines,aTotZero,aTotVacum];
 
-[ClProva,cdProva,~,~, mainbodyCL, mainbodyCD, finsCL, finsCD] = CLCDcomputation(machNumber,alpha,maxq,1,mission,1,dimensions,engineVec, finsVec);
+[~,~,~,~, mainbodyCL, mainbodyCD, finsCL, finsCD] = CLCDcomputation(machNumber,alpha,maxq,1,mission,1,dimensions,engineVec, finsVec);
 
 dMaxQ = -rot2*maxq * mainbodyCD * Aref * [1;0;0];
 lMaxQ = -rot2*maxq * mainbodyCL * Aref * [0;-1;0];
@@ -115,6 +123,16 @@ maxQData.vMaxQ = vMaxQ;
 maxQData.massMaxQ = massMaxQ;
 xcp = computeXcp(mission, configuration, launcher);
 xcp_a = mission.aerodynamics.finsGeom.rootChord - computeFinXcp(mission,maxQData); % compute position starting from the launcher bottom
+
+% Vettore posizioni baricentri approssimate
+% cGPositions = [mission.capsule.height/2];
+% 
+% for ii = launcher(1):-1:1
+%         cGPositions = [ cGPositions, configuration.geometry.stage{ii}.interstage.length/2, ...
+%             configuration.stage{ii}.fuelTankH/2, configuration.stage{ii}.oxTankH/2, ...
+%             configuration.geometry.stage{ii}.length-configuration.geometry.stage{ii}.interstage];
+% end
+
 xcg = computeXCG(mission, configuration, launcher, mer, maxQData);
 
 % Deflection angle
