@@ -16,40 +16,34 @@ function [landLoads] = landLoads(mission, configuration, mer, launcher)
 % =========================== SOLUTION ====================================
 
 if launcher(1) == 1
-    nElements = 6;
-elseif launcher(1) == 2
-    nElements = 10;
-elseif launcher(1) == 3
     nElements = 14;
+elseif launcher(1) == 2
+    nElements = 18;
+elseif launcher(1) == 3
+    nElements = 22;
 end
 
 nNodes = nElements + 1;
 
 % Nodes
-loadNodes = [2,3:2:nNodes-1,nNodes-1];
+loadNodes = [2:2:nNodes];
 
 % Length of the element used for structural analysis
-h = [mission.capsule.height / 2]; % centroid of payload
+h = [2 / 3 * mission.capsule.height, 1 /3 * mission.capsule.height]; % centroid of cone
 
 for ii = launcher(1):-1:1
-    if ii == 1
-        h = [ h, configuration.geometry.stage{ii}.interstage.length/2, configuration.geometry.stage{ii}.interstage.length/2, (configuration.geometry.stage{ii}.tanksLength-configuration.stage{1}.engine.length)/2,(configuration.geometry.stage{ii}.tanksLength-configuration.stage{1}.engine.length)/2];
-    else
-        h = [ h, configuration.geometry.stage{ii}.interstage.length/2, configuration.geometry.stage{ii}.interstage.length/2, configuration.geometry.stage{ii}.tanksLength/2,configuration.geometry.stage{ii}.tanksLength/2];
-    end
+    h = [ h, configuration.geometry.stage{ii}.interstage.length/2, ...
+    configuration.geometry.stage{ii}.interstage.length/2, configuration.stage{ii}.fuelTankH/2, ...
+    configuration.stage{ii}.fuelTankH/2, configuration.stage{ii}.oxTankH/2, ...
+    configuration.stage{ii}.oxTankH/2, configuration.geometry.stage{ii}.thrustFrame/2,...
+    configuration.geometry.stage{ii}.thrustFrame/2];
 end
 
-h(end) = (configuration.geometry.stage{1}.tanksLength-configuration.stage{1}.engine.length)/2;
-
 % Computation of side area
-sideArea = [mission.capsule.radius*mission.capsule.height];
+sideArea = [8 / 9 * mission.capsule.height, mission.capsule.radius * mission.capsule.height - 8 / 9 * mission.capsule.height];
 
 for ii = launcher(1):-1:1
-    if ii == 1
-        sideArea = [sideArea, 2*configuration.geometry.stage{ii}.interstage.length*configuration.geometry.stage{ii}.interstage.length, 2*(configuration.geometry.stage{ii}.tanksLength-configuration.geometry.stage{ii}.engine.lenght)*configuration.geometry.stage{ii}.radius];
-    else
-        sideArea = [sideArea, 2*configuration.geometry.stage{ii}.interstage.length*configuration.geometry.stage{ii}.interstage.length, 2*configuration.geometry.stage{ii}.tanksLength*configuration.geometry.stage{ii}.radius];
-    end
+    sideArea = [sideArea, 2*configuration.geometry.stage{ii}.interstage.length*configuration.geometry.stage{ii}.interstage.length, 2*configuration.geometry.stage{ii}.tanksLength*configuration.geometry.stage{ii}.radius];
 end
 
 m = [mission.capsule.weight];
