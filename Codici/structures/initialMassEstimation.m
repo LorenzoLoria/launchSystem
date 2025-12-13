@@ -175,6 +175,8 @@ lOverD = 5;
     opt.stage{i}.stucturalMass = mStructure;
     opt.stage{i}.mProp = mProp;
     opt.stage{i}.mStage = mStage;
+    opt.stage{i}.fuelTankH = 2 * sol1(1) + sol1(2);
+    opt.stage{i}.oxTankH =  sol1(3);
 
     lengthThrustFrame = abs(sol1(1) - opt.stage{i}.engine.chamberRadius*nEngine/pi)*tan(pi/4);
     
@@ -197,7 +199,7 @@ lOverD = 5;
     opt.geometry.stage{i}.interstage.angle  = atand(opt.geometry.stage{i}.interstage.length/abs(( opt.geometry.stage{i}.radius- opt.geometry.stage{i+1}.radius)));
     opt.geometry.stage{i}.interstage.meanRadius = (opt.geometry.stage{i}.radius + opt.geometry.stage{i+1}.radius)/2 ;
         end
-    totalLength = totalLength + opt.geometry.stage{i}.interstage.length + opt.geometry.stage{i}.tanksLength;
+    totalLength = totalLength + opt.geometry.stage{i}.interstage.length + opt.geometry.stage{i}.tanksLength + opt.geometry.stage{i}.thrustFrame;
     end
     
 opt.geometry.totalLength = totalLength ;
