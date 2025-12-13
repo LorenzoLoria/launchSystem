@@ -44,8 +44,14 @@ Ap = dCylinder * lCylinder ;          % area razzo vista da lato
 % Fins Data
 cr = finsVec(1);                      % root chord [m]
 ct = finsVec(2);                       % tip chord [m] (triangolo puro)
-bfin = finsVec(3);                      % semispan [m]
-Nfins = finsVec(4);              
+bfin = finsVec(3);    % semispan [m]
+
+if currentStage == 1
+    Nfins = 4;  
+else
+    Nfins = 2;
+end
+
 Sfin = finsVec(5);     % area della fin [m^2]
 cmac = finsVec(6);     % mean aerodynamic chord [m]
 deltaLE = finsVec(7);  % [deg]
