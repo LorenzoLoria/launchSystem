@@ -106,21 +106,22 @@ end
     tof = checkViolation.bestfeasible.fval ;
     xConfig = checkViolation.bestfeasible.x;
     
-    % xConfigSave = zeros(30,1);
-    % xConfigSave(1:numel(xConfig)) = xConfig(:);
-    % filename = 'configMAT.mat';
-    % if isfile(filename)
-    %     result = load(filename,"xConfigSave");
-    %     xConfigSave = [result.xConfigSave,xConfigSave];
-    % end
-    %     save(filename, 'xConfigSave');
-    % 
-    % filenameLauncher = 'LauncherMAT.mat';
-    % if isfile(filenameLauncher)
-    %     result = load(filenameLauncher,"launcher");
-    %     launcherSave = [result.launcherSave;launcher];
-    % end
-    % save(filenameLauncher, 'launcherSave');
+        xConfigSave = zeros(30,1);
+    xConfigSave(1:numel(xConfig)) = xConfig(:);
+    filename = 'configMAT.mat';
+    if isfile(filename)
+        result = load(filename,"xConfigSave");
+        xConfigSave = [result.xConfigSave,xConfigSave];
+    end
+        save(filename, 'xConfigSave');
+  
+    launcherSave = launcher;    
+    filenameLauncher = 'LauncherMAT.mat';
+    if isfile(filenameLauncher)
+        result = load(filenameLauncher,"launcherSave");
+        launcherSave = [result.launcherSave;launcher];
+    end
+    save(filenameLauncher, 'launcherSave');
 
     previousLauncherMass = totalMass ;
     previousTof = tof ;
