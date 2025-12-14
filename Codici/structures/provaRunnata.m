@@ -1,7 +1,7 @@
 %% ======================= Prova Runnata ================================== 
 
 clear all;
-
+clc;
 close all
 
 % ==========================  DATI ========================================
@@ -14,7 +14,7 @@ mission.structure.alphaQmax = 0;
 
 % launcher = [nStages, nMotore1, nMotore2, nMotore3, %massa1, %massa2,
 % %massa3];
-launcher = [2,1,3,4,0.5605,0.5595,0.7];
+launcher = [2,2,3,4,0.459952176990556, 0.753370531158904, 0.634795741885559];
 
 for i = 1:launcher(1)
     configuration.stage{i}.engine = mission.engines{launcher(1+i)};
@@ -23,12 +23,22 @@ end
 [mer,staging,configuration] = initialMassEstimation(mission,configuration,settings,launcher);
 thrustDataGA = load('thrustdataVecTraj.mat','xGATraj');
 
-thrustData(:,:,1) = [thrustDataGA.xGATraj(1:5)',thrustDataGA.xGATraj(6:10)'];
-thrustData(:,:,2) = [thrustDataGA.xGATraj(11:15)',thrustDataGA.xGATraj(16:20)'];
+thrustDataVecFMC(:,:,1) = [0.902082365568723	1.480898931628005
+                            0.999984156345040	23.253294859564580
+                            0.900002678098914	52.979241033086943
+                            0.900000000000007	59.571815331701984
+                            0.903941814015555	55.058714159781090];
+
+
+thrustDataVecFMC(:,:,2 ) = [0.400917809388214	65.122710138507202
+                            0.964494359624014	79.658359202140389
+                            0.975968800776448	91.801043507018605
+                            0.992714640706230	89.085172454227390
+                            0.993244065056187	99.345740209598944];
 
 
 
-[timeCollocation, stateCollocation] = totalTrajectoryGlobalGA(launcher,configuration,mission,settings,thrustData);
+[timeCollocation, stateCollocation] = totalTrajectoryGlobalGA(launcher,configuration,mission,settings,thrustDataVecFMC);
 
 %%
 
