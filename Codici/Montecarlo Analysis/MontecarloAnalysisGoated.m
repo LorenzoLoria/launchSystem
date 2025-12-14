@@ -9,24 +9,44 @@ addpath(genpath("..\..\"))
 
 [mission,settings] = dataStructGlobal;
 
-launcher = [2 2 3 3 0.459952176990556	0.753370531158904	0.634795741885559];
-
+launcher = [2	2	3	3	0.459952176990556	0.753370531158904	0.634795741885559];
 for i = 1:launcher(1)
     configuration.stage{i}.engine = mission.engines{launcher(1+i)};
 end
 
 [mer,staging,configuration] = initialMassEstimation(mission,configuration,settings,launcher);
-thrustDataVecFMC(:,:,1) = [0.902082365568723	1.480898931628005; ...
-0.999984156345040	23.253294859564580; ...
-0.900002678098914	52.979241033086943; ...
-0.900000000000007	59.571815331701984; ...
-0.903941814015555	55.058714159781090];
-thrustDataVecFMC(:,:,2) = [0.400917809388214	65.122710138507202;...
-0.964494359624014	79.658359202140389;...
-0.975968800776448	91.801043507018605;...
-0.992714640706230	89.085172454227390;...
-0.993244065056187	99.345740209598944];
-% Nominal Trajectory
+
+ thrustDataVecFMC = [0.901784296794966
+0.999967458028643
+0.900002561600819
+0.900000000000007
+0.900000000000006
+1.32376427751106
+22.4721810110826
+51.9025769669441
+58.3043070770380
+54.0837349292332
+0.400884818399135
+0.966674994308654
+0.974049905676140
+0.992054604106613
+0.992888695383693
+64.8416016397151
+78.7571907487398
+90.6394069314900
+87.6489451551192
+98.5947513930343];
+
+thrustData = reshape(thrustDataVecFMC,settings.nOptPointsTraj,2,2);
+
+    localLowerBoundsFMC = settings.lowerBoundsFMC(:,:,1:launcher(1)) ;
+    localUpperBoundsFMC = settings.upperBoundsFMC(:,:,1:launcher(1)) ;
+[thrustDataVecFMC,fvalFMCTraj,~,checkViolation] = fmincon ( @(x)objFunFMCTraj(x,launcher,configuration,mission,settings),...
+            thrustData,[],[],[],[],...
+            localLowerBoundsFMC-eps,localUpperBoundsFMC+eps,...
+            @(x) nlconFMCTraj(x,launcher,configuration,mission,settings),...
+            settings.fminconTrajOptions);
+
 [timeCollocationRef, stateCollocationRef] = totalTrajectoryGlobalGA(launcher,configuration,mission,settings,thrustDataVecFMC);
 %% Create a wind different from nominal to get the gains from the GA
 
@@ -238,3 +258,119 @@ b.CData(1,:) = [0 0.8 0];      % primo pezzo (percIn)  -> verde
 b.CData(2,:) = [0.8 0 0];      % secondo pezzo (percOut) -> rosso
 ylabel('[%]');
 title('Success vs Failure');
+
+
+
+%% Propagation of the other uncertainties
+
+sizeMC = 5;
+
+
+for i = 1:launcher(1)
+    configuration.stage{i}.engine = mission.engines{launcher(1+i)};
+end
+
+[mer,staging,configuration] = initialMassEstimation(mission,configuration,settings,launcher);
+
+meanStructMass1 = staging{1}.mStruct;
+meanStructMass2 = staging{2}.mStruct;
+meanPropMass1 = staging{1}.mProp;
+meanPropMass2 = staging{2}.mProp;
+meanIsp1 = configuration.stage{1}.engine.ispZero;
+meanIsp2 = configuration.stage{2}.engine.ispVac;
+
+structMass1Distrib = meanStructMass1.*(1 + 0.01*randn(sizeMC,1));
+structMass2Distrib = meanStructMass2.*(1 + 0.01*randn(sizeMC,1));
+propMass1Distrib = meanPropMass1.*(1 + 0.01*randn(sizeMC,1));
+propMass2Distrib = meanPropMass2.*(1 + 0.01*randn(sizeMC,1));
+isp1Distrib = meanIsp1.*(1 + 0.001*randn(sizeMC,1));
+isp2Distrib = meanIsp2.*(1 + 0.001*randn(sizeMC,1));
+
+mStage1Distrib = structMass1Distrib + propMass1Distrib;
+mStage2Distrib = structMass2Distrib + propMass2Distrib;
+
+[A,B,C,D,E,F] = ndgrid(structMass1Distrib, structMass2Distrib,propMass1Distrib,propMass2Distrib,isp1Distrib,isp2Distrib);
+Matr =[A(:),B(:),C(:),D(:),E(:),F(:)];
+
+% Shuffle of the Matrix elements
+for i=1:size(Matr,2)
+    shuffledMatrix(:,i) = Matr(randperm(size(Matr,1)),i);
+end
+
+distanceFromTargetControlled = zeros(size(shuffledMatrix,1),1);
+
+% Initialization of the variables
+sizeMC = 1;
+hVec = 0:100;
+
+% Computation of the Wind Profiles
+
+[meanWind, varWind] = GRAM07_HWM07_annual(hVec);
+WindVelocityMag = meanWind ;
+windAngVel = WindVelocityMag ./ (mission.environment.rEarth + hVec);
+lonInitial = mission.launchBase.lonInitial;
+montecarlo.vxWind = - windAngVel .* (mission.environment.rEarth + hVec) .* sin(lonInitial) ;
+montecarlo.vyWind = windAngVel .* (mission.environment.rEarth + hVec) .* cos(lonInitial) ;
+
+% Functions for wind profile on ECI (rotated inside the dynamics)
+windVelXFun = griddedInterpolant(hVec,montecarlo.vxWind(1,:),'linear','linear');
+windVelYFun = griddedInterpolant(hVec,montecarlo.vyWind(1,:),'linear','linear');
+settings.gaControl = optimoptions("ga", ...
+                        "Display","iter", ...
+                        "MaxGenerations",20, ...
+                        "PopulationSize",100,...
+                        "UseParallel",true,...
+                        "FunctionTolerance", 1e-4,...
+                        "PlotFcn",{'gaplotbestf','gaplotbestindiv'}...
+                        );
+
+% set the GA
+nVarsGA = launcher(1) * 6;
+fun = @(gainGA) objGAGainsMonte(gainGA,launcher,configuration,mission,settings,windVelXFun,windVelYFun,stateCollocationRef,timeCollocationRef,10,thrustData);
+lb = zeros(nVarsGA,1);
+ub = inf * ones(nVarsGA,1);
+
+figure
+EarthPlot(mission.environment.rEarth)
+hold on
+plot3(mission.target.initialPointECI(1),mission.target.initialPointECI(2),mission.target.initialPointECI(3),'bo')
+[timeCollocationRef, stateCollocationRef] = totalTrajectoryGlobalGA(launcher,configuration,mission,settings,thrustDataVecFMC);
+
+
+
+for i=1:size(shuffledMatrix,1)
+
+    configuration.stage{1}.mProp = shuffledMatrix(i,3);
+    configuration.stage{2}.mProp = shuffledMatrix(i,4);
+    configuration.stage{1}.mStage = shuffledMatrix(i,1) + shuffledMatrix(i,3);
+    configuration.stage{2}.mStage = shuffledMatrix(i,2) + shuffledMatrix(i,4);
+    configuration.stage{1}.engine.ispZero = shuffledMatrix(i,5);
+    configuration.stage{2}.engine.ispVac = shuffledMatrix(i,6);
+
+    % [timeCollocationRef, stateCollocationRef] = totalTrajectoryGlobalGA(launcher,configuration,mission,settings,thrustDataVecFMC);
+
+    % Tuning the gains
+
+    % if i==1
+    %     % set the GA
+    % nVarsGA = launcher(1) * 6;
+    % fun = @(gainGA) objGAGainsMonte(gainGA,launcher,configuration,mission,settings,windVelXFun,windVelYFun,stateCollocationRef,timeCollocationRef,10,thrustData);
+    % lb = zeros(nVarsGA,1);
+    % ub = inf * ones(nVarsGA,1);
+    % 
+    % % Run GA
+    % [xga,fval,exitFlag,output,population,scores] = ga(fun,nVarsGA,[],[],[],[],lb,ub,[],[],settings.gaControl);
+    % 
+    % % extrapolate gains
+    % gainGA = xga;
+    % end
+
+    % Integration of the trajectory
+    [timeCollocation, stateCollocation] = totalTrajectoryControlled(launcher,configuration,mission,settings,windVelXFun,windVelYFun,stateCollocationRef,timeCollocationRef,10,thrustData,gainGA);
+
+    % Error
+    distanceFromTargetControlled(i) = norm(stateCollocation(1:3,end,end)-mission.target.initialPointECI);
+    
+    plot3(stateCollocation(1,end,end),stateCollocation(2,end,end),stateCollocation(3,end,end),'ro')
+    drawnow
+end
