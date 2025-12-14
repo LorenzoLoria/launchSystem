@@ -8,8 +8,6 @@ function [landLoads] = landLoads(mission, configuration, mer, launcher, staging)
 % OUTPUTS
 % landload : structure containing N, T, M
 
-% ======================== DATA CONVERSION ================================
-
 % =========================== SOLUTION ====================================
 
 if launcher(1) == 1
@@ -80,6 +78,25 @@ windDrag = effWindDynPressure .* CDSeaLevel .* sideArea;
 % Number of nodes
 nNodes    = nElements + 1;
 
+% Posizione del centro di forza 
+
+hCUMSUM = cumsum(h);
+hCentroids = hCUMSUM(loadNodes - 1);
+windDragCentroids = windDrag(loadNodes);
+
+xcf = centerOfGravity(windDragCentroids, hCentroids);
+windDragTOT = sum(windDragCentroids);
+
+% Posizioni bracci meccanici rispetto al naso
+xc1 = hCUMSUM(5); % scelta a caso
+xc1 = xcf - xc1;
+xc2 = hCUMSUM(12); % scelta a caso
+xc2 = xc2 - xcf;
+
+% Bilancio forze
+T1 = windDragTOT / (1 + xc1 / xc2);
+T2 = T1 * xc1 / xc2;
+
 % ===================== Creation of A Matrix ==============================
 A = zeros(3 * nNodes, 3 * nNodes);
 
@@ -131,10 +148,13 @@ end
 b = zeros(3, nNodes);
 
 k = 1;
-for i = loadNodes(1:end)
+for i = loadNodes
     b(:,i) = [m(k)*gN; windDrag(i); 0];
     k = k + 1;
 end
+
+b(:,6) = b(:, 6) - [0;T1;0];
+b(:,13) = b(:, 13) - [0;T2;0];
 
 b = b(:);
 
