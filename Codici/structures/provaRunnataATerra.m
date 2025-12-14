@@ -1,4 +1,4 @@
-%% ======================= Prova Runnata ================================== 
+%% ================== Prova Runnata A Terra =============================== 
 
 clear all;
 clc;
@@ -40,34 +40,33 @@ thrustDataVecFMC(:,:,2 ) = [0.400917809388214	65.122710138507202
 
 [timeCollocation, stateCollocation] = totalTrajectoryGlobalGA(launcher,configuration,mission,settings,thrustDataVecFMC);
 
-%%
+%% ============================ SOLUTION ==================================
 
-[maxQData] = externalLoads(timeCollocation, stateCollocation, mission, configuration, launcher, mer, 0, staging) ;
-[internalActions] = loadsFinder(mission, launcher, configuration, maxQData) ; 
-[updatedStructuralMass] = thicknessFunction(mission, launcher, configuration, maxQData, internalActions) ; 
+[landLoads] = landLoads(mission, configuration, mer, launcher, staging);
 
-N = internalActions.N;
-T = internalActions.T;
-M = internalActions.M;
+N = landLoads.N;
+T = landLoads.T;
+M = landLoads.M;
 
 %% ============================== PLOTS ===================================
 
-xcp = computeXcp(mission, configuration,launcher);
-xcp_a = mission.aerodynamics.finsGeom.rootChord - computeFinXcp(mission, maxQData);
-xcg = centerOfGravity(maxQData.massMaxQVec, maxQData.h4cgFinal );
+if launcher(1) == 1
+    nElements = 14;
+elseif launcher(1) == 2
+    nElements = 18;
+elseif launcher(1) == 3
+    nElements = 22;
+end
 
 % Length of the element used for structural analysis
-h = [mission.capsule.height/2, xcp - mission.capsule.height/2, mission.capsule.height - xcp];
-
-h = [mission.capsule.height/2, xcp - mission.capsule.height/2, mission.capsule.height - xcp];
+h = [2 / 3 * mission.capsule.height, 1 /3 * mission.capsule.height]; % centroid of cone
 
 for ii = launcher(1):-1:1
-        h = [ h, configuration.geometry.stage{ii}.interstage.length/2, ...
-            configuration.geometry.stage{ii}.interstage.length/2, ...
-            configuration.stage{ii}.fuelTankH/2, configuration.stage{ii}.fuelTankH/2, ...
-            configuration.stage{ii}.oxTankH/2, configuration.stage{ii}.oxTankH/2, ...
-            configuration.geometry.stage{ii}.thrustFrame-xcp_a,xcp_a-configuration.geometry.stage{ii}.thrustFrame/2,...
-            configuration.geometry.stage{ii}.thrustFrame/2];
+    h = [ h, configuration.geometry.stage{ii}.interstage.length/2, ...
+    configuration.geometry.stage{ii}.interstage.length/2, configuration.stage{ii}.fuelTankH/2, ...
+    configuration.stage{ii}.fuelTankH/2, configuration.stage{ii}.oxTankH/2, ...
+    configuration.stage{ii}.oxTankH/2, configuration.geometry.stage{ii}.thrustFrame/2,...
+    configuration.geometry.stage{ii}.thrustFrame/2];
 end
 
 nPointsPerComponent = 100;
@@ -83,7 +82,7 @@ x_coordinates = cumsum([0, h]); % defines the coordinates of
 % Required for interpolation
 M_end_values = [M(2:end); 0];
 
-for i = 1:21
+for i = 1:nElements
     
     x_start = x_coordinates(i);
     x_end   = x_coordinates(i+1);
@@ -153,5 +152,3 @@ grid on;
 xlabel('x [m]');
 ylabel('Bending Moment [Nm]');
 xlim([0, x_all(end)])
-% xline([0, cumsum(h)], 'LineStyle','--')
-xline(xcg, 'k',  'LineWidth',1.5)
