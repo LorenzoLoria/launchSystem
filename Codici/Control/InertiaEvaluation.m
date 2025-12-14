@@ -3,14 +3,13 @@ function [inertia,Xcg] = InertiaEvaluation(mission, configuration, mer, stageNum
 
 inertia = zeros(3, 3);
 Xcg = computeXcgGlobal(mission, configuration, launcher, mer, m, stageNumber);
-%% CAPSULE
-% Capsule data (assumption of conical shape) --> from Sforza Book
+
+% CAPSULE data (assumption of conical shape) --> from Sforza Book
 mCapsule = mission.capsule.weight;
 rCapsule = mission.capsule.radius;
 hCapsule = mission.capsule.height;
 inertiaShiftCaps = Xcg - 3/4 * hCapsule; % cg capsule is at 3/4 h from the nose
 r_com_capsule = [0; 0; inertiaShiftCaps];
-
 
 % Local inertia matrix for capsule (about its COM)
 Ixx_capsule = (3/80) * mCapsule * (4 * rCapsule^2 + hCapsule^2);
@@ -27,13 +26,22 @@ for ii = launcher(1):-1:stageNumber
     % Stage data
     hStageIter = configuration.geometry.stage{ii}.tanksLength;
     rStageIter = configuration.geometry.stage{ii}.radius;
-    if ii == stageNumber
-    mStageIter =  configuration.stage{ii}.mStage - (configuration.totalMass - m) ;
+
+    if ii == stageNumber 
+
+        if stageNumber == 1
+            mStageIter =  configuration.stage{ii}.mStage - (configuration.totalMass - m) ;
+        else
+            totalMassIter = configuration.totalMass - configuration.stage{stageNumber - 1}.mStage ;
+            mStageIter =  configuration.stage{ii}.mStage - (totalMassIter - m) ;
+        end
+
     else
-    mStageIter = configuration.stage{ii}.mStage ;
+        mStageIter = configuration.stage{ii}.mStage ;
     end
 
     hInterstageIter = configuration.geometry.stage{ii}.interstage.length;
+    
     if ii == launcher(1)
         rBottom = configuration.geometry.stage{ii}.radius; % bottom = lower stage
         rTop = mission.capsule.radius;
@@ -75,6 +83,7 @@ for ii = launcher(1):-1:stageNumber
 end
 
 end
+
 
 
 
