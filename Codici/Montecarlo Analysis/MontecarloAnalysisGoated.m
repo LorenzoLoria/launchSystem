@@ -9,26 +9,25 @@ addpath(genpath("..\..\"))
 
 [mission,settings] = dataStructGlobal;
 
-launcher = [2,2,3,4,0.47,0.5,0.7];
+launcher = [2 2 3 3 0.459952176990556	0.753370531158904	0.634795741885559];
 
 for i = 1:launcher(1)
     configuration.stage{i}.engine = mission.engines{launcher(1+i)};
 end
 
 [mer,staging,configuration] = initialMassEstimation(mission,configuration,settings,launcher);
-
-% Optimal nominal trajectory
-
-[xGATraj, fvalGATraj] = ga( @(x) objFunGATraj( reshape(x,settings.nOptPointsTraj,2,launcher(1)),launcher,configuration, mission,settings), ...
-                        launcher(1)*2*settings.nOptPointsTraj,...
-                        [],[],[],[],settings.lowerBoundsGA,settings.upperBoundsGA, ...
-                        @(x) nlconGATraj( reshape(x,settings.nOptPointsTraj,2,launcher(1)),launcher,configuration, mission,settings),settings.gaTrajOptions);
-
-thrustData(:,:,1) = [xGATraj(1:5)',xGATraj(6:10)'];
-thrustData(:,:,2) = [xGATraj(11:15)',xGATraj(16:20)'];
-
-%% Nominal Trajectory
-[timeCollocationRef, stateCollocationRef] = totalTrajectoryGlobalGA(launcher,configuration,mission,settings,thrustData);
+thrustDataVecFMC(:,:,1) = [0.902082365568723	1.480898931628005; ...
+0.999984156345040	23.253294859564580; ...
+0.900002678098914	52.979241033086943; ...
+0.900000000000007	59.571815331701984; ...
+0.903941814015555	55.058714159781090];
+thrustDataVecFMC(:,:,2) = [0.400917809388214	65.122710138507202;...
+0.964494359624014	79.658359202140389;...
+0.975968800776448	91.801043507018605;...
+0.992714640706230	89.085172454227390;...
+0.993244065056187	99.345740209598944];
+% Nominal Trajectory
+[timeCollocationRef, stateCollocationRef] = totalTrajectoryGlobalGA(launcher,configuration,mission,settings,thrustDataVecFMC);
 %% Create a wind different from nominal to get the gains from the GA
 
 % Initialization of the variables
@@ -116,8 +115,6 @@ for j = 1:1:length(distanceFromTargetControlled)
     cumulativeMeanControlled(k) = mean(distanceFromTargetControlled(1:j));
 end
 
-%%
-
 parfor parforiter = 1:sizeMC
     
     % Functions for wind profile on ECI (rotated inside the dynamics)
@@ -157,7 +154,7 @@ title('Reference Trajectory')
 xlabel('X_{ECI}')
 ylabel('Y_{ECI}')
 zlabel('Z_{ECI}')
-
+%%
 % plot of the cumulative mean
 
 figure
