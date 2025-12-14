@@ -57,9 +57,11 @@ end
 gN      = 9.81;
 
 % Ground Wind Model
+rhoSeaLevel = 1.2807; % libro
+CDSeaLevel = 0.77;    % libro
 vss = 9.5 * h.^0.2; % [m/s]
 effectiveWindSpeed = sqrt((1.25 * vss)^2 + (2.56 * vss)^2);
-effWindDynPressure = 0.5 * 1.29 * (2.85 * vss)^2;
+effWindDynPressure = 0.5 * rhoSeaLevel * effectiveWindSpeed^2;
 
 % Number of nodes
 nNodes    = nElements + 1;
