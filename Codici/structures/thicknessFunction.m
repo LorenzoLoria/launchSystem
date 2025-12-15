@@ -1,4 +1,4 @@
-function [updatedStructuralMass] = thicknessFunction(mission, launcher, configuration, maxQData, internalActions)
+function [updatedStructuralMass, mStruct] = thicknessFunction(mission, launcher, configuration, maxQData, internalActions)
 
 % Function required to size the launcher thickess of all the different 
 % components of the LV. Evaluation must be done in the most
@@ -206,6 +206,7 @@ end
 
 % =========================== ESTRAZIONE ==================================
 updatedStructuralMass = sum(mStruct) ;
+mStruct = mStruct([2, 3, 4, 6, 7, 8]);
 % mission.structure.thickness = tVec;
 % mission.structure.stressMatrix = stressMatrix;
 % mission.structure.materials = idx;

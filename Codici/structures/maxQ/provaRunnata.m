@@ -1,7 +1,7 @@
 %% ======================= Prova Runnata ================================== 
 
 clear all;
-clc;
+
 close all
 
 % ==========================  DATI ========================================
@@ -44,7 +44,7 @@ thrustDataVecFMC(:,:,2 ) = [0.400917809388214	65.122710138507202
 
 [maxQData] = externalLoads(timeCollocation, stateCollocation, mission, configuration, launcher, mer, 0, staging) ;
 [internalActions] = loadsFinder(mission, launcher, configuration, maxQData) ; 
-[updatedStructuralMass] = thicknessFunction(mission, launcher, configuration, maxQData, internalActions) ; 
+[updatedStructuralMass, mStruct] = thicknessFunction(mission, launcher, configuration, maxQData, internalActions) ; 
 
 N = internalActions.N;
 T = internalActions.T;
