@@ -288,8 +288,12 @@ settings.intconGlobalGA = [1 2 3 4];
 settings.trajectoryOption2D = 1;
 
 
+%============================ Plots ======================================
 
-
-
+settings.color.green = '#777754';
+settings.color.orange = '#cf9143';
+settings.color.blu = '#2f5d62';
+settings.color.gray = '#3a3a3a';
+settings.color.terracotta = '#8f4e3a';
 
 end
