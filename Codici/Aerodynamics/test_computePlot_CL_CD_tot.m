@@ -71,7 +71,7 @@ bodyGeom.Ap = bodyGeom.l * bodyGeom.d;
 cr   = 1.81;                       % root chord [m]
 ct   = 0.45;                       % tip chord [m] (triangolo puro)     
 
-finsGeom.Nfins = 4;
+finsGeom.Nfins = 8;
 finsGeom.be = 1.81;                  % span equivalente ~ semispan reale
 finsGeom.Se = 2.05;                  % area della fin [m^2]
 finsGeom.cmac = 1.27;                % mean aerodynamic chord [m]

@@ -151,7 +151,7 @@ mission.aerodynamics.finsGeom.Sfin = 0.5 * (mission.aerodynamics.finsGeom.rootCh
 mission.aerodynamics.finsGeom.lambda = mission.aerodynamics.finsGeom.tipChord / mission.aerodynamics.finsGeom.rootChord;
 mission.aerodynamics.finsGeom.cmac = (2/3) * mission.aerodynamics.finsGeom.rootChord * (1 + mission.aerodynamics.finsGeom.lambda + mission.aerodynamics.finsGeom.lambda^2) / (1 + mission.aerodynamics.finsGeom.lambda);       % mean aerodynamic chord [m]
 
-mission.aerodynamics.finsGeom.delta_le = 30; % [deg]
+mission.aerodynamics.finsGeom.delta_le = 10; % [deg]
 mission.aerodynamics.finsGeom.Lambda_le = 36.9; % [deg]
 
 mission.aerodynamics.finsGeom.tmac = 0.1;    

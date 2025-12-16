@@ -6,10 +6,10 @@
       <Length>114,173</Length>
       <Diameter>157,48</Diameter>
       <Shape>Power Law</Shape>
-      <BluntRadius>20</BluntRadius>
+      <BluntRadius>26,2467</BluntRadius>
       <Location>0</Location>
       <Color>Black</Color>
-      <PowerLaw>0,65</PowerLaw>
+      <PowerLaw>0,6</PowerLaw>
     </NoseCone>
     <BodyTube>
       <PartType>BodyTube</PartType>
