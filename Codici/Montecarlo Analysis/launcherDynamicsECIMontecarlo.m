@@ -67,8 +67,9 @@ function dsdt = launcherDynamicsECIMontecarlo(t, x,thrustData, mission,stageNumb
     
     if Mach == 0
         Cd = 0.01;
+        Cl = 0;
     else
-    [~,Cd,~,~] = CLCDcomputation(Mach,0,dynamicPressure,1,mission,stageNumber,dimensions,engineVec,finsVec);
+    [Cl,Cd,~,~] = CLCDcomputation(Mach,0,dynamicPressure,1,mission,stageNumber,dimensions,engineVec,finsVec);
     end
     optVar = thrustData(t); 
     
@@ -96,10 +97,17 @@ function dsdt = launcherDynamicsECIMontecarlo(t, x,thrustData, mission,stageNumb
     ThrustBRF = percVec * engineVec(1) *(thrustValue+staticContribution) * [cos(thetaGimball)*cos(gammaGimball); cos(thetaGimball)*sin(gammaGimball); sin(thetaGimball)];
     ThrustIRF = mission.target.Rfinal'*ThrustBRF;
 
+n =  mission.target.Rfinal(3,:)' ; 
+
+lDir = cross(v,n);
+lDir = lDir/norm(lDir);
+if isnan(lDir)
+    lDir = [0,0,0]';
+end
 
     % Drag contribution
     D = - 0.5 .* rho .* vMag .* A .* Cd .* vRel; 
-
+    L = 0.5 .*rho .*vMag^2 * A .* Cl * lDir;
     % Gravity contribution
     G = - GM * r /rMag^3;
 
@@ -114,7 +122,7 @@ function dsdt = launcherDynamicsECIMontecarlo(t, x,thrustData, mission,stageNumb
     dsdt(1:3) = v;
 
     % Acceleration derivatives (Velocity rates)
-    dsdt(4:6) = (ThrustIRF + D ) / m + G;  
+    dsdt(4:6) = (ThrustIRF + D + L) / m + G;  
 
     
     % Mass derivative

@@ -16,7 +16,7 @@ end
 
 [mer,staging,configuration] = initialMassEstimation(mission,configuration,settings,launcher);
 
- thrustDataVecFMC = [0.997027764065679
+ thrustDataVecFMC = [   0.997027764065679
    0.942654752527805
    0.951101595174460
    0.955848071611001

@@ -53,14 +53,14 @@ function dsdt = launcherDynamicsECI(t, x,thrustData, mission,stageNumber,opt,opt
     
     vRel = v + wind;
     vMag = sqrt(vRel'*vRel); 
-    
-    if norm(wind)<1
-        alpha = 0;
-    else
-    
-        alpha = acos ( dot(vRel,v)/norm(v)/norm(vRel));
-    
-    end
+    alpha = 0;
+    % if norm(wind)<1
+    %     alpha = 0;
+    % else
+    % 
+    %     alpha = acos ( dot(vRel,v)/norm(v)/norm(vRel));
+    % 
+    % end
     rMag = sqrt(r'*r);
     
     A   = mission.capsule.Area;
