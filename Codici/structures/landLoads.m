@@ -1,4 +1,4 @@
-function [landLoads] = landLoads(mission, configuration, mer, launcher, staging)
+function [landLoads] = landLoads(mission, configuration, mer, launcher)
 
 % Function required to compute the loads to which the launcher is subject
 % to when on the launchpad
@@ -9,6 +9,9 @@ function [landLoads] = landLoads(mission, configuration, mer, launcher, staging)
 % landload : structure containing N, T, M
 
 % ======================== DATA CONVERSION ================================
+
+
+
 
 % =========================== SOLUTION ====================================
 
@@ -40,42 +43,23 @@ end
 sideArea = [8 / 9 * mission.capsule.height, mission.capsule.radius * mission.capsule.height - 8 / 9 * mission.capsule.height];
 
 for ii = launcher(1):-1:1
-    sideArea = [sideArea, configuration.geometry.stage{ii}.interstage.length*configuration.geometry.stage{ii}.interstage.meanRadius, ...
-        configuration.geometry.stage{ii}.interstage.length*configuration.geometry.stage{ii}.interstage.meanRadius, ...
-        configuration.stage{ii}.fuelTankH*configuration.stage{ii}.fuelTankR, ...
-        configuration.stage{ii}.fuelTankH*configuration.stage{ii}.fuelTankR, ...
-        configuration.stage{ii}.oxTankH*configuration.stage{ii}.oxTankR, ...
-        configuration.stage{ii}.oxTankH*configuration.stage{ii}.oxTankR, ...
-        configuration.geometry.stage{ii}.thrustFrame*configuration.geometry.stage{ii}.radius,...
-        configuration.geometry.stage{ii}.thrustFrame*configuration.geometry.stage{ii}.radius];
+    sideArea = [sideArea, 2*configuration.geometry.stage{ii}.interstage.length*configuration.geometry.stage{ii}.interstage.length, 2*configuration.geometry.stage{ii}.tanksLength*configuration.geometry.stage{ii}.radius];
 end
 
-% Mass computation
 m = [mission.capsule.weight];
 
 for ii = launcher(1):-1:1
-    m = [m, mer.stage{ii}.interStage, ...
-        mer.stage{ii}.tankMassFuel+mer.stage{ii}.cryoInsuFuel+staging{ii}.mProp/(1 + configuration.stage{ii}.engine.OF), ...
-        mer.stage{ii}.tankMassOx+mer.stage{ii}.cryoInsuOx+staging{ii}.mProp*configuration.stage{ii}.engine.OF/(1 + configuration.stage{ii}.engine.OF), ...
-        mer.stage{ii}.thrustFrame + mer.stage{ii}.engineWeight + ...
-        mer.stage{ii}.avionics + mer.stage{ii}.wiring + mer.stage{ii}.tvc +  ...
-        mer.stage{ii}.battery + mer.stage{ii}.pressurant];
+    m = [m, mer.stage{ii}.interstage, configuration.geometry.stage{ii}.mStage-mer.stage{ii}.interstage];
 end
+
 
 % Gravity
 gN      = 9.81;
 
 % Ground Wind Model
-rhoSeaLevel = 1.2807; % libro
-CDSeaLevel = 0.77;    % libro
-hinv = configuration.geometry.totalLength - cumsum(h);
-hinv(end) = 0;
-vss = 9.5 * hinv.^0.2; % [m/s]
-effectiveWindSpeed = sqrt((1.25 * vss).^2 + (2.56 * vss).^2);
-effWindDynPressure = 0.5 * rhoSeaLevel * effectiveWindSpeed.^2;
-
-windDrag = effWindDynPressure .* CDSeaLevel .* sideArea;
-
+vss = 9.5 * h.^0.2; % [m/s]
+effectiveWindSpeed = sqrt((1.25 * vss)^2 + (2.56 * vss)^2);
+effWindDynPressure = 0.5 * 1.29 * (2.85 * vss)^2;
 
 % Number of nodes
 nNodes    = nElements + 1;
@@ -131,10 +115,12 @@ end
 b = zeros(3, nNodes);
 
 k = 1;
-for i = loadNodes(1:end)
-    b(:,i) = [m(k)*gN; windDrag(i); 0];
+for i = loadNodes(2:end-1)
+    b(:,i) = m(k) * [gN; 0; 0];
     k = k + 1;
 end
+
+b(:, [2 3]) = b(:, [3 2]); % inversione richiesta siccome il CG del payload è prima del CP del corpo
 
 b = b(:);
 

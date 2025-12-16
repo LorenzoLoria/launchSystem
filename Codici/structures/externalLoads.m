@@ -111,7 +111,7 @@ engineVec = [nEngines,aTotZero,aTotVacum];
 dMaxQ = -rot2*maxq * mainbodyCD * Aref * [1;0;0];
 lMaxQ = -rot2*maxq * mainbodyCL * Aref * [0;-1;0];
 gMaxQ = -rot3'*mission.target.Rfinal* mission.environment.GM * posMaxQ /norm(posMaxQ)^3;
-alphaFin = 0.5 * pi / 180;
+alphaFin = 1 * pi / 180;
 dFinsMaxQ = -rot2*maxq * finsCD * Aref * [cos(alphaFin);sin(alphaFin);0];
 lFinsMaxQ = -rot2*maxq * finsCL * Aref * [-sin(alphaFin);cos(alphaFin);0];
 
@@ -144,7 +144,8 @@ xcg = centerOfGravity(maxQData.massMaxQVec, maxQData.h4cgFinal );
 
 
 % Deflection angle
-delta = asin((-(lFinsMaxQ(2) + dFinsMaxQ(2))*0.9 * (configuration.geometry.totalLength - xcp_a - xcg) + (dMaxQ(2) + lMaxQ(2)) * (xcg - xcp)+(lFinsMaxQ(2) + dFinsMaxQ(2)) * 0.1 * (xcg - xcp_topfins))/(norm(tMaxQ)*(configuration.geometry.totalLength - xcg)));
+delta = asin((-(lFinsMaxQ(2) + dFinsMaxQ(2))/2 * (configuration.geometry.totalLength - xcp_a - xcg) + (dMaxQ(2) + lMaxQ(2)) * (xcg - xcp)+(lFinsMaxQ(2) + dFinsMaxQ(2))/2 * (xcg - xcp_topfins))/(norm(tMaxQ)*(configuration.geometry.totalLength - xcg)));
+
 % Rotation of thrust
 tMaxQ = sqrt(tMaxQ'* tMaxQ) * [cos(delta); sin(delta); 0];
 

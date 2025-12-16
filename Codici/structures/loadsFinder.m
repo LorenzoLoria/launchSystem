@@ -30,9 +30,12 @@ loadNodes = [2 3 5 7 9 11 12 14 16 18 20 21];
 
 xcp = computeXcp(mission, configuration,launcher);
 xcp_a = mission.aerodynamics.finsGeom.rootChord - computeFinXcp(mission, maxQData);
+% 
+% if xcp_a > configuration.geometry.stage{1}.thrustFrame/2
+%     loadNodes([end-1,end]) = loadNodes([end, end-1]);
+% end
 
 % Length of the element used for structural analysis
-
 h = [mission.capsule.height/2, xcp - mission.capsule.height/2, mission.capsule.height - xcp];
 
 for ii = launcher(1):-1:1
@@ -43,6 +46,16 @@ for ii = launcher(1):-1:1
             configuration.geometry.stage{ii}.thrustFrame-xcp_a,xcp_a-configuration.geometry.stage{ii}.thrustFrame/2,...
             configuration.geometry.stage{ii}.thrustFrame/2];
 end
+
+% if xcp_a > configuration.geometry.stage{1}.thrustFrame/2
+%     h(end-1)   = configuration.geometry.stage{1}.thrustFrame - xcp_a;
+%     h(end)   =  xcp_a - configuration.geometry.stage{1}.thrustFrame/2;
+%     h(end+1)   = configuration.geometry.stage{1}.thrustFrame/2;
+% else
+%     h(end)   = configuration.geometry.stage{1}.thrustFrame/2 - xcp_a;
+%     h(end+1) = xcp_a;
+% end
+
 
 m  = maxQData.massMaxQVec;   
 
@@ -67,12 +80,12 @@ aN      = a(1);
 aT      = a(2);    
 
 % Fins' Lift
-liftFins  = maxQData.liftFinsMaxQ;
+liftFins  = maxQData.liftFinsMaxQ/2;
 liftFinsN = liftFins(1);
 liftFinsT = liftFins(2);
 
 % Fins' Drag
-dragFins  = maxQData.dragFinsMaxQ;
+dragFins  = maxQData.dragFinsMaxQ/2;
 dragFinsN = dragFins(1);
 dragFinsT = dragFins(2);
 
@@ -136,9 +149,9 @@ for i = [2 5 7 9 12 14 16 18 21]
     k = k + 1;
 end
 
-b(:, 11) = [0.1*(dragFinsN+liftFinsN); 0.1*(dragFinsT+liftFinsT); 0];
+b(:, 11) = [dragFinsN+liftFinsN; dragFinsT+liftFinsT; 0];
 % b(:, [2 3]) = b(:, [3 2]); % inversione richiesta siccome il CG del payload è prima del CP del corpo
-b(:, 20) = [0.9*(dragFinsN+liftFinsN); 0.9*(dragFinsT+liftFinsT); 0];
+b(:, 20) = [dragFinsN+liftFinsN; dragFinsT+liftFinsT; 0];
 
 % if xcp_a > configuration.geometry.stage{1}.thrustFrame/2
 %     b(:,end-2) = [dragFinsN+liftFinsN; dragFinsT+liftFinsT; 0];
