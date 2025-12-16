@@ -186,4 +186,5 @@ maxQAlphaData.hMaxQ             = hMaxQ;
 maxQAlphaData.vMaxQ             = vMaxQ;
 maxQAlphaData.liftFinsMaxQ      = lFinsMaxQ;
 maxQAlphaData.dragFinsMaxQ      = dFinsMaxQ;
+maxQAlphaData.alphaMaxQalpha    = alphaMaxQalpha;
 end

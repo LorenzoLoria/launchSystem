@@ -1,16 +1,14 @@
 %% ======================= Prova Runnata ================================== 
 
 clear all;
-
+clc;
 close all
 
 %% ==========================  DATI ========================================
 
 addpath(genpath('..\..\'))
-%%
-[mission, settings] = dataStructGlobal;
 
-mission.structure.alphaQmax = 0;
+[mission, settings] = dataStructGlobal;
 
 % launcher = [nStages, nMotore1, nMotore2, nMotore3, %massa1, %massa2,
 % %massa3];
@@ -107,51 +105,59 @@ for i = 1:21
 end
 
 % --- Figura 1: Axial Load ---
-figure(1); 
-ar1 = area(x_all, N_all); 
+axialLoad = figure(1); 
+ar1 = area(x_all, N_all*1e-3); 
 % Proprietà grafiche
-ar1.FaceColor = settings.color.blu;       % Colore riempimento (blu)
+ar1.FaceColor = settings.color.orange;       % Colore riempimento (blu)
 ar1.FaceAlpha = 0.3;       % Trasparenza (0 = invisibile, 1 = solido)
-ar1.EdgeColor = settings.color.blu;       % Colore della linea superiore
+ar1.EdgeColor = settings.color.orange;       % Colore della linea superiore
 ar1.LineWidth = 1.0;       % Spessore linea (meno spessa di 1.5)
 
-hold on
-yline(0, 'LineWidth', 1.5, 'Color', 'k') % Linea zero nera per contrasto
+% hold on
+% yline(0, 'LineWidth', 1.5, 'Color', 'k') % Linea zero nera per contrasto
 grid on;
 xlabel('x [m]');
-ylabel('Axial Load [N]');
+ylabel('Axial Load [kN]');
 xlim([0, x_all(end)])
 % xline([0, cumsum(h)], 'LineStyle','--')
+setPlotSettings(title(''))
 
-% --- Figura 2: Shear Load ---
-figure(2); 
-ar2 = area(x_all, T_all);
-ar2.FaceColor = 'b';
+exportStandardizedFigure(axialLoad,'axialLoadMaxQ',0.55,1.5,'ChangeColors',false,'AddMarkers',false,'overwriteFigure',true,'exportFIG',true,'exportPDF',false,'figurePath','..\..\figures\structures')
+
+%% --- Figura 2: Shear Load ---
+shearLoad = figure(2); 
+ar2 = area(x_all, T_all*1e-3);
+ar2.FaceColor = settings.color.blu;
 ar2.FaceAlpha = 0.3;
-ar2.EdgeColor = 'b';
+ar2.EdgeColor = settings.color.blu;
 ar2.LineWidth = 1.0;
 
-hold on
-yline(0, 'LineWidth', 1.5, 'Color', 'k')
+% hold on
+% yline(0, 'LineWidth', 1.5, 'Color', 'k')
 grid on;
 xlabel('x [m]');
-ylabel('Shear Load [N]');
+ylabel('Shear Load [kN]');
 xlim([0, x_all(end)])
 % xline([0, cumsum(h)], 'LineStyle','--')
+setPlotSettings(title(''))
 
-% --- Figura 3: Bending Moment ---
-figure(3); 
-ar3 = area(x_all, M_all);
-ar3.FaceColor = 'b';
+exportStandardizedFigure(shearLoad,'shearMaxQ',0.55,1.5,'ChangeColors',false,'AddMarkers',false,'overwriteFigure',true,'exportFIG',true,'exportPDF',false,'figurePath','..\..\figures\structures')
+%% --- Figura 3: Bending Moment ---
+bendingMoment = figure(3); 
+ar3 = area(x_all, M_all*1e-3);
+ar3.FaceColor = settings.color.terracotta;
 ar3.FaceAlpha = 0.3;
-ar3.EdgeColor = 'b';
+ar3.EdgeColor = settings.color.terracotta;
 ar3.LineWidth = 1.0;
 
-hold on
-yline(0, 'LineWidth', 1.5, 'Color', 'k')
+% hold on
+% yline(0, 'LineWidth', 1.5, 'Color', 'k')
 grid on;
 xlabel('x [m]');
-ylabel('Bending Moment [Nm]');
+ylabel('Bending Moment [kNm]');
 xlim([0, x_all(end)])
 % xline([0, cumsum(h)], 'LineStyle','--')
 xline(xcg, 'k',  'LineWidth',1.5)
+setPlotSettings(title(''))
+
+exportStandardizedFigure(bendingMoment,'bendingMomentMaxQ',0.55,1.5,'ChangeColors',false,'AddMarkers',false,'overwriteFigure',true,'exportFIG',true,'exportPDF',false,'figurePath','..\..\figures\structures')

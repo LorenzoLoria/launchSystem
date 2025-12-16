@@ -171,22 +171,24 @@ mission.aerodynamics.bodyInfo.Cdn = 1.2;
 % mission.materials.Al2219.yield    = 390e6;
 % mission.materials.Al2219.ultimate = 480e6;
 
+%{
 %----------------------------------------------------------------------
-% Al 7075-T6 - highly loaded fittings, secondary structures
+% Al-Li 2195 - lightweight cryogenic tanks for high-performance stages 
 %----------------------------------------------------------------------
-% mission.materials.Al7075.rho      = 2720;
-% mission.materials.Al7075.E        = 75e9;
-% mission.materials.Al7075.yield    = 500e6;
-% mission.materials.Al7075.ultimate = 560e6;
+mission.structure.rho      = 2720;
+mission.structure.E        = 75e9;
+mission.structure.yield    = 500e6;
+mission.structure.ultimate = 560e6;
+%}
 
-mission.structure.rho = [2840, 2720, 2780, 2810];
-mission.structure.E   = [72e9, 75e9, 73e9, 72e9];
-mission.structure.ultimate = [480e6, 560e6, 483e6, 572e6];
-mission.structure.yield = [390e6, 500e6, 345e6, 503e6];
+mission.structure.rho = [2840, 3000, 2780, 2810];
+mission.structure.E   = [72e9, 69e9, 73e9, 72e9];
+mission.structure.ultimate = [480e6, 590e6, 483e6, 572e6];
+mission.structure.yield = [390e6, 560e6, 345e6, 503e6];
 mission.structure.minThickness = 1e-3 ;
 
 mission.structure.tankPressure       = 3.4e5;
-mission.structure.safetyFactor       = 1.5;
+mission.structure.safetyFactor       = 1.4;
 
 
 

@@ -181,6 +181,9 @@ end
 
 % =========================== ESTRAZIONE ==================================
 updatedStructuralMass = sum(mStruct) ;
-mStruct = mStruct([2, 3, 4, 6, 7, 8]);
 
+% Extract the results associated to interstage2, fuel2, ox2, interstage1,
+% fuel1, ox1
+mStruct = mStruct([2, 3, 4, 6, 7, 8]);
+idx = idx([2, 3, 4, 6, 7, 8]);
 end

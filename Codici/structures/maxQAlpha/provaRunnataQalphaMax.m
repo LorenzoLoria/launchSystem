@@ -1,7 +1,7 @@
 %% ================== Prova Runnata q-alphaMax ============================ 
 
 clear all;
-
+clc;
 close all
 
 % ==========================  DATI ========================================
@@ -41,16 +41,10 @@ thrustDataVecFMC(:,:,2 ) = [0.400917809388214	65.122710138507202
 [timeCollocation, stateCollocation] = totalTrajectoryGlobalGA(launcher,configuration,mission,settings,thrustDataVecFMC);
 
 %% ============================ SOLUTION ==================================
-<<<<<<< Updated upstream
-alpha = 5 * pi / 180;
-[maxQAlphaData] = externalLoads(timeCollocation, stateCollocation, mission,configuration,launcher,mer,alpha,staging);
-[internalActions] = loadsFinder(mission, launcher, configuration, maxQAlphaData);
-[updatedStructuralMass, mStruct] = thicknessFunction(mission, launcher, configuration, maxQAlphaData, internalActions) ;
-=======
 alpha = 3 * pi / 180;
 [maxQAlphaData] = externalLoadsQAlphaMax(timeCollocation, stateCollocation, mission,configuration,launcher,mer,alpha,staging);
-[internalLoads] = loadsFinder(mission, launcher, configuration, maxQAlphaData);
->>>>>>> Stashed changes
+[internalActions] = loadsFinder(mission, launcher, configuration, maxQAlphaData);
+
 
 N = internalActions.N;
 T = internalActions.T;
@@ -112,52 +106,60 @@ for i = 1:21
     M_all = [M_all, M_current];
 end
 
-% --- Figura 1: Axial Load ---
-figure(1); 
-ar1 = area(x_all, N_all); 
+%% --- Figura 1: Axial Load ---
+axialMaxQAlpha = figure(1); 
+ar1 = area(x_all, N_all*1e-3); 
 % Proprietà grafiche
-ar1.FaceColor = 'b';       % Colore riempimento (blu)
+ar1.FaceColor = settings.color.orange;       % Colore riempimento (blu)
 ar1.FaceAlpha = 0.3;       % Trasparenza (0 = invisibile, 1 = solido)
-ar1.EdgeColor = 'b';       % Colore della linea superiore
+ar1.EdgeColor = settings.color.orange;       % Colore della linea superiore
 ar1.LineWidth = 1.0;       % Spessore linea (meno spessa di 1.5)
 
-hold on
-yline(0, 'LineWidth', 1.5, 'Color', 'k') % Linea zero nera per contrasto
 grid on;
 xlabel('x [m]');
-ylabel('Axial Load [N]');
+ylabel('Axial Load [kN]');
 xlim([0, x_all(end)])
 % xline([0, cumsum(h)], 'LineStyle','--')
+setPlotSettings(title(''))
 
-% --- Figura 2: Shear Load ---
-figure(2); 
-ar2 = area(x_all, T_all);
-ar2.FaceColor = 'b';
+exportStandardizedFigure(axialMaxQAlpha,'axialLoadMaxQAlpha',0.55,1.5,'ChangeColors',false,'AddMarkers',false,'overwriteFigure',true,'exportFIG',true,'exportPDF',false,'figurePath','..\..\..\figures\structures')
+
+%% --- Figura 2: Shear Load ---
+shearMaxQAlpha = figure(2); 
+ar2 = area(x_all, T_all*1e-3);
+ar2.FaceColor = settings.color.blu;
 ar2.FaceAlpha = 0.3;
-ar2.EdgeColor = 'b';
+ar2.EdgeColor = settings.color.blu;
 ar2.LineWidth = 1.0;
 
 hold on
 yline(0, 'LineWidth', 1.5, 'Color', 'k')
 grid on;
 xlabel('x [m]');
-ylabel('Shear Load [N]');
+ylabel('Shear Load [kN]');
 xlim([0, x_all(end)])
-% xline([0, cumsum(h)], 'LineStyle','--')
 
-% --- Figura 3: Bending Moment ---
-figure(3); 
-ar3 = area(x_all, M_all);
-ar3.FaceColor = 'b';
+setPlotSettings(title(''))
+
+exportStandardizedFigure(shearMaxQAlpha,'shearMaxQAlpha',0.55,1.5,'ChangeColors',false,'AddMarkers',false,'overwriteFigure',true,'exportFIG',true,'exportPDF',false,'figurePath','..\..\..\figures\structures')
+
+%% --- Figura 3: Bending Moment ---
+bendingMomentMaxQAlpha = figure(3); 
+ar3 = area(x_all, M_all*1e-3);
+ar3.FaceColor = settings.color.terracotta;
 ar3.FaceAlpha = 0.3;
-ar3.EdgeColor = 'b';
+ar3.EdgeColor = settings.color.terracotta;
 ar3.LineWidth = 1.0;
 
 hold on
 yline(0, 'LineWidth', 1.5, 'Color', 'k')
 grid on;
 xlabel('x [m]');
-ylabel('Bending Moment [Nm]');
+ylabel('Bending Moment [kNm]');
 xlim([0, x_all(end)])
 % xline([0, cumsum(h)], 'LineStyle','--')
 xline(xcg, 'k',  'LineWidth',1.5)
+
+setPlotSettings(title(''))
+
+exportStandardizedFigure(bendingMomentMaxQAlpha,'bendingMomentMaxQAlpha',0.55,1.5,'ChangeColors',false,'AddMarkers',false,'overwriteFigure',true,'exportFIG',true,'exportPDF',false,'figurePath','..\..\..\figures\structures')
