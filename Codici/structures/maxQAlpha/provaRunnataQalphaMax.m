@@ -1,7 +1,7 @@
 %% ================== Prova Runnata q-alphaMax ============================ 
 
 clear all;
-
+clc;
 close all
 
 % ==========================  DATI ========================================
@@ -10,7 +10,7 @@ addpath(genpath('..\..\'))
 
 [mission, settings] = dataStructGlobal;
 
-mission.structure.alphaQmax = 5 * pi / 180;
+mission.structure.alphaQmax = 3 * pi / 180;
 
 % launcher = [nStages, nMotore1, nMotore2, nMotore3, %massa1, %massa2,
 % %massa3];
@@ -41,14 +41,13 @@ thrustDataVecFMC(:,:,2 ) = [0.400917809388214	65.122710138507202
 [timeCollocation, stateCollocation] = totalTrajectoryGlobalGA(launcher,configuration,mission,settings,thrustDataVecFMC);
 
 %% ============================ SOLUTION ==================================
-alpha = 5 * pi / 180;
+alpha = 3 * pi / 180;
 [maxQAlphaData] = externalLoads(timeCollocation, stateCollocation, mission,configuration,launcher,mer,alpha,staging);
-[internalActions] = loadsFinder(mission, launcher, configuration, maxQAlphaData);
-[updatedStructuralMass, mStruct] = thicknessFunction(mission, launcher, configuration, maxQAlphaData, internalActions) ;
+[internalLoads] = loadsFinder(mission, launcher, configuration, maxQAlphaData);
 
-N = internalActions.N;
-T = internalActions.T;
-M = internalActions.M;
+N = internalLoads.N;
+T = internalLoads.T;
+M = internalLoads.M;
 
 %% ============================== PLOTS ===================================
 
