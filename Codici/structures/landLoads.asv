@@ -1,4 +1,4 @@
-function [camionLoads] = camionLoads(mission, configuration, mer, launcher, staging)
+function [landLoads] = landLoads(mission, configuration, mer, launcher, staging)
 
 % Function required to compute the loads to which the launcher is subject
 % to when on the launchpad
@@ -7,6 +7,8 @@ function [camionLoads] = camionLoads(mission, configuration, mer, launcher, stag
 
 % OUTPUTS
 % landload : structure containing N, T, M
+
+% ======================== DATA CONVERSION ================================
 
 % =========================== SOLUTION ====================================
 
@@ -34,39 +36,68 @@ for ii = launcher(1):-1:1
     configuration.geometry.stage{ii}.thrustFrame/2];
 end
 
+% Computation of side area
+sideArea = [8 / 9 * mission.capsule.height, mission.capsule.radius * mission.capsule.height - 8 / 9 * mission.capsule.height];
+
+for ii = launcher(1):-1:1
+    sideArea = [sideArea, configuration.geometry.stage{ii}.interstage.length*configuration.geometry.stage{ii}.interstage.meanRadius, ...
+        configuration.geometry.stage{ii}.interstage.length*configuration.geometry.stage{ii}.interstage.meanRadius, ...
+        configuration.stage{ii}.fuelTankH*configuration.stage{ii}.fuelTankR, ...
+        configuration.stage{ii}.fuelTankH*configuration.stage{ii}.fuelTankR, ...
+        configuration.stage{ii}.oxTankH*configuration.stage{ii}.oxTankR, ...
+        configuration.stage{ii}.oxTankH*configuration.stage{ii}.oxTankR, ...
+        configuration.geometry.stage{ii}.thrustFrame*configuration.geometry.stage{ii}.radius,...
+        configuration.geometry.stage{ii}.thrustFrame*configuration.geometry.stage{ii}.radius];
+end
+
 % Mass computation
 m = [mission.capsule.weight];
 
 for ii = launcher(1):-1:1
     m = [m, mer.stage{ii}.interStage, ...
-        mer.stage{ii}.tankMassFuel+mer.stage{ii}.cryoInsuFuel, ...
-        mer.stage{ii}.tankMassOx+mer.stage{ii}.cryoInsuOx, ...
+        mer.stage{ii}.tankMassFuel+mer.stage{ii}.cryoInsuFuel+staging{ii}.mProp/(1 + configuration.stage{ii}.engine.OF), ...
+        mer.stage{ii}.tankMassOx+mer.stage{ii}.cryoInsuOx+staging{ii}.mProp*configuration.stage{ii}.engine.OF/(1 + configuration.stage{ii}.engine.OF), ...
         mer.stage{ii}.thrustFrame + mer.stage{ii}.engineWeight + ...
         mer.stage{ii}.avionics + mer.stage{ii}.wiring + mer.stage{ii}.tvc +  ...
         mer.stage{ii}.battery + mer.stage{ii}.pressurant];
 end
 
 % Gravity
-gT      = 9.81;
+gN      = 9.81;
+
+% Ground Wind Model
+rhoSeaLevel = 1.2807; % libro
+CDSeaLevel = 0.77;    % libro
+hinv = configuration.geometry.totalLength - cumsum(h);
+hinv(end) = 0;
+vss = 9.5 * hinv.^0.2; % [m/s]
+effectiveWindSpeed = sqrt((1.25 * vss).^2 + (2.56 * vss).^2);
+effWindDynPressure = 0.5 * rhoSeaLevel * effectiveWindSpeed.^2;
+
+windDrag = effWindDynPressure .* CDSeaLevel .* sideArea;
+
 
 % Number of nodes
 nNodes    = nElements + 1;
 
 % Posizione del centro di forza 
 
-hCUMSUM = cumsum(h);
-hCentroids = hCUMSUM(loadNodes - 1);
+hCentroids = cumsum(h);
+hCentroids = hCentroids(loadNodes);
+windDragCentroids = windDrag(loadNodes);
 
-xcg = centerOfGravity(m, hCentroids);
+xcf = centerOfGravity(windDragCentroids, hCentroids);
+windDragTOT = sum(windDrag) / length(windDrag);
 
 % Posizioni bracci meccanici rispetto al naso
-xc1 = hCUMSUM(5); % scelta a caso
-xc1 = xcg - xc1;
-xc2 = hCUMSUM(12); % scelta a caso
-xc2 = xc2 - xcg;
+hCUMSUM = cumsum(h);
+xc1 = hCUMSUM(6); % scelta a caso
+xc1 = xcf - xc1;
+xc2 = hCUMSUM(13);
+xc2 = xc2 - xcf;
 
 % Bilancio forze
-T1 = sum(m)*gT / (1 + xc1 / xc2);
+T1 = windDragTOT / (1 + xc1 / xc2);
 T2 = T1 * xc1 / xc2;
 
 % ===================== Creation of A Matrix ==============================
@@ -121,20 +152,20 @@ b = zeros(3, nNodes);
 
 k = 1;
 for i = loadNodes
-    b(:,i) = [0; m(k)*gT; 0];
+    b(:,i) = [m(k)*gN; windDrag(i); 0];
     k = k + 1;
 end
 
-b(:,6) = b(:, 6) - [0;T1;0];
-b(:,13) = b(:, 13) - [0;T2;0];
+b(:,6) = b(:, 6) + T1;
+b(:,7) = b
 
 b = b(:);
 
 % =========================== SOLUTION ====================================
 loads = A \ b;
 
-camionLoads.N = loads(1:3:end);
-camionLoads.T = loads(2:3:end);
-camionLoads.M = loads(3:3:end);
+landLoads.N = loads(1:3:end);
+landLoads.T = loads(2:3:end);
+landLoads.M = loads(3:3:end);
 
 end
