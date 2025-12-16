@@ -1,8 +1,22 @@
-function [updatedStructuralMass, mStruct, tVec] = thicknessFunction(mission, launcher, configuration, maxQData, internalActions)
+function [updatedStructuralMass, mStruct] = thicknessFunction(mission, launcher, configuration, maxQData, internalActions)
 
 % Function required to size the launcher thickess of all the different 
 % components of the LV. Evaluation must be done in the most
-% critical conditions: q, q-alpha, MECO
+% critical conditions: q, q-alpha, MECO 
+
+% --- INPUTS
+% mission                         = struct containing LV data
+% engineUsed                      = parameter indicating which engine is
+%                                   used
+
+% --- OUTPUTS
+% mission.structure.mStruct       = vector containing mass of each structure [kg]
+% mission.structure.t             = vector containing thickness of each component [m]
+% mission.structure.tMax          = maximum thickness of the launcher [m]
+% mission.structure.stressMatrix  = (nComponents x 6) matrix. Each column represents a
+%                                   component of the LV (e.g. Thrust structure, 1st stage etc.), 
+%                                   each row represents a different kind of stress [MPa]
+
 
 % ============================== DATA =====================================
 
@@ -92,13 +106,13 @@ for i = 1 : partsNumber
         t(i, j) = max(tAxial, tShear);
 
         % Consider buckling
-        bucklingEq = @(t_var) ( ...
-                    + abs(N(i) / (pi*(r(i)^2-(r(i)-t_var)^2))) * SF ...
-                    + abs(M(i) / (pi/4*(r(i)^4-(r(i)-t_var)^4)) * r(i)) * SF ...
-                    - abs((pressurization(i) * r(i)) / (2 * t_var)) )...
-                    - ( ((9 * (t_var/r(i))^0.6 + 0.16 * (r(i)/h(i))^1.3 * (t_var/r(i))^0.3) ...
-                    + min(0.191 * (pressurization(i)/E(j)) * (r(i)/t_var)^2, 0.229) ) * E(j) * t_var / r(i));
-                    % - abs((rhoProps(i)) * nx * g0 * h(i) * r(i)) / (2 * t_var)) ...
+        bucklingEq = @(t_var) abs( ...
+                    - abs(N(i) / (pi*(r(i)^2-(r(i)-t_var)^2))) * SF ...
+                    - abs(M(i) / (pi/4*(r(i)^4-(r(i)-t_var)^4)) * r(i)) * SF ...
+                    + abs((pressurization(i) * r(i)) / (2 * t_var)) ...
+                    + abs((rhoProps(i)) * nx * g0 * h(i) * r(i)) / (2 * t_var)) ...
+                    - (((9 * (t_var/r(i))^0.6 + 0.16 * (r(i)/h(i))^1.3 * (t_var/r(i))^0.3) + min(0.191 * (pressurization(i)/E(j)) * (r(i)/t_var)^2, 0.229)) * E(j) * t_var / r(i));
+
         options = optimoptions('fsolve', 'Display', 'off', 'TolFun', 1e-6);
         tBuckling = fsolve(bucklingEq, t(i,j), options);
         t(i, j) = max(t(i, j), tBuckling);
@@ -139,9 +153,20 @@ for i = 1 : partsNumber
         stressMatrix(i, :) = [longitudinalStress, bendingStress, shearStress, hoopStress, axialStress, sigmaBuckling];
         
     else 
+
+        % Loads
+        % longitudinalLoad = nx .* M * g0; % longitudinal load vector
+        % lateralLoad = nz .* M .* g0; % lateral force vector
+        % bendingMoment = lateralLoad .* hCM; % bending moment vector
+        
+        % Area A and Inertia I are initially computed using the following
+        % approximation:
+        % A = 2 * pi * r * t;
+        % I = pi * r^3 * t;
+        
         for j = 1 : materialNumber
         % Minimum Allowable Thicknesses
-        tAxial = ( abs(N(i) / (2 * pi * r(i))) + abs(M(i) / (pi * r(i)^2)) ) / ultimateStress(j) * SF;
+        tAxial = ( abs(- N(i) / (2 * pi * r(i))) - abs(M(i) / (pi * r(i)^2)) ) / ultimateStress(j) * SF;
         tShear = T(i) / (2 * pi * r(i) * shearAllowable(j)) * SF;
     
         t(i, j) = max(tAxial, tShear);
@@ -182,5 +207,8 @@ end
 % =========================== ESTRAZIONE ==================================
 updatedStructuralMass = sum(mStruct) ;
 mStruct = mStruct([2, 3, 4, 6, 7, 8]);
+% mission.structure.thickness = tVec;
+% mission.structure.stressMatrix = stressMatrix;
+% mission.structure.materials = idx;
 
 end
