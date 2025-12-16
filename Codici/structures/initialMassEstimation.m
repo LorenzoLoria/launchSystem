@@ -55,7 +55,7 @@ lOverD = 5;
         if i == 1
             twLimit = 1.3;
         else
-            twLimit = 0.75;
+            twLimit = 0.7;
         end
 
         while twRatio < twLimit
