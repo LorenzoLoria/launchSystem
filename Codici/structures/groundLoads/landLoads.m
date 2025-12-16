@@ -88,9 +88,9 @@ xcf = centerOfGravity(windDragCentroids, hCentroids);
 windDragTOT = sum(windDragCentroids);
 
 % Posizioni bracci meccanici rispetto al naso
-xc1 = hCUMSUM(5); % scelta a caso
+xc1 = hCUMSUM(2); % scelta a caso
 xc1 = xcf - xc1;
-xc2 = hCUMSUM(12); % scelta a caso
+xc2 = hCUMSUM(17); % scelta a caso
 xc2 = xc2 - xcf;
 
 % Bilancio forze
@@ -153,8 +153,8 @@ for i = loadNodes
     k = k + 1;
 end
 
-b(:,6) = b(:, 6) - [0;T1;0];
-b(:,13) = b(:, 13) - [0;T2;0];
+b(:,3) = b(:, 3) - [0;T1;0];
+b(:,18) = b(:, 18) - [0;T2;0];
 
 b = b(:);
 
