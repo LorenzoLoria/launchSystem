@@ -4,7 +4,7 @@ nStages = launcher(1);
 m0Tot = configuration.totalMass;
 
 nDeval = settings.nEvalPointsTraj;
-stateCollocationControlled = zeros(9,nDeval, nStages+1);
+stateCollocationControlled = zeros(14,nDeval, nStages+1);
 timeCollocationControlled  = zeros(nDeval, nStages+1);
 
 
@@ -12,7 +12,8 @@ for i = 1:nStages
 
         if i == 1
             m0 = m0Tot;
-            x0 = [mission.launchBase.initialPointECI'; 0; 0; 0; -pi/2; 0; m0];
+            q0 = [1; 0; 0; 0] ;
+            x0 = [mission.launchBase.initialPointECI'; 0; 0; 0; q0; 0; 0; 0; m0];
             t0 = 0;
             tf = guidanceTime(end,i);
             thrustValue = configuration.stage{i}.engine.thrustZero;
@@ -21,7 +22,6 @@ for i = 1:nStages
         else
             m0 = m0 - configuration.stage{i-1}.mStage;
             x0 = [stateCollocationControlled(1:end-1,end,i-1); m0];
-            % x0(8) = 0;
             t0 = timeCollocationControlled(end,i-1);
             tf = guidanceTime(end,i);
             thrustValue = configuration.stage{i}.engine.thrustVacum;

@@ -37,7 +37,7 @@ options = odeset('RelTol',1e-6,'AbsTol',1e-2 ,'Events',@(t,x) propEventControl(t
 
 
 solution = ode113(@(t,x) launcherDynamicsAndControlECI2(t, x, mission, mer, configuration, launcher, stageNumber, guidancePoints, guidanceTime, gains, dimensions, engineVec, finsVec,thrustData), tSpan, x0, options);
-%warning off all
+
 tt = linspace(solution.x(1),solution.x(end), nDeval);
 
 xx = deval(solution,tt);
