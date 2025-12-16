@@ -235,11 +235,7 @@ end
 
 
 %% ============================== PLOTS ===================================
-settings.color.green = '#777754';
-settings.color.orange = '#cf9143';
-settings.color.blu = '#2f5d62';
-settings.color.gray = '#3a3a3a';
-settings.color.terracotta = '#8f4e3a';
+
 
 figure
 EarthPlot(mission.environment.rEarth)
@@ -253,28 +249,17 @@ xlabel('X_{ECI}')
 ylabel('Y_{ECI}')
 zlabel('Z_{ECI}')
 
-save('stateCollocationMontecarloWind.mat',"stateCollocationRef")
-save('timeCollocationWind.mat','timeCollocationRef')
+save('stateCollocationMontecarloWind.mat',state)
 % plot of the cumulative mean
 
 figure
 subplot(2,1,1)
-plot(cumulativeMeanControlled,'Color',settings.color.blu)
+plot(cumulativeMeanControlled)
 title('Cumulative Mean for Controlled Trajectory')
-xlabel('iteration')
-ylabel('Mean Dinstance')
 subplot(2,1,2)
-plot(cumulativeMeanUncontrolled,'Color',settings.color.blu)
+plot(cumulativeMeanUncontrolled)
 title('Cumulative Mean for Uncontrolled Trajectory')
-<<<<<<< Updated upstream
-xlabel('iteration')
-ylabel('Mean Dinstance')
-=======
 
-save('cumulativeMeanControlled.mat','cumulativeMeanControlled')
-save('cumulativeMeanUncontrolled.mat','cumulativeMeanUncontrolled')
-
->>>>>>> Stashed changes
 % Distribution of the 'distance' population
 
 figure
@@ -303,11 +288,10 @@ legend('Real distribution', 'Estimated Gaussian Curve')
 
 figure
 distancePoints = distanceFromTargetControlled ;
-plot(distancePoints,'Color',settings.color.gray,'Marker','*','LineStyle','none')
+plot(distancePoints,'k*')
 yline(20e3,'r','LineWidth',2)
 ylabel('Distance')
 xlabel('iteration')
-save('distancePoints.mat','distancePoints')
 
 distPointGood =[]; %NaN * ones(length(distancePoints));
 distPointNotGood =[]; % NaN * ones(length(distancePoints));
@@ -320,8 +304,6 @@ for k = 1:length(distancePoints)
 end
 percIn = numel(distPointGood)/numel(distancePoints) * 100;
 percOut = numel(distPointNotGood)/numel(distancePoints) * 100;
-save('distPointsGood','distPointGood')
-save('distPointsNotGood','distPointNotGood')
 % figure
 % plot(distPointGood,'g*')
 % hold on
@@ -347,7 +329,7 @@ x = reordercats(x,{'success','failure'});   % opzionale, per l'ordine
 
 b = bar(x, y);
 b.FaceColor = 'flat';          % abilita colori per-segmento
-b.CData(1,:) = [0,0.8,0];      % primo pezzo (percIn)  -> verde
-b.CData(2,:) = [0.8,0,0];      % secondo pezzo (percOut) -> rosso
+b.CData(1,:) = [0 0.8 0];      % primo pezzo (percIn)  -> verde
+b.CData(2,:) = [0.8 0 0];      % secondo pezzo (percOut) -> rosso
 ylabel('[%]');
 title('Success vs Failure');

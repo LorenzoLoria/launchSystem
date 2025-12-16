@@ -31,8 +31,11 @@ aTotZero = optStage{stageNumber}.engine.effAreaZero;
 aTotVacum = optStage{stageNumber}.engine.effAreaVac;
 
 engineVec = [nEngines,aTotZero,aTotVacum];
-
-solution = ode113(@(t,x) launcherDynamicsECIControlled(t, x,stateCollocationRef,timeCollocationRef, mission,stageNumber,opt,option2D,dimensions,engineVec,windVelXFun,windVelYFun,maxThrust,maxGimball,thrustData,gainGA),tSpan,x0,options);
+finsVec   = [mission.aerodynamics.finsGeom.rootChord, mission.aerodynamics.finsGeom.tipChord, ...
+    mission.aerodynamics.finsGeom.bfin, mission.aerodynamics.finsGeom.Nfins, mission.aerodynamics.finsGeom.Sfin, ...
+    mission.aerodynamics.finsGeom.cmac, mission.aerodynamics.finsGeom.delta_le, ...
+    mission.aerodynamics.finsGeom.Lambda_le, mission.aerodynamics.finsGeom.tmac];
+solution = ode113(@(t,x) launcherDynamicsECIControlled(t, x,stateCollocationRef,timeCollocationRef, mission,stageNumber,opt,option2D,dimensions,engineVec,windVelXFun,windVelYFun,maxThrust,maxGimball,thrustData,gainGA,finsVec),tSpan,x0,options);
 
 tt = linspace(solution.x(1),solution.x(end),nDeval);
 

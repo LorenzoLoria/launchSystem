@@ -1,4 +1,4 @@
-function dsdt = launcherDynamicsECIControlled(t, x,stateCollocation,timeCollocation, mission,stageNumber,opt,option2D,dimensions,engineVec,windVelXFun,windVelYFun,maxThrust,maxGimball,thrustData,gainGA)
+function dsdt = launcherDynamicsECIControlled(t, x,stateCollocation,timeCollocation, mission,stageNumber,opt,option2D,dimensions,engineVec,windVelXFun,windVelYFun,maxThrust,maxGimball,thrustData,gainGA,finsVec)
     
 
     % stateCollocation è quella del singolo stadio
@@ -36,7 +36,7 @@ function dsdt = launcherDynamicsECIControlled(t, x,stateCollocation,timeCollocat
     if Mach == 0
         Cd = 0.01;
     else
-    [~,Cd,~,~] = CLCDcomputation(Mach,0,dynamicPressure,1,mission,stageNumber,dimensions,engineVec);
+    [~,Cd,~,~] = CLCDcomputation(Mach,0,dynamicPressure,1,mission,stageNumber,dimensions,engineVec,finsVec);
     end 
 
     if stageNumber == 1

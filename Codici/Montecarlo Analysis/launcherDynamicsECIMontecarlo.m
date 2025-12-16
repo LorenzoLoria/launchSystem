@@ -1,4 +1,4 @@
-function dsdt = launcherDynamicsECIMontecarlo(t, x,thrustData, mission,stageNumber,opt,option2D,dimensions,engineVec,windVelXFun,windVelYFun)
+function dsdt = launcherDynamicsECIMontecarlo(t, x,thrustData, mission,stageNumber,opt,option2D,dimensions,engineVec,windVelXFun,windVelYFun,finsVec)
 
 % LAUNCHERDYNAMICS  3D launcher equations of motion.
 %   This function computes the time derivative of the state vector for a 
@@ -68,7 +68,7 @@ function dsdt = launcherDynamicsECIMontecarlo(t, x,thrustData, mission,stageNumb
     if Mach == 0
         Cd = 0.01;
     else
-    [~,Cd,~,~] = CLCDcomputation(Mach,0,dynamicPressure,1,mission,stageNumber,dimensions,engineVec);
+    [~,Cd,~,~] = CLCDcomputation(Mach,0,dynamicPressure,1,mission,stageNumber,dimensions,engineVec,finsVec);
     end
     optVar = thrustData(t); 
     
