@@ -4,10 +4,10 @@ clear all;
 
 close all
 
-% ==========================  DATI ========================================
+%% ==========================  DATI ========================================
 
 addpath(genpath('..\..\'))
-
+%%
 [mission, settings] = dataStructGlobal;
 
 mission.structure.alphaQmax = 0;
@@ -110,9 +110,9 @@ end
 figure(1); 
 ar1 = area(x_all, N_all); 
 % Proprietà grafiche
-ar1.FaceColor = 'b';       % Colore riempimento (blu)
+ar1.FaceColor = settings.color.blu;       % Colore riempimento (blu)
 ar1.FaceAlpha = 0.3;       % Trasparenza (0 = invisibile, 1 = solido)
-ar1.EdgeColor = 'b';       % Colore della linea superiore
+ar1.EdgeColor = settings.color.blu;       % Colore della linea superiore
 ar1.LineWidth = 1.0;       % Spessore linea (meno spessa di 1.5)
 
 hold on

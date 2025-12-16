@@ -54,6 +54,13 @@ function dsdt = launcherDynamicsECI(t, x,thrustData, mission,stageNumber,opt,opt
     vRel = v + wind;
     vMag = sqrt(vRel'*vRel); 
     
+    if norm(wind)<1
+        alpha = 0;
+    else
+    
+        alpha = acos ( dot(vRel,v)/norm(v)/norm(vRel));
+    
+    end
     rMag = sqrt(r'*r);
     
     A   = mission.capsule.Area;
@@ -71,7 +78,7 @@ function dsdt = launcherDynamicsECI(t, x,thrustData, mission,stageNumber,opt,opt
         Cd = 0.01;
         Cl = 0;
     else
-    [Cl,Cd,~,~,~,~,~] = CLCDcomputation(Mach,0,dynamicPressure,1,mission,stageNumber,dimensions,engineVec, finsVec);
+    [Cl,Cd,~,~,~,~,~] = CLCDcomputation(Mach,alpha,dynamicPressure,1,mission,stageNumber,dimensions,engineVec, finsVec);
     end
     optVar = thrustData(t); 
     

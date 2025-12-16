@@ -88,46 +88,97 @@ thrustData = reshape(thrustDataVecFMC,settings.nOptPointsTraj,2,2);
             @(x) nlconFMCTraj(x,launcher,configuration,mission,settings),...
             settings.fminconTrajOptions);
 
-
-%%
-
-
-
+%% PLOT
+%Trajectory Plot
 [timeCollocation, stateCollocation] = totalTrajectoryGlobalGA(launcher,configuration,mission,settings,thrustDataVecFMC);
-figure
+
+trajectory1 = figure(1);
+setPlotSettings(title(""))
 EarthPlot(mission.environment.rEarth)
 hold on
-plot3(stateCollocation(1,:,1),stateCollocation(2,:,1),stateCollocation(3,:,1),'r')
-plot3(stateCollocation(1,:,2),stateCollocation(2,:,2),stateCollocation(3,:,2),'y')
-plot3(stateCollocation(1,:,3),stateCollocation(2,:,3),stateCollocation(3,:,3),'g')
-plot3(mission.target.initialPointECI(1),mission.target.initialPointECI(2),mission.target.initialPointECI(3),'bo')
-targetFinalLat = mission.target.latInitial ; 
-targetFinalLon = mission.target.lonInitial + mission.environment.omega * timeCollocation(end,end); 
-targetFinalPosECI = 6371000*[cos(targetFinalLat)*cos(targetFinalLon); cos(targetFinalLat)*sin(targetFinalLon); sin(targetFinalLat) ];
-plot3(targetFinalPosECI(1),targetFinalPosECI(2),targetFinalPosECI(3), 'ob')
-title("Trajectory")
+plot3(stateCollocation(1,:,1),stateCollocation(2,:,1),stateCollocation(3,:,1),'Color',settings.color.terracotta,'LineWidth',1.5)
+plot3(stateCollocation(1,:,2),stateCollocation(2,:,2),stateCollocation(3,:,2),'Color',settings.color.orange,'LineWidth',1.5)
+plot3(stateCollocation(1,:,3),stateCollocation(2,:,3),stateCollocation(3,:,3),'Color',settings.color.gray,'LineWidth',1.5)
+plot3(mission.target.initialPointECI(1),mission.target.initialPointECI(2),mission.target.initialPointECI(3))
+view(240,10)
+legend(["" "First Stage" "Second Stage" "Capsule" ""])
 hold off
 
 
-%%
-
-
-
-figure
-plot([thrustData(:,2,1);thrustData(:,2,2)])
-title("Angle1")
-
-figure
-plot([thrustData(:,1,1);thrustData(:,1,2)])
-title("Angle1")
-
-%%
-[maxQData]=externalLoads(timeCollocation,stateCollocation,mission,configuration,launcher,mer,0,staging)
-
+trajectory2 = figure(2);
+setPlotSettings(title(""))
+EarthPlot(mission.environment.rEarth)
+hold on
+plot3(stateCollocation(1,:,1),stateCollocation(2,:,1),stateCollocation(3,:,1),'Color',settings.color.terracotta,'LineWidth',1.5)
+plot3(stateCollocation(1,:,2),stateCollocation(2,:,2),stateCollocation(3,:,2),'Color',settings.color.orange,'LineWidth',1.5)
+plot3(stateCollocation(1,:,3),stateCollocation(2,:,3),stateCollocation(3,:,3),'Color',settings.color.gray,'LineWidth',1.5)
+plot3(mission.target.initialPointECI(1),mission.target.initialPointECI(2),mission.target.initialPointECI(3))
+view(100,10)
+legend(["" "First Stage" "Second Stage" "Capsule" ""])
+hold off
 
 %%
+%Throttling Plot 
+throttling1 = thrustData(:,1,1);
+throttling2 = thrustData(:,1,2);
 
-figure
+time1 = timeCollocation(:,1);
+time2 = timeCollocation(:,2);
+
+tNodes1 = linspace(0,time1(end),5);
+tNodes2 = linspace(time2(1),time2(end),5);
+
+throttlingPlot1 = interp1(tNodes1,throttling1,time1);
+throttlingPlot2 = interp1(tNodes2,throttling2,time2); 
+
+
+throttling = figure(3);
+
+plot(time1,throttlingPlot1*100, 'Color',settings.color.terracotta,'LineWidth',2)
+hold on
+plot(time2,throttlingPlot2*100, 'Color',settings.color.orange,'LineWidth',2)
+hold off
+ylim([0,100])
+xlim([0,time2(end)])
+legend(["Throttling Percentage First Stage" "Throttling Percentage Second Stage"])
+xlabel("Time")
+ylabel("Throttling Percentage")
+setPlotSettings(title(""))
+
+
+%% ANGLE
+
+angle1 = thrustData(:,2,1);
+angle2 = thrustData(:,2,2);
+
+time1 = timeCollocation(:,1);
+time2 = timeCollocation(:,2);
+
+tNodes1 = linspace(0,time1(end),5);
+tNodes2 = linspace(time2(1),time2(end),5);
+
+anglePlot1 = interp1(tNodes1,angle1,time1);
+anglePlot2 = interp1(tNodes2,angle2,time2); 
+
+
+angle = figure(4);
+
+plot(time1,anglePlot1, 'Color',settings.color.terracotta,'LineWidth',2)
+hold on
+plot(time2,anglePlot2, 'Color',settings.color.orange,'LineWidth',2)
+hold off
+ylim([0,110])
+xlim([0,time2(end)])
+legend(["Angle First Stage" "Angle Second Stage"])
+xlabel("Time [s]")
+ylabel("Angle [°]")
+setPlotSettings(title(""))
+
+
+%% Accelerations
+
+[maxQData]=externalLoads(timeCollocation,stateCollocation,mission,configuration,launcher,mer,0,staging);
+acc = [];
 for i = 1:launcher(1)
     time      = linspace(timeCollocation(1,i),timeCollocation(end,i),length(timeCollocation)-1);
     v         = stateCollocation(4:6,:,i);
@@ -135,9 +186,48 @@ for i = 1:launcher(1)
     accx      = diff(v(1,:))./(time(2)-time(1));
     accy      = diff(v(2,:))./(time(2)-time(1));
     accz      = diff(v(3,:))./(time(2)-time(1));
-    acc       = sqrt( accx.^2 + accy.^2 + accz.^2);
-    plot(time,acc./mission.environment.g0)
-    hold on
+    acc1       = sqrt( accx.^2 + accy.^2 + accz.^2);
+    acc = [acc,acc1];
 end
-title("Accelerations")
+
+
+
+accelerations = figure(5);
+plot(timeCollocation(1:99,1),acc(1:99)./mission.environment.g0+1, 'Color',settings.color.terracotta,'LineWidth',2)
+hold on
+plot(timeCollocation(1:99,2),acc(100:198)./mission.environment.g0+1, 'Color',settings.color.orange,'LineWidth',2)
+ylim([0,6])
+xlim([0,time2(end)])
+legend(["Load Factor First Stage" "Load Factor Second Stage"])
+xlabel("Time [s]")
+ylabel("Load Factor [-]")
+setPlotSettings(title(""))
+
+
+
+
+
+
+
+%%
+
+
+timeCollocationGT = timeCollocation(:)';
+rVec = stateCollocation(1:3,:,:);
+rVec = rVec(1:3,:)';
+
+[lonP, latP] = groundTrackFun(timeCollocationGT,rVec,0,0,1,0,titleStringPert,settings);
+
+
+%%
+figure
+plot([thrustData(:,1,1);thrustData(:,1,2)])
+title("Angle1")
+
+
+
+%%
+
+
+
 
