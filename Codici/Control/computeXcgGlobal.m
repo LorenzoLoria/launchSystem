@@ -15,6 +15,8 @@ function Xcg = computeXcgGlobal(mission, configuration, launcher, mer, m, stageN
 
 N = launcher(1) - (stageNumber - 1);
 
+% Payload Data
+% m = massMaxQ;
 lco = mission.capsule.height;
 mco = mission.capsule.weight;
 
@@ -24,41 +26,24 @@ mStage = zeros(1,N);
 x = lco;
 massVec = mco;
 
-
 for i = (launcher(1)-stageNumber+1) : -1 : 1
-
-    if i == 1 && stageNumber == 2
-        totalMassIter = configuration.totalMass - configuration.stage{i}.mStage;
-        lc(i) = configuration.geometry.stage{stageNumber}.tanksLength;
-        li(i) = configuration.geometry.stage{stageNumber}.interstage.length;
-    else
-        totalMassIter = configuration.totalMass ;
-        lc(i) = configuration.geometry.stage{i}.tanksLength;
-        li(i) = configuration.geometry.stage{i}.interstage.length;
-
-    end
-
-    if i == 1 ||  (i == 1 && stageNumber == 2) % stadio in cui il carburante si consuma
-        mStage(i) = configuration.stage{stageNumber}.mStage - (totalMassIter - m) ;
+    lc(i) = configuration.geometry.stage{i}.tanksLength;
+    li(i) = configuration.geometry.stage{i}.interstage.length;
+    if i == 1
+        mStage(i) = configuration.stage{i}.mStage - (configuration.totalMass - m) ;
     else
         mStage(i) = configuration.stage{i}.mStage;
 
     end
-
-    if i == launcher(1) || (i == 1 && stageNumber == 2)
-        rBottom = configuration.geometry.stage{launcher(1)}.radius; % bottom = lower stage
+    if i == launcher(1)
+        rBottom = configuration.geometry.stage{i}.radius; % bottom = lower stage
         rTop = mission.capsule.radius;
     else
         rBottom = configuration.geometry.stage{i}.radius; % bottom = lower stage
         rTop = configuration.geometry.stage{i+1}.radius;
     end
 
-    if (i == 1 && stageNumber == 2)
-        mInterstage(i) = mer.stage{stageNumber}.interStage;
-    else
-        mInterstage(i) = mer.stage{i}.interStage;
-    end
-
+    mInterstage(i) = mer.stage{i}.interStage;
     x = [x li(i) lc(i)];
     massVec = [massVec mInterstage(i) mStage(i)];
 end

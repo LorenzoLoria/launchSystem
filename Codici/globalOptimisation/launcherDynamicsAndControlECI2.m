@@ -192,17 +192,17 @@ end
 thrustIRF = thrustGuidanceIRF;
 end
 
-% scatter3(x(1),x(2),x(3),'b*')
-% hold on
-% scatter3(rDes(1),rDes(2),rDes(3),'r*')
-% zIRF = BRFtoIRF * [0;0;1];
-% xIRF = BRFtoIRF * [1;0;0];
-% yIRF = BRFtoIRF * [0;1;0];
-% quiver3(x(1),x(2),x(3), 1000000*zIRF(1), 1000000*zIRF(2), 1000000*zIRF(3), 0);
-% plot3(guidancePoints(1,end),guidancePoints(2,end),guidancePoints(3,end),'go')
-% axis equal
-% hold off
-% drawnow
+scatter3(x(1),x(2),x(3),'b*')
+hold on
+scatter3(rDes(1),rDes(2),rDes(3),'r*')
+zIRF = BRFtoIRF * [0;0;1];
+xIRF = BRFtoIRF * [1;0;0];
+yIRF = BRFtoIRF * [0;1;0];
+quiver3(x(1),x(2),x(3), 1000000*zIRF(1), 1000000*zIRF(2), 1000000*zIRF(3), 0);
+plot3(guidancePoints(1,end),guidancePoints(2,end),guidancePoints(3,end),'go')
+axis equal
+hold off
+drawnow
 
 
 
@@ -232,7 +232,7 @@ thrustTorqueBRF = cross([0;0;-thrustArm], [1;0;0]);
 
 %torqueCommandBRF = torqueCommandBRF - aeroTorqueBRF;
 if norm(torqueCommandBRF-aeroTorqueBRF) > 1e7
-    torqueCommandBRF = ( 1e7 + norm(aeroTorqueBRF) ) .* torqueCommandBRF/norm(torqueCommandBRF);
+    torqueCommandBRF = ( 1e7 +aeroTorqueBRF ) * torqueCommandBRF/norm(torqueCommandBRF);
 end
 totalTorqueBRF = torqueCommandBRF; 
 
