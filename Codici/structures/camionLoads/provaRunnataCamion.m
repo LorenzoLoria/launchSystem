@@ -105,12 +105,12 @@ for i = 1:nElements
     M_all = [M_all, M_current];
 end
 
-% --- Figura 2: Shear Load ---
-figure(2); 
+%% --- Figura 2: Shear Load ---
+camionShear = figure(2); 
 ar2 = area(x_all, T_all);
-ar2.FaceColor = 'b';
+ar2.FaceColor = settings.color.blu;
 ar2.FaceAlpha = 0.3;
-ar2.EdgeColor = 'b';
+ar2.EdgeColor = settings.color.blu;
 ar2.LineWidth = 1.0;
 
 hold on
@@ -120,13 +120,17 @@ xlabel('x [m]');
 ylabel('Shear Load [N]');
 xlim([0, x_all(end)])
 % xline([0, cumsum(h)], 'LineStyle','--')
+setPlotSettings(title(''))
 
-% --- Figura 3: Bending Moment ---
-figure(3); 
+exportStandardizedFigure(camionShear,'camionShear',0.55,1.5,'ChangeColors',false,'AddMarkers',false,'overwriteFigure',true,'exportFIG',true,'exportPDF',false,'figurePath','..\..\..\figures\structures')
+
+
+%% --- Figura 3: Bending Moment ---
+camionBendingMoment = figure(3); 
 ar3 = area(x_all, M_all);
-ar3.FaceColor = 'b';
+ar3.FaceColor = settings.color.terracotta;
 ar3.FaceAlpha = 0.3;
-ar3.EdgeColor = 'b';
+ar3.EdgeColor = settings.color.terracotta;
 ar3.LineWidth = 1.0;
 
 hold on
@@ -135,3 +139,7 @@ grid on;
 xlabel('x [m]');
 ylabel('Bending Moment [Nm]');
 xlim([0, x_all(end)])
+
+setPlotSettings(title(''))
+
+exportStandardizedFigure(camionBendingMoment,'camionBendingMoment',0.55,1.5,'ChangeColors',false,'AddMarkers',false,'overwriteFigure',true,'exportFIG',true,'exportPDF',false,'figurePath','..\..\..\figures\structures')
