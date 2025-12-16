@@ -36,13 +36,13 @@ thrustDataVecFMC(:,:,2 ) = [0.400917809388214	65.122710138507202
                             0.992714640706230	89.085172454227390
                             0.993244065056187	99.345740209598944];
 
-% Da modificare mettendo alpha = 3 * pi / 180;
+
 
 [timeCollocation, stateCollocation] = totalTrajectoryGlobalGA(launcher,configuration,mission,settings,thrustDataVecFMC);
 
 %% ============================ SOLUTION ==================================
 alpha = 3 * pi / 180;
-[maxQAlphaData] = externalLoadsQAlphaMax(timeCollocation, stateCollocation, mission,configuration,launcher,mer,alpha,staging);
+[maxQAlphaData] = externalLoads(timeCollocation, stateCollocation, mission,configuration,launcher,mer,alpha,staging);
 [internalLoads] = loadsFinder(mission, launcher, configuration, maxQAlphaData);
 
 N = internalLoads.N;
