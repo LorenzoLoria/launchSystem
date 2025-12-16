@@ -1,4 +1,4 @@
-function dsdt = launcherDynamicsECIControlled(t, x,stateCollocation,timeCollocation, mission,stageNumber,opt,option2D,dimensions,engineVec,windVelXFun,windVelYFun,maxGimball,thrustData,gainGA,finsVec)
+function dsdt = launcherDynamicsECIControlled(t, x,refStateFun, mission,stageNumber,opt,option2D,dimensions,engineVec,windVelXFun,windVelYFun,maxGimball,thrustData,gainGA,finsVec)
     
 
     % stateCollocation è quella del singolo stadio
@@ -69,11 +69,8 @@ function dsdt = launcherDynamicsECIControlled(t, x,stateCollocation,timeCollocat
         ThrustBRF = percVec * engineVec(1) *(thrustValue+staticContribution) * [cos(thetaGimball)*cos(gammaGimball); cos(thetaGimball)*sin(gammaGimball); sin(thetaGimball)];
         ThrustIRF = mission.target.Rfinal'*ThrustBRF;
     else
-        err = zeros(7,1);
-        for stateVar = 1:size(stateCollocation,1)-1
-            refStateFun = griddedInterpolant(timeCollocation',stateCollocation(stateVar,:),'linear','linear');
-            err(stateVar) = refStateFun(t) - x(stateVar);
-        end
+
+        err = refStateFun(t+5)' - x(1:6);
     
         
         ThrustIRF = m * (gain(1:3) .* err(1:3) + gain(4:6) .* err(4:6)); %+ gain(7) .* err(7);

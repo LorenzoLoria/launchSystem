@@ -7,7 +7,7 @@ function [tt,xx] = launcherTrajectory(x0,mission,thrustData,tSpan,nDeval,stageNu
 %end
 
 %if thrustDataVec == copyThrustData 
-%tt = copytt;
+%tt = copytt
 %xx = copyxx;
 %else 
 
