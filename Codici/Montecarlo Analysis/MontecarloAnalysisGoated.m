@@ -145,7 +145,11 @@ end
 
 
 %% ============================== PLOTS ===================================
-
+settings.color.green = '#777754';
+settings.color.orange = '#cf9143';
+settings.color.blu = '#2f5d62';
+settings.color.gray = '#3a3a3a';
+settings.color.terracotta = '#8f4e3a';
 
 figure
 EarthPlot(mission.environment.rEarth)
@@ -163,12 +167,15 @@ zlabel('Z_{ECI}')
 
 figure
 subplot(2,1,1)
-plot(cumulativeMeanControlled)
+plot(cumulativeMeanControlled,'Color',settings.color.blu)
 title('Cumulative Mean for Controlled Trajectory')
+xlabel('iteration')
+ylabel('Mean Dinstance')
 subplot(2,1,2)
-plot(cumulativeMeanUncontrolled)
+plot(cumulativeMeanUncontrolled,'Color',settings.color.blu)
 title('Cumulative Mean for Uncontrolled Trajectory')
-
+xlabel('iteration')
+ylabel('Mean Dinstance')
 % Distribution of the 'distance' population
 
 figure
@@ -197,7 +204,7 @@ legend('Real distribution', 'Estimated Gaussian Curve')
 
 figure
 distancePoints = distanceFromTargetControlled ;
-plot(distancePoints,'k*')
+plot(distancePoints,'Color',settings.color.gray,'Marker','*','LineStyle','none')
 yline(20e3,'r','LineWidth',2)
 ylabel('Distance')
 xlabel('iteration')
@@ -238,7 +245,7 @@ x = reordercats(x,{'success','failure'});   % opzionale, per l'ordine
 
 b = bar(x, y);
 b.FaceColor = 'flat';          % abilita colori per-segmento
-b.CData(1,:) = [0 0.8 0];      % primo pezzo (percIn)  -> verde
-b.CData(2,:) = [0.8 0 0];      % secondo pezzo (percOut) -> rosso
+b.CData(1,:) = [0,0.8,0];      % primo pezzo (percIn)  -> verde
+b.CData(2,:) = [0.8,0,0];      % secondo pezzo (percOut) -> rosso
 ylabel('[%]');
 title('Success vs Failure');
