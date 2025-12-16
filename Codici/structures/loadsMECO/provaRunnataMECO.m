@@ -10,8 +10,6 @@ addpath(genpath('..\..\'))
 
 [mission, settings] = dataStructGlobal;
 
-mission.structure.alphaQmax = 0;
-
 % launcher = [nStages, nMotore1, nMotore2, nMotore3, %massa1, %massa2,
 % %massa3];
 launcher = [2,2,3,4,0.459952176990556, 0.753370531158904, 0.634795741885559];

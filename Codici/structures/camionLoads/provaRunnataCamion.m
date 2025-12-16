@@ -107,7 +107,7 @@ end
 
 %% --- Figura 2: Shear Load ---
 camionShear = figure(2); 
-ar2 = area(x_all, T_all);
+ar2 = area(x_all, T_all*1e-3);
 ar2.FaceColor = settings.color.blu;
 ar2.FaceAlpha = 0.3;
 ar2.EdgeColor = settings.color.blu;
@@ -117,7 +117,7 @@ hold on
 yline(0, 'LineWidth', 1.5, 'Color', 'k')
 grid on;
 xlabel('x [m]');
-ylabel('Shear Load [N]');
+ylabel('Shear Load [kN]');
 xlim([0, x_all(end)])
 % xline([0, cumsum(h)], 'LineStyle','--')
 setPlotSettings(title(''))
@@ -127,7 +127,7 @@ exportStandardizedFigure(camionShear,'camionShear',0.55,1.5,'ChangeColors',false
 
 %% --- Figura 3: Bending Moment ---
 camionBendingMoment = figure(3); 
-ar3 = area(x_all, M_all);
+ar3 = area(x_all, M_all*1e-3);
 ar3.FaceColor = settings.color.terracotta;
 ar3.FaceAlpha = 0.3;
 ar3.EdgeColor = settings.color.terracotta;
@@ -137,7 +137,7 @@ hold on
 yline(0, 'LineWidth', 1.5, 'Color', 'k')
 grid on;
 xlabel('x [m]');
-ylabel('Bending Moment [Nm]');
+ylabel('Bending Moment [kNm]');
 xlim([0, x_all(end)])
 
 setPlotSettings(title(''))

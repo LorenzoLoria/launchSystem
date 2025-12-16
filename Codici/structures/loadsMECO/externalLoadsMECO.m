@@ -14,6 +14,17 @@ absH = sqrt ( pos(1,:).^2+ pos(2,:).^2 + pos(3,:).^2 )-mission.environment.rEart
 mass = stateCollocation(7, :, 1:end-1);
 mass = mass(:);
 
+vxWind = mission.environment.windXFun(absH/1000);
+vyWind = mission.environment.windYFun(absH/1000);
+ 
+wind = [vxWind;vyWind;zeros(1,length(vxWind))];
+
+totalVel = vel - wind;
+
+for i = 1:length(totalVel)
+    alpha(i) = acos (dot(totalVel(:,i) , vel(:,i)) / norm(vel(:,i))/norm(totalVel(:,i) ));
+end
+
 rhoVec = mission.environment.rhoFun(absH);
 
 q = 0.5*rhoVec.*(absVel).^2;
@@ -27,10 +38,12 @@ acc = [diff(vel(1,:))'./diff(timeStage),diff(vel(2,:))'./diff(timeStage),diff(ve
 acc = [acc, acc(:,end)] ;
 
 % Estrazione valori a MECO
+idxMECO = 99;
 
-qMECO = q(99);
-vMECO = vel(:,99);
-aMECO = acc(:,99);
+qMECO = q(idxMECO);
+vMECO = vel(:,idxMECO);
+aMECO = acc(:,idxMECO);
+alphaMECO = alpha(idxMECO);
 
 v1 = vMECO/norm(vMECO);
 
@@ -40,15 +53,15 @@ v2 = cross(v3,v1)/norm(cross(v3,v1));
 
 rot = [v1,v2,v3];
 
-rot2 = [cos(alpha),-sin(alpha),0; sin(alpha),cos(alpha),0;0,0,1];
+rot2 = [cos(alphaMECO),-sin(alphaMECO),0; sin(alphaMECO),cos(alphaMECO),0;0,0,1];
 
 rot3 = rot2*rot;
 
 vMECO = rot3'*vMECO;     %check
 aMECO = rot3'*aMECO;
-massMECO = mass(99);
-posMECO = pos(:,99);
-hMECO = absH(99);
+massMECO = mass(idxMECO);
+posMECO = pos(:,idxMECO);
+hMECO = absH(idxMECO);
 %dsdt(4:6) = (ThrustIRF + D ) / m + G;  
 
 mPropUsed = configuration.totalMass - massMECO;
@@ -107,7 +120,7 @@ finsVec   = [mission.aerodynamics.finsGeom.rootChord, mission.aerodynamics.finsG
     mission.aerodynamics.finsGeom.Lambda_le, mission.aerodynamics.finsGeom.tmac];
 engineVec = [nEngines,aTotZero,aTotVacum];
 
-[~,~,~,~, mainbodyCL, mainbodyCD, finsCL, finsCD] = CLCDcomputation(machNumber,alpha,qMECO,1,mission,1,dimensions,engineVec, finsVec);
+[~,~,~,~, mainbodyCL, mainbodyCD, finsCL, finsCD] = CLCDcomputation(machNumber,alphaMECO,qMECO,1,mission,1,dimensions,engineVec, finsVec);
 
 dMECO = -rot2*qMECO * mainbodyCD * Aref * [1;0;0];
 lMECO = -rot2*qMECO * mainbodyCL * Aref * [0;-1;0];
