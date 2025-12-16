@@ -89,7 +89,7 @@ function dxdt = dynBooster(~, x, mission,configuration,mer,staging,stageNumber)
     % scatter(cpB,0)
 
     rCpCgB = cpB-cgB;   % torque arm
-    torque = cross(rCpCgB, aeroForceB) -3000*[wx;wy;wz] - 1000*[0; alphaY; alphaZ];   % M = r x F  (nel body)
+    torque = cross(rCpCgB, aeroForceB) -1000*[wx;wy;wz] - 1000*[0; alphaY; alphaZ];   % M = r x F  (nel body)
 
     % Matrice di inerzia nel body (3x3)
 

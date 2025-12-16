@@ -41,16 +41,10 @@ thrustDataVecFMC(:,:,2 ) = [0.400917809388214	65.122710138507202
 [timeCollocation, stateCollocation] = totalTrajectoryGlobalGA(launcher,configuration,mission,settings,thrustDataVecFMC);
 
 %% ============================ SOLUTION ==================================
-<<<<<<< Updated upstream
 alpha = 5 * pi / 180;
 [maxQAlphaData] = externalLoads(timeCollocation, stateCollocation, mission,configuration,launcher,mer,alpha,staging);
 [internalActions] = loadsFinder(mission, launcher, configuration, maxQAlphaData);
 [updatedStructuralMass, mStruct] = thicknessFunction(mission, launcher, configuration, maxQAlphaData, internalActions) ;
-=======
-alpha = 3 * pi / 180;
-[maxQAlphaData] = externalLoadsQAlphaMax(timeCollocation, stateCollocation, mission,configuration,launcher,mer,alpha,staging);
-[internalLoads] = loadsFinder(mission, launcher, configuration, maxQAlphaData);
->>>>>>> Stashed changes
 
 N = internalActions.N;
 T = internalActions.T;

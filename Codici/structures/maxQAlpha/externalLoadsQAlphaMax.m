@@ -11,28 +11,6 @@ pos = stateCollocation(1:3,:,1:end-1);
 pos = pos(1:3,:);
 absH = sqrt ( pos(1,:).^2+ pos(2,:).^2 + pos(3,:).^2 )-mission.environment.rEarth;
 
-
-
-
-
-    
-vxWind = mission.environment.windXFun(absH/1000);
-vyWind = mission.environment.windYFun(absH/1000);
- 
-wind = [vxWind;vyWind;zeros(1,length(vxWind))];
-
-totalVel = vel - wind;
-
-for i = 1:length(totalVel)
-    alpha(i) = acos (dot(totalVel(:,i) , vel(:,i)) / norm(vel(:,i))/norm(totalVel(:,i) ));
-end
-
-
-
-
-
-
-
 mass = stateCollocation(7, :, 1:end-1);
 mass = mass(:);
 
@@ -47,20 +25,20 @@ timeStage = timeStage(:);
 acc = [diff(vel(1,:))'./diff(timeStage),diff(vel(2,:))'./diff(timeStage),diff(vel(3,:))'./diff(timeStage)]';
 % acc(:,end+1) = acc(:,end);
 acc = [acc, acc(:,end)] ;
-[maxqAlpha,idx] = max(q.*alpha);
+[maxq,idx] = max(q);
 
 vMaxQ = vel(:,idx);
 aMaxQ = acc(:,idx);
-alphaMaxQalpha = alpha(idx);
+
 v1 = vMaxQ/norm(vMaxQ);
-maxq = q(idx);
+
 v3 = [0;0;1];
 
 v2 = cross(v3,v1)/norm(cross(v3,v1));
 
 rot = [v1,v2,v3];
 
-rot2 = [cos(alphaMaxQalpha),-sin(alphaMaxQalpha),0; sin(alphaMaxQalpha),cos(alphaMaxQalpha),0;0,0,1];
+rot2 = [cos(alpha),-sin(alpha),0; sin(alpha),cos(alpha),0;0,0,1];
 
 rot3 = rot2*rot;
 
@@ -128,7 +106,7 @@ finsVec   = [mission.aerodynamics.finsGeom.rootChord, mission.aerodynamics.finsG
     mission.aerodynamics.finsGeom.Lambda_le, mission.aerodynamics.finsGeom.tmac];
 engineVec = [nEngines,aTotZero,aTotVacum];
 
-[~,~,~,~, mainbodyCL, mainbodyCD, finsCL, finsCD] = CLCDcomputation(machNumber,alphaMaxQalpha,maxq,1,mission,1,dimensions,engineVec, finsVec);
+[~,~,~,~, mainbodyCL, mainbodyCD, finsCL, finsCD] = CLCDcomputation(machNumber,alpha,maxq,1,mission,1,dimensions,engineVec, finsVec);
 
 dMaxQ = -rot2*maxq * mainbodyCD * Aref * [1;0;0];
 lMaxQ = -rot2*maxq * mainbodyCL * Aref * [0;-1;0];
