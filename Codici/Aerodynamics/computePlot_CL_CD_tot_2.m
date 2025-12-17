@@ -1,4 +1,4 @@
-function [CL_tot_alpha, CD_tot_mach] = computePlot_CL_CD_tot_2(vector, bodyGeom, finsGeom, bodyInfo, finsInfo, gasProp)
+function [CL_tot_alpha, CD_tot_mach] = computePlot_CL_CD_tot_2(vector, bodyGeom, finsGeom, bodyInfo, finsInfo, gasProp, settings)
 %
 % INPUT:
 %
@@ -331,16 +331,19 @@ end
 
 % CL vs alpha
 ClvsAlpha = figure(1);
-plot(alpha_deg_vec, CL_tot_alpha,'LineWidth', 1.5);
+plot(alpha_deg_vec, CL_tot_alpha(:,1), 'Color', settings.color.blu, 'LineWidth', 1.5);
 grid on;
 hold on;
-xlabel('\alpha [deg]');
-ylabel('C_L^{tot}');
-leg_str = arrayfun(@(Mval) sprintf('M = %.1f', Mval), M_cases, 'UniformOutput', false);
-legend(leg_str, 'Location', 'best');
+plot(alpha_deg_vec, CL_tot_alpha(:,2), 'Color', settings.color.gray,'LineWidth', 1.5);
+plot(alpha_deg_vec, CL_tot_alpha(:,3), 'Color', settings.color.green, 'LineWidth', 1.5);
+plot(alpha_deg_vec, CL_tot_alpha(:,4), 'Color', settings.color.terracotta, 'LineWidth', 1.5);
+plot(alpha_deg_vec, CL_tot_alpha(:,5), 'Color', settings.color.orange, 'LineWidth', 1.5);
+xlabel('$\alpha$ [deg]');
+ylabel('$C_L^{tot}$');
 setPlotSettings(title(''))
-
-exportStandardizedFigure(ClvsAlpha,'ClvsAlpha',0.55,1.5,'ChangeColors',false,'AddMarkers',false,'overwriteFigure',true,'exportFIG',true,'exportPDF',false,'figurePath','..\..\figures\aerodynamics')
+leg_str = arrayfun(@(Mval) sprintf('M = %.1f', Mval), M_cases, 'UniformOutput', false);
+legend(leg_str, 'Location', 'northwest', 'Interpreter', 'latex');
+exportStandardizedFigure(ClvsAlpha,'ClvsAlpha',0.7,1.5,'ChangeColors',false,'AddMarkers',false,'overwriteFigure',true,'exportFIG',true,'exportPDF',false,'figurePath','..\..\figures\aerodynamics')
 
 % % CD vs M 
 % figure;
@@ -402,12 +405,14 @@ end
 
 
 
-figure;
-plot(M_vec, CD_tot_mach_scaled, 'LineWidth', 1.5);
+CDMach = figure(2);
+plot(M_vec, CD_tot_mach_scaled, 'Color', settings.color.blu, 'LineWidth', 1.5);
 grid on;
 xlabel('Mach number M [-]');
-ylabel('C_D^{tot}');
-title('Total drag coefficient vs Mach (body + fins) - SCALED');
+ylabel('$C_D^{tot}$');
+setPlotSettings(title(''))
+
+exportStandardizedFigure(CDMach,'CDMach',0.55,1.5,'ChangeColors',false,'AddMarkers',false,'overwriteFigure',true,'exportFIG',true,'exportPDF',false,'figurePath','..\..\figures\aerodynamics')
 % leg_str2 = arrayfun(@(aval) sprintf('\\alpha = %.1f^\\circ', aval), alpha_deg_cases, 'UniformOutput', false);
 % legend(leg_str2, 'Location', 'best');
 

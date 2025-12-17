@@ -137,4 +137,4 @@ gasProp.gamma = 1.4;
 
 %[CL_tot_alpha, CD_tot_mach] = computePlot_CL_CD_tot(vector, bodyGeom, finsGeom, bodyInfo, finsInfo);
 
-[CL_tot_alpha2, CD_tot_mach2] = computePlot_CL_CD_tot_2(vector, bodyGeom, finsGeom, bodyInfo, finsInfo, gasProp);
+[CL_tot_alpha2, CD_tot_mach2] = computePlot_CL_CD_tot_2(vector, bodyGeom, finsGeom, bodyInfo, finsInfo, gasProp, settings);
