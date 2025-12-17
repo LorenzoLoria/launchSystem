@@ -109,44 +109,172 @@ for i = 1:length(M_cases)
     M = M_cases(i);
     vlauncher = M .* vsound;
     q = 0.5 .* rho .* vlauncher.^2;
+    
+    if M >= 1
+        for j = 1:length(alpha_rad_vec)
+            alpha = alpha_rad_vec(j);
+    
+            % --- Body: CN e CA
+            aero.Cdn = Cdn;
+            flow.q   = q;
+    
+            % 1) contributo slender-body + crossflow SEMPRE
+            CN_body_val = CN_body(M, alpha, bodyGeom, aero);
+    
+            % 2) se M > 5 aggiungo contributo Newtoniano del blunt nose
+            if M > 5
+                % area windward efficace del nose (~ Aref o Anose)
+                S_nose_wind = Aref;
+                CN_nose_newt = CN_newton_blunt(alpha, M, gamma, S_nose_wind, Aref);
+                CN_body_val  = CN_body_val + CN_nose_newt;
+            end
+    
+            CA_body_val = CA_body(M, alpha, bodyGeom, flow, isPowered, a_sub, b_sub);
+    
+            % --- Fins: CN e CA per UNA ALETTA
+            [CN_fin_single, CD0_fric_single, CD0_wave_single] = ...
+                AerodynCoefFins_new(alpha, vlauncher, vsound, be, Se, q, Aref, ...
+                                    cmac, delta_le, lambda_le, b, tmac);
+    
+            CN_fins_tot   = Nfins .* CN_fin_single;
+            CD0_fins_tot  = Nfins .* (CD0_fric_single + CD0_wave_single);
+            CA_fins_tot   = CD0_fins_tot .* cos(alpha)^2;
+    
+            % Somma totali
+            CN_tot = CN_body_val + CN_fins_tot;
+            CA_tot = CA_body_val + CA_fins_tot;
+    
+            % CL / CD totali
+            [CL_val, ~] = calculate_CL_CD(CN_tot, CA_tot, rad2deg(alpha));
+    
+            CL_tot_alpha(j, i) = CL_val;
 
-    for j = 1:length(alpha_rad_vec)
-        alpha = alpha_rad_vec(j);
-
-        % --- Body: CN e CA
-        aero.Cdn = Cdn;
-        flow.q   = q;
-
-        % 1) contributo slender-body + crossflow SEMPRE
-        CN_body_val = CN_body(M, alpha, bodyGeom, aero);
-
-        % 2) se M > 5 aggiungo contributo Newtoniano del blunt nose
-        if M > 5
-            % area windward efficace del nose (~ Aref o Anose)
-            S_nose_wind = Aref;
-            CN_nose_newt = CN_newton_blunt(alpha, M, gamma, S_nose_wind, Aref);
-            CN_body_val  = CN_body_val + CN_nose_newt;
         end
 
-        CA_body_val = CA_body(M, alpha, bodyGeom, flow, isPowered, a_sub, b_sub);
+    elseif M < 1
+        for jj = 1:length(alpha_deg_vec)
+            % CA
+            flow.q   = q;
+            alpha = alpha_deg_vec(jj);
+            CA_body_val = CA_body(M, alpha, bodyGeom, flow, isPowered, a_sub, b_sub);
+            [~, CD0_fric_single, CD0_wave_single] = ...
+                AerodynCoefFins_new(alpha, vlauncher, vsound, be, Se, q, Aref, ...
+                                    cmac, delta_le, lambda_le, b, tmac);
+            CD0_fins_tot  = Nfins .* (CD0_fric_single + CD0_wave_single);
+            CA_fins_tot   = CD0_fins_tot .* cos(alpha)^2;
+            CA_tot = CA_body_val + CA_fins_tot;
 
-        % --- Fins: CN e CA per UNA ALETTTA
-        [CN_fin_single, CD0_fric_single, CD0_wave_single] = ...
-            AerodynCoefFins_new(alpha, vlauncher, vsound, be, Se, q, Aref, ...
-                                cmac, delta_le, lambda_le, b, tmac);
 
-        CN_fins_tot   = Nfins .* CN_fin_single;
-        CD0_fins_tot  = Nfins .* (CD0_fric_single + CD0_wave_single);
-        CA_fins_tot   = CD0_fins_tot .* cos(alpha)^2;
+            % Barrowman model
+            lambda_c2 = 20.6;
+    
+            if M <= 0.5
+                M_inf = 0;
+            else
+                M_inf = M;
+            end
+    
+            % body
+            CNa_body_val = 2 / sqrt(1 - M_inf^2);
+    
+            % fins
+            CNa_1fin_val = (2*pi*be^2) / (Aref * (1 + sqrt(1 + ((be^2 * sqrt(1 - M_inf^2)) / (Se*cosd(lambda_c2)))^2)));
+    
+            ct   = 0.45;
+            Kfb = 1 + ct / (be + ct);
+            CNa_Nfins_val = Kfb * 8/2 * CNa_1fin_val;
 
-        % Somma totali
-        CN_tot = CN_body_val + CN_fins_tot;
-        CA_tot = CA_body_val + CA_fins_tot;
+            % Total contribution
+            CN_tot = (CNa_body_val + CNa_Nfins_val) * deg2rad(alpha);
 
-        % CL / CD totali
-        [CL_val, ~] = calculate_CL_CD(CN_tot, CA_tot, rad2deg(alpha));
 
-        CL_tot_alpha(j, i) = CL_val;
+            % CL / CD totali
+            [CL_val, ~] = calculate_CL_CD(CN_tot, CA_tot, deg2rad(alpha));
+    
+            CL_tot_alpha(jj, i) = CL_val;
+        end
+
+    % elseif M > 1 && M < 1.2
+    %     for jjj = 1:length(alpha_deg_vec)
+    % 
+    %         w_val = (M - 1) / (1.2 - 1);
+    % 
+    % 
+    % 
+    % 
+    %         % JA
+    %         alpha = alpha_rad_vec(jjj);
+    % 
+    %         % --- Body: CN e CA
+    %         aero.Cdn = Cdn;
+    %         flow.q   = q;
+    % 
+    %         % 1) contributo slender-body + crossflow SEMPRE
+    %         CN_body_val = CN_body(M, alpha, bodyGeom, aero);
+    % 
+    %         % 2) se M > 5 aggiungo contributo Newtoniano del blunt nose
+    %         if M > 5
+    %             % area windward efficace del nose (~ Aref o Anose)
+    %             S_nose_wind = Aref;
+    %             CN_nose_newt = CN_newton_blunt(alpha, M, gamma, S_nose_wind, Aref);
+    %             CN_body_val  = CN_body_val + CN_nose_newt;
+    %         end
+    % 
+    %         CA_body_val = CA_body(M, alpha, bodyGeom, flow, isPowered, a_sub, b_sub);
+    % 
+    %         % --- Fins: CN e CA per UNA ALETTA
+    %         [CN_fin_single, CD0_fric_single, CD0_wave_single] = ...
+    %             AerodynCoefFins_new(alpha, vlauncher, vsound, be, Se, q, Aref, ...
+    %                                 cmac, delta_le, lambda_le, b, tmac);
+    % 
+    %         CN_fins_tot   = Nfins .* CN_fin_single;
+    %         CD0_fins_tot  = Nfins .* (CD0_fric_single + CD0_wave_single);
+    %         CA_fins_tot   = CD0_fins_tot .* cos(alpha)^2;
+    % 
+    %         % Somma totali
+    %         CN_tot_JA = CN_body_val + CN_fins_tot;
+    %         CA_tot = CA_body_val + CA_fins_tot;
+    % 
+    %         % % CL / CD totali
+    %         % [CL_val, ~] = calculate_CL_CD(CN_tot, CA_tot, rad2deg(alpha));
+    %         % 
+    %         % CL_tot_alpha(jjj, i) = CL_val;
+    % 
+    % 
+    % 
+    % 
+    % 
+    % 
+    %         % B
+    %         % body
+    %         CNa_body_val = 2 / sqrt(1 - 0^2);
+    % 
+    %         % fins
+    %         CNa_1fin_val = (2*pi*be^2) / (Aref * (1 + sqrt(1 + ((be^2 * sqrt(1 - 0^2)) / (Se*cosd(lambda_c2)))^2)));
+    % 
+    %         ct   = 0.45;
+    %         Kfb = 1 + ct / (be + ct);
+    %         CNa_Nfins_val = Kfb * 8/2 * CNa_1fin_val;
+    % 
+    %         % Total contribution
+    %         CN_tot_B = (CNa_body_val + CNa_Nfins_val) * deg2rad(alpha);
+    % 
+    % 
+    % 
+    % 
+    %         CN_tot_trans = w_val * CN_tot_JA + (1 - w_val) * CN_tot_B;
+    % 
+    % 
+    % 
+    % 
+    %         % CL / CD totali
+    %         [CL_val, ~] = calculate_CL_CD(CN_tot_trans, CA_tot, deg2rad(alpha));
+    % 
+    %         CL_tot_alpha(jjj, i) = CL_val;
+    % 
+    % 
+
+
     end
 end
 
@@ -172,7 +300,7 @@ for k = 1:length(alpha_deg_cases)
 
         % 2) contributo Newtoniano del blunt nose solo per M > 5
         if M > 5
-            S_nose_wind = Aref;  
+            S_nose_wind = Anose;  
             CN_nose_newt = CN_newton_blunt(alpha, M, gamma, S_nose_wind, Aref);
             CN_body_val  = CN_body_val + CN_nose_newt;
         end
@@ -182,7 +310,7 @@ for k = 1:length(alpha_deg_cases)
         % --- Fins
         [CN_fin_single, CD0_fric_single, CD0_wave_single] = ...
             AerodynCoefFins_new(alpha, vlauncher, vsound, be, Se, q, Aref, ...
-                                cmac, delta_le, lambda_le, b, tmac);
+                                cmac, delta_le, lambda_le, be, tmac);
 
         CN_fins_tot  = Nfins .* CN_fin_single;
         CD0_fins_tot = Nfins .* (CD0_fric_single + CD0_wave_single);
@@ -202,26 +330,86 @@ end
 % --------- PLOT --------------------------------------------------------
 
 % CL vs alpha
-figure;
-plot(alpha_deg_vec, CL_tot_alpha, 'LineWidth', 1.5);
+ClvsAlpha = figure(1);
+plot(alpha_deg_vec, CL_tot_alpha,'LineWidth', 1.5);
 grid on;
 hold on;
 xlabel('\alpha [deg]');
 ylabel('C_L^{tot}');
-title('Total lift coefficient vs \alpha (body + fins): slender body (M <= 5) + blunt nose Newtonian (M > 5)');
 leg_str = arrayfun(@(Mval) sprintf('M = %.1f', Mval), M_cases, 'UniformOutput', false);
 legend(leg_str, 'Location', 'best');
+setPlotSettings(title(''))
+
+exportStandardizedFigure(ClvsAlpha,'ClvsAlpha',0.55,1.5,'ChangeColors',false,'AddMarkers',false,'overwriteFigure',true,'exportFIG',true,'exportPDF',false,'figurePath','..\..\figures\aerodynamics')
+
+% % CD vs M 
+% figure;
+% plot(M_vec, CD_tot_mach, 'LineWidth', 1.5);
+% grid on;
+% xlabel('Mach number M [-]');
+% ylabel('C_D^{tot}');
+% title('Total drag coefficient vs Mach (body + fins)');
+% % leg_str2 = arrayfun(@(aval) sprintf('\\alpha = %.1f^\\circ', aval), alpha_deg_cases, 'UniformOutput', false);
+% % legend(leg_str2, 'Location', 'best');
 
 
-% CD vs M
+% CD vs M (CON SCALATURA SULLA BASE DI RASAERO) 
+Cd_doc2_paper = 0.5;
+Cd_doc2_RAS   = 0.7;
+k_doc2 = Cd_doc2_paper / Cd_doc2_RAS;
+
+CD_tot_mach_scaled = zeros(size(CD_tot_mach));
+
+for i = 1:length(M_vec)
+    M = M_vec(i);
+
+    if M < 5
+        CD_tot_mach_scaled(i) = CD_tot_mach(i);
+
+    elseif M >= 5
+        % Regime asintotico
+        CD_tot_mach_scaled(i) = CD_tot_mach(i) / k_doc2;
+       
+    end
+
+    % if M > 1.3 && M < 5
+    %     [~, idx1] = min(abs(M_vec - 1.3));
+    %     [~, idx2] = min(abs(M_vec - 5));
+    %     CD_tot_mach_scaled(i) = CD_tot_mach_scaled(idx1) + (CD_tot_mach(idx2) / k_doc2 - CD_tot_mach_scaled(idx1)) / (5 - 1.3) * (M - 1.3);
+    % end
+
+    
+    if M > 1.3 && M < 5
+        M1 = 1.3;  M2 = 5.0;
+        [~, idx1] = min(abs(M_vec - M1));
+        [~, idx2] = min(abs(M_vec - M2));
+
+        CD1 = CD_tot_mach_scaled(idx1);
+        CD2 = CD_tot_mach(idx2)/k_doc2;
+
+        t = (M - M1) / (M2 - M1);  % 0..1
+
+        p = 1.45;                     % p>1 => concavità invertita (sale subito, poi si appiattisce)
+        phi = 1 - (1 - t)^p;
+
+        CD_tot_mach_scaled(i) = CD1 + (CD2 - CD1)*phi;
+    end
+
+
+
+
+end
+
+
+
 figure;
-plot(M_vec, CD_tot_mach, 'LineWidth', 1.5);
+plot(M_vec, CD_tot_mach_scaled, 'LineWidth', 1.5);
 grid on;
 xlabel('Mach number M [-]');
 ylabel('C_D^{tot}');
-title('Total drag coefficient vs Mach (body + fins)');
-leg_str2 = arrayfun(@(aval) sprintf('\\alpha = %.1f^\\circ', aval), alpha_deg_cases, 'UniformOutput', false);
-legend(leg_str2, 'Location', 'best');
+title('Total drag coefficient vs Mach (body + fins) - SCALED');
+% leg_str2 = arrayfun(@(aval) sprintf('\\alpha = %.1f^\\circ', aval), alpha_deg_cases, 'UniformOutput', false);
+% legend(leg_str2, 'Location', 'best');
 
 end
 

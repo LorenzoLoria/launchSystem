@@ -45,7 +45,7 @@ thrustDataVecFMC(:,:,2 ) = [0.400917809388214	65.122710138507202
 
 %% dati
 
-vector.M = [0 : 0.01 : 15];
+vector.M = [0 : 0.01 : 25];
 %vector.M = [2];
 vector.M_cases = [0.1 0.5 1.1 2 5];
 %vector.M_cases = [2];
@@ -59,7 +59,7 @@ bodyGeom.l = configuration.geometry.totalLength;
 bodyGeom.d = mission.capsule.radius * 2;
 bodyGeom.Lnose = mission.capsule.height;
 bodyGeom.Aref = pi*(bodyGeom.d/2)^2; 
-bodyGeom.Anose = pi*(mission.capsule.radius/2)^2; 
+bodyGeom.Anose = pi*(mission.capsule.radius/1.8)^2; 
 bodyGeom.Abase = bodyGeom.Aref;
 bodyGeom.Aexit = mission.engines{2}.effAreaZero;  
 bodyGeom.phi = deg2rad(0);
@@ -75,7 +75,7 @@ finsGeom.Nfins = 4;
 finsGeom.be = 1.81;                  % span equivalente ~ semispan reale
 finsGeom.Se = 2.05;                  % area della fin [m^2]
 finsGeom.cmac = 1.27;                % mean aerodynamic chord [m]
-finsGeom.delta_le = 40; % 40
+finsGeom.delta_le = 30; 
 finsGeom.lambda_le = 36.9;
 finsGeom.b = finsGeom.be;
 finsGeom.tmac = 0.10;    
