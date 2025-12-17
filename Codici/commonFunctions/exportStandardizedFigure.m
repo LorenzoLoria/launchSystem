@@ -350,11 +350,11 @@ end
 if p.Results.exportFIG
     s1 = strcat(figPath, figureName,'.jpg');
     if p.Results.overwriteFigure || exist(s1,"file")==0
-         exportgraphics(f,s1,"ContentType","auto","Resolution",1000)
+         exportgraphics(f,s1,"ContentType","auto","Resolution",350)
     else
         time = string(datetime('now','Format','yyyy-MM-dd-HHmmss'));
         s2 = strcat(figPath, figureName, time, '.jpg');
-        exportgraphics(f,s2,"ContentType","auto","Resolution",1000)
+        exportgraphics(f,s2,"ContentType","auto","Resolution",350)
         warning('figure saved as ''%s'' instead of ''%s''',s2,s1)
     end
 end
