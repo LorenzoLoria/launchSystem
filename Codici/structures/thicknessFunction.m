@@ -1,4 +1,4 @@
-function [updatedStructuralMass, mStruct, tVec] = thicknessFunction(mission, launcher, configuration, maxQData, internalActions)
+function [updatedStructuralMass, mStruct, tVec, idx] = thicknessFunction(mission, launcher, configuration, maxQData, internalActions)
 
 % Function required to size the launcher thickess of all the different 
 % components of the LV. Evaluation must be done in the most
@@ -105,7 +105,11 @@ for i = 1 : partsNumber
         end
         
         [tVec(i), idx(i)] = min( t(i, :) .* (t(i,:)>=mission.structure.minThickness) + mission.structure.minThickness .* (t(i,:)<mission.structure.minThickness) );
-
+        % [tVec(i), idx(i)] = min( t(i, :) + inf * (t(i, :) < mission.structure.minThickness) );
+        % if isinf(tVec(i))
+        %     tVec(i) = mission.structure.minThickness;
+        %     idx(i)= 1;
+        % end
         % Hydrostatic pressure
         pHydro = rhoProps(i) .* nx .* g0 .* h(i);
 
@@ -155,7 +159,11 @@ for i = 1 : partsNumber
         
 
         [tVec(i), idx(i)] = min( t(i, :) .* (t(i,:)>=mission.structure.minThickness) + mission.structure.minThickness .* (t(i,:)<mission.structure.minThickness) );
-
+        % [tVec(i), idx(i)] = min( t(i, :) + inf * (t(i, :) < mission.structure.minThickness) );
+        % if isinf(tVec(i))
+        %     tVec(i) = mission.structure.minThickness;
+        %     idx(i)= 1;
+        % end
         % Area 
         A = pi * (r(i)^2 - (r(i)-tVec(i)).^2);
         
@@ -185,5 +193,6 @@ updatedStructuralMass = sum(mStruct) ;
 % Extract the results associated to interstage2, fuel2, ox2, interstage1,
 % fuel1, ox1
 mStruct = mStruct([2, 3, 4, 6, 7, 8]);
+tVec = tVec([2, 3, 4, 6, 7, 8]);
 idx = idx([2, 3, 4, 6, 7, 8]);
 end
