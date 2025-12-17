@@ -6,7 +6,7 @@ addpath(genpath("..\..\"))
 
 [mission,settings] = dataStructGlobal;
 
-launcher = [2 2 3 3 0.459952176990556	0.753370531158904	0.634795741885559];
+launcher = [2	2	3	3	0.459952176990556	0.753370531158904	0.634795741885559];
 
 for i = 1:launcher(1)
     configuration.stage{i}.engine = mission.engines{launcher(1+i)};
@@ -14,17 +14,36 @@ end
 
 [mer,staging,configuration] = initialMassEstimation(mission,configuration,settings,launcher);
 
-thrustData(:,:,1) = [0.902082365568723	1.480898931628005; ...
-0.999984156345040	23.253294859564580; ...
-0.900002678098914	52.979241033086943; ...
-0.900000000000007	59.571815331701984; ...
-0.903941814015555	55.058714159781090];
-thrustData(:,:,2) = [0.400917809388214	65.122710138507202;...
-0.964494359624014	79.658359202140389;...
-0.975968800776448	91.801043507018605;...
-0.992714640706230	89.085172454227390;...
-0.993244065056187	99.345740209598944];
-% Nominal Trajectory
+ thrustDataVecFMC = [0.901784296794966
+0.999967458028643
+0.900002561600819
+0.900000000000007
+0.900000000000006
+1.32376427751106
+22.4721810110826
+51.9025769669441
+58.3043070770380
+54.0837349292332
+0.400884818399135
+0.966674994308654
+0.974049905676140
+0.992054604106613
+0.992888695383693
+64.8416016397151
+78.7571907487398
+90.6394069314900
+87.6489451551192
+98.5947513930343];
+
+thrustData = reshape(thrustDataVecFMC,settings.nOptPointsTraj,2,2);
+
+    localLowerBoundsFMC = settings.lowerBoundsFMC(:,:,1:launcher(1)) ;
+    localUpperBoundsFMC = settings.upperBoundsFMC(:,:,1:launcher(1)) ;
+[thrustDataVecFMC,fvalFMCTraj,~,checkViolation] = fmincon ( @(x)objFunFMCTraj(x,launcher,configuration,mission,settings),...
+            thrustData,[],[],[],[],...
+            localLowerBoundsFMC-eps,localUpperBoundsFMC+eps,...
+            @(x) nlconFMCTraj(x,launcher,configuration,mission,settings),...
+            settings.fminconTrajOptions);
 
 [guidanceTime, guidancePoints] = totalTrajectoryGlobalGA(launcher,configuration,mission,settings,thrustData);
 
@@ -67,7 +86,7 @@ nVars = length(lowerBounds) ;
 options_ga = optimoptions("ga", ...
     "Display","iter", ...
     "MaxGenerations",30, ...
-    "PopulationSize",300,...
+    "PopulationSize",200,...
     "UseParallel",true,...
     "FunctionTolerance", 1e-4,...
     "MaxStallGenerations", 10,...
@@ -83,6 +102,7 @@ figure
 %gains = [16.5052    0.0999   16.4921    8.8607   11.2140   14.2543   26.0408   11.2452 12.0506    3.1178    7.7157   19.7268   15.6168   15.9040    3.5497    4.0199]
 % gains = [6.5460    0.7318   11.9055   18.8923    9.3732   11.3010   19.4130    4.2449    1.3790    1.8875    6.7385   11.3978 10.9511   17.3521   18.0000   12.0162]
 % gains = [8.4549    0.4456    6.1723   19.2523    5.1122   18.9453   20.5953    5.9918    4.0416    0.6793    1.3930   11.8240  16.6428   13.3837   17.3410   13.1817]
+% gains = [10.9705    0.5071    4.4102   11.9522    4.8867    8.1187   20.5295   16.4141    2.9761    5.9335    5.6457   19.2647   20.1170   18.0131   14.9054  4.8741]
 [timeCollocationControlled, stateCollocationControlled] = totalTrajectoryControl(mission,mer,configuration,settings, launcher,thrustData, guidancePoints, guidanceTime, gains);
 figure
 %EarthPlot(mission.environment.rEarth)
