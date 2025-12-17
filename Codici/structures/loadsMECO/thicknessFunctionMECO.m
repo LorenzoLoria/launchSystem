@@ -86,7 +86,7 @@ for i = 1 : partsNumber
     if pressurization(i) ~= 0
         for j = 1 : materialNumber
         % Minimum Allowable Thicknesses
-        tAxial = abs((- N(i) / (2 * pi * r(i)) - M(i) / (pi * r(i)^2)) * SF + pressurization(i) * r(i) / 2 + rhoProps(i) * nx * g0 * r(i) * h(i) / 2) / ultimateStress(j);
+        tAxial = abs((- abs(N(i)) / (2 * pi * r(i)) * SF - abs(M(i)) / (pi * r(i)^2) * SF + pressurization(i) * r(i) / 2 + rhoProps(i) * nx * g0 * r(i) * h(i) / 2)) / ultimateStress(j);
         tShear = T(i) / (2 * pi * r(i) * shearAllowable(j)) * SF;
 
         t(i, j) = max(tAxial, tShear);
@@ -146,7 +146,7 @@ for i = 1 : partsNumber
         for j = 1 : materialNumber
         % Minimum Allowable Thicknesses
         tAxial = ( abs(N(i) / (2 * pi * r(i))) + abs(M(i) / (pi * r(i)^2)) ) / ultimateStress(j) * SF;
-        tShear = T(i) / (2 * pi * r(i) * shearAllowable(j)) * SF;
+        tShear = abs(T(i)) / (2 * pi * r(i) * shearAllowable(j)) * SF;
     
         t(i, j) = max(tAxial, tShear);
     
