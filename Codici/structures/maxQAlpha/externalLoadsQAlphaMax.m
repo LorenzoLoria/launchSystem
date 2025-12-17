@@ -54,6 +54,8 @@ aMaxQ = acc(:,idx);
 alphaMaxQalpha = alpha(idx);
 v1 = vMaxQ/norm(vMaxQ);
 maxq = q(idx);
+timeMaxQAlpha = timeCollocation(idx, 1);
+
 v3 = [0;0;1];
 
 v2 = cross(v3,v1)/norm(cross(v3,v1));
@@ -187,4 +189,6 @@ maxQAlphaData.vMaxQ             = vMaxQ;
 maxQAlphaData.liftFinsMaxQ      = lFinsMaxQ;
 maxQAlphaData.dragFinsMaxQ      = dFinsMaxQ;
 maxQAlphaData.alphaMaxQalpha    = alphaMaxQalpha;
+maxQAlphaData.maxqAlpha         = maxqAlpha;
+maxQAlphaData.time              = timeMaxQAlpha;
 end

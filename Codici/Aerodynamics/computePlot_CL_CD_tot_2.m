@@ -331,13 +331,13 @@ end
 
 % CL vs alpha
 ClvsAlpha = figure(1);
-plot(alpha_deg_vec, CL_tot_alpha(:,1), 'Color', settings.color.blu, 'LineWidth', 1.5);
+plot(alpha_deg_vec, CL_tot_alpha(:,1), 'Color', settings.color.gray, 'LineWidth', 1.5);
 grid on;
 hold on;
-plot(alpha_deg_vec, CL_tot_alpha(:,2), 'Color', settings.color.gray,'LineWidth', 1.5);
-plot(alpha_deg_vec, CL_tot_alpha(:,3), 'Color', settings.color.green, 'LineWidth', 1.5);
-plot(alpha_deg_vec, CL_tot_alpha(:,4), 'Color', settings.color.terracotta, 'LineWidth', 1.5);
-plot(alpha_deg_vec, CL_tot_alpha(:,5), 'Color', settings.color.orange, 'LineWidth', 1.5);
+plot(alpha_deg_vec, CL_tot_alpha(:,2), 'Color', settings.color.orange,'LineWidth', 1.5);
+plot(alpha_deg_vec, CL_tot_alpha(:,3), 'Color', 'b', 'LineWidth', 1.5);
+plot(alpha_deg_vec, CL_tot_alpha(:,4), 'Color', 'g', 'LineWidth', 1.5);
+plot(alpha_deg_vec, CL_tot_alpha(:,5), 'Color', 'r', 'LineWidth', 1.5);
 xlabel('$\alpha$ [deg]');
 ylabel('$C_L^{tot}$');
 setPlotSettings(title(''))
@@ -406,7 +406,7 @@ end
 
 
 CDMach = figure(2);
-plot(M_vec, CD_tot_mach_scaled, 'Color', settings.color.blu, 'LineWidth', 1.5);
+plot(M_vec, CD_tot_mach_scaled, 'Color', settings.color.gray, 'LineWidth', 1.5);
 grid on;
 xlabel('Mach number M [-]');
 ylabel('$C_D^{tot}$');

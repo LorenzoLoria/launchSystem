@@ -50,6 +50,8 @@ vMaxQ = vel(:,idx);
 aMaxQ = acc(:,idx);
 alphaMaxQ = alpha(idx);
 v1 = vMaxQ/norm(vMaxQ);
+qalpha = maxq * alphaMaxQ * 180 / pi;
+timeMaxQ = timeCollocation(idx, 1);
 
 v3 = [0;0;1];
 
@@ -183,4 +185,7 @@ maxQData.hMaxQ             = hMaxQ;
 maxQData.vMaxQ             = vMaxQ;
 maxQData.liftFinsMaxQ      = lFinsMaxQ;
 maxQData.dragFinsMaxQ      = dFinsMaxQ;
+maxQData.qalpha            = qalpha;
+maxQData.alphaDEG          = alphaMaxQ * 180 / pi;
+maxQData.timeMaxQ             = timeMaxQ;
 end
