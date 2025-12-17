@@ -119,11 +119,9 @@ end
 
 xlabel('\alpha [deg]');
 ylabel('C_N');
-%ylim([0 20]);          % Limiti dell’asse y
-ylim([0 2]);   
+ylim([0 20]);          % Limiti dell’asse y  
 yticks(0:4:20);        % Tick ogni 4
-%xlim([0 180])
-xlim([0 15])
+xlim([0 180])
 %title(sprintf('Jorgensen-Allen: M_\\infty effect (Body %d, ogive-cylinder, L/d = %.0f)', ...
 %      bodyLd11.id, bodyLd11.L_over_d));
 lgd = legend('Location','best');  

@@ -17,7 +17,8 @@ validate_JorgensenAllen
 % Casi considerati:
 %  1) "Rocket baseline" di Fleeman (Tactical Missile Design)
 %  2) Mortaio guidato FOI PGMM 120 mm (FOI-R--2618--SE)
-validate_JergerFleeman
+
+% validate_JergerFleeman
 
 
 %% Validation 3 --> Fleeman model for x_CP (body)
