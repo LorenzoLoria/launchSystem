@@ -1,4 +1,4 @@
-function [CN_ref_cone_Fleeman] = validate_JorgensenAllen
+function [CN_ref_cone_Fleeman] = validate_JorgensenAllen(settings)
 %
 % VALIDATE_JORGENSENALLEN
 % Validazione del modello Jørgensen–Allen per C_N usando i dati
@@ -67,13 +67,13 @@ end
 
 %% VALIDAZIONE 1: M = 2.86, variazione fineness ratio (L/d = 7, 9, 11)
 
-figure; hold on; grid on; box on;
-colors = lines(numel(bodies));
+CNalpha = figure(2); hold on; grid on; box on;
+colors = {settings.color.blu, settings.color.orange, settings.color.green, settings.color.terracotta};
 
 for k = 1:(numel(bodies)-1)
     CN = CN_JA(alpha_deg, M_ref, Re_d, bodies(k));
     plot(alpha_deg, CN, 'LineWidth', 3, ...
-         'Color', colors(k,:), ...
+         'Color', colors{k}, ...
          'DisplayName', sprintf('Body %d, L/d = %.0f', ...
                       bodies(k).id, bodies(k).L_over_d));
 
@@ -87,18 +87,15 @@ for k = 1:(numel(bodies)-1)
 
 end
 
-xlabel('\alpha [deg]');
-ylabel('C_N');
+xlabel('$\alpha$ [deg]');
+ylabel('$C_N$');
 ylim([0 20]);          % Limiti dell’asse y
 yticks(0:5:20);        % Tick ogni 5
-xlim([0 180])
-%title('Jorgensen-Allen: fineness ratio effect (cone-cylinder, M_\infty = 2.86)');
+xlim([0 180])         
+setPlotSettings(title(''))
 lgd = legend('Location','best');  
-lgd.FontSize = 15;               
-
-
-
-
+lgd.FontSize = 15; 
+exportStandardizedFigure(CNalpha,'CNalpha',0.55,1.5,'ChangeColors',false,'AddMarkers',false,'overwriteFigure',true,'exportFIG',true,'exportPDF',false,'figurePath','..\..\figures\aerodynamics')
 %% VALIDAZIONE 2: L/d = 11 (Body 9), effetto del Mach
 
 bodyLd11 = bodies(4);   % Body 9, L/d = 11, ogive–cylinder
@@ -106,28 +103,28 @@ bodyLd11 = bodies(4);   % Body 9, L/d = 11, ogive–cylinder
 % Valori di Mach per lo sweep (puoi modificarli a piacere)
 Mach_list = [0.3 1.5 2.9 7.0];
 
-figure; hold on; grid on; box on;
-colors = lines(numel(Mach_list));
+CNM = figure(3); hold on; grid on; box on;
+colors = {settings.color.blu, settings.color.orange, settings.color.green, settings.color.terracotta};
 
 for i = 1:numel(Mach_list)
     M = Mach_list(i);
     CN_M = CN_JA(alpha_deg, M, Re_d, bodyLd11);
     plot(alpha_deg, CN_M, 'LineWidth', 3, ...
-         'Color', colors(i,:), ...
-         'DisplayName', sprintf('M_\\infty = %.2g', M));
+         'Color', colors{i}, ...
+         'DisplayName', sprintf('$M_\\infty = %.2g$', M));
 end
 
-xlabel('\alpha [deg]');
-ylabel('C_N');
+xlabel('$\alpha$ [deg]');
+ylabel('$C_N$');
 ylim([0 20]);          % Limiti dell’asse y  
 yticks(0:4:20);        % Tick ogni 4
 xlim([0 180])
 %title(sprintf('Jorgensen-Allen: M_\\infty effect (Body %d, ogive-cylinder, L/d = %.0f)', ...
 %      bodyLd11.id, bodyLd11.L_over_d));
+setPlotSettings(title(''))
 lgd = legend('Location','best');  
 lgd.FontSize = 15;   
-
-
+exportStandardizedFigure(CNM,'CNM',0.55,1.5,'ChangeColors',false,'AddMarkers',false,'overwriteFigure',true,'exportFIG',true,'exportPDF',false,'figurePath','..\..\figures\aerodynamics')
 
 end 
 

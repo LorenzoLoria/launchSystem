@@ -1,11 +1,7 @@
-function validate_Fleeman_xCP
+function [] = validate_Fleeman_xCP(settings)
 % VALIDATE_FLEEMAN_XCP
 % Funzione per la validazione della formula di Fleeman per la posizione del centro di pressione
 % con valori di L_body/L_nose = 1, 2, 5, 10 e angolo di attacco alpha da 0° a 90°.
-
-clc;
-clear;
-close all;
 
 %% 1) Parametri di riferimento
 L_nose = 1; % Lunghezza del naso (unità arbitrarie)
@@ -23,26 +19,24 @@ for i = 1:length(L_body_ratios)
 end
 
 %% 3) Grafico della posizione del centro di pressione (x_CP)
-figure;
-hold on;
-grid on;
-box on;
+xCpBodyAlpha = figure(1);
+hold on; grid on; box on;
 
-colors = lines(length(L_body_ratios)); % Color palette for different L_body/L_nose ratios
+colors = {settings.color.blu, settings.color.orange, settings.color.green, settings.color.terracotta};
 
-% Plotting delle curve
 for i = 1:length(L_body_ratios)
-    plot(alpha_deg, x_CP(:, i), 'LineWidth', 2, 'Color', colors(i, :), ...
-        'DisplayName', sprintf('L_{body}/L_{nose} = %.1f', L_body_ratios(i)));
+    plot(alpha_deg, x_CP(:, i), 'LineWidth', 2, 'Color', colors{i}, ...
+        'DisplayName', sprintf('$L_{body}/L_{nose} = %.1f$', L_body_ratios(i)));
 end
 
-% Etichette e titolo
-xlabel('\alpha [deg]', 'FontSize', 15);
+xlabel('$\alpha$ [deg]', 'Interpreter', 'latex', 'FontSize', 15);
 ylabel('$\frac{x_{CP,\,body}}{\ell_{nose}}$', 'Interpreter', 'latex', 'FontSize', 30);
-ylim([0 6])
-%title('Validazione della formula di Fleeman per la posizione del centro di pressione');
-lgd = legend('Location','best');  
-lgd.FontSize = 15;   
+ylim([0 6]);
+xlim([0 alpha_deg(end)])
+setPlotSettings(title(''))
 
+lgd = legend('Location', 'best', 'Interpreter', 'latex');
+lgd.FontSize = 15;
 
+exportStandardizedFigure(xCpBodyAlpha,'xCpBodyAlpha',0.55,1.5,'ChangeColors',false,'AddMarkers',false,'overwriteFigure',true,'exportFIG',true,'exportPDF',false,'figurePath','..\..\figures\aerodynamics')
 end
