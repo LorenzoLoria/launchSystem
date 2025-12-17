@@ -88,6 +88,8 @@ ub = inf * ones(nVarsGA,1);
 % Run GA
 [xga,fval,exitFlag,output,population,scores] = ga(fun,nVarsGA,[],[],[],[],lb,ub,[],[],settings.gaControl);
 %%
+
+close all
 % extrapolate gains
 gainGA = xga;
 
@@ -218,8 +220,8 @@ exportStandardizedFigure(ComparisonMean,'ComparisonMean',0.55,1.5,'ChangeColors'
 % legend('Real distribution', 'Estimated Gaussian Curve')
 
 Points = figure(3);
-distancePoints = distanceFromTargetControlled ;
-plot(distancePoints,'k*')
+distancePointsControlled = distanceFromTargetControlled ;
+plot(distancePointsControlled,'k*')
 yline(20e3,'r','LineWidth',2)
 ylabel('Distance')
 xlabel('iteration')
@@ -230,15 +232,15 @@ exportStandardizedFigure(Points,'Points',0.55,1.5,'ChangeColors',false,'AddMarke
 
 distPointGood =[]; %NaN * ones(length(distancePoints));
 distPointNotGood =[]; % NaN * ones(length(distancePoints));
-for k = 1:length(distancePoints)
-    if distancePoints(k) <= 20e3
-        distPointGood = [distPointGood distancePoints(k)];
+for k = 1:length(distancePointsControlled)
+    if distancePointsControlled(k) <= 20e3
+        distPointGood = [distPointGood distancePointsControlled(k)];
     else
-        distPointNotGood = [distPointNotGood distancePoints(k)];
+        distPointNotGood = [distPointNotGood distancePointsControlled(k)];
     end
 end
-percIn = numel(distPointGood)/numel(distancePoints) * 100;
-percOut = numel(distPointNotGood)/numel(distancePoints) * 100;
+percIn = numel(distPointGood)/numel(distancePointsControlled) * 100;
+percOut = numel(distPointNotGood)/numel(distancePointsControlled) * 100;
 % figure
 % plot(distPointGood,'g*')
 % hold on
@@ -256,7 +258,7 @@ percOut = numel(distPointNotGood)/numel(distancePoints) * 100;
 % ylabel('[%]');
 % title('Values inside/outside the range');
 
-succesvFail=figure(4); clf
+succesvFailControl=figure(4); clf
 y = [percIn; percOut];              % 2 valori separati
 
 x = categorical({'success','failure'});
@@ -270,12 +272,50 @@ ylabel('[%]');
 
 setPlotSettings(title('Success vs Failure'))
 
-exportStandardizedFigure(succesvFail,'succesvFail',0.55,1.5,'ChangeColors',false,'AddMarkers',false,'overwriteFigure',true,'exportFIG',true,'exportPDF',false,'figurePath','images')
+exportStandardizedFigure(succesvFailControl,'succesvFailControl',0.55,1.5,'ChangeColors',false,'AddMarkers',false,'overwriteFigure',true,'exportFIG',true,'exportPDF',false,'figurePath','images')
+
+
+PointsUnc = figure(5);
+distancePointsUnontrolled = distanceFromTargetUncontrolled ;
+plot(distancePointsUnontrolled,'k*')
+yline(20e3,'r','LineWidth',2)
+ylabel('Distance')
+xlabel('iteration')
+
+distPointGood =[]; %NaN * ones(length(distancePoints));
+distPointNotGood =[]; % NaN * ones(length(distancePoints));
+for k = 1:length(distancePointsUnontrolled)
+    if distancePointsUnontrolled(k) <= 20e3
+        distPointGood = [distPointGood distancePointsUnontrolled(k)];
+    else
+        distPointNotGood = [distPointNotGood distancePointsUnontrolled(k)];
+    end
+end
+percIn = numel(distPointGood)/numel(distancePointsUnontrolled) * 100;
+percOut = numel(distPointNotGood)/numel(distancePointsUnontrolled) * 100;
+
+succesvFailUncontrol=figure(6); clf
+y = [percIn; percOut];              % 2 valori separati
+
+x = categorical({'success','failure'});
+x = reordercats(x,{'success','failure'});   % opzionale, per l'ordine
+
+b = bar(x, y);
+b.FaceColor = 'flat';          % abilita colori per-segmento
+b.CData(1,:) = [0 0.8 0];      % primo pezzo (percIn)  -> verde
+b.CData(2,:) = [0.8 0 0];      % secondo pezzo (percOut) -> rosso
+ylabel('[%]');
+
+setPlotSettings(title('Success vs Failure'))
+
+exportStandardizedFigure(succesvFailUncontrol,'succesvFailUncontrol',0.55,1.5,'ChangeColors',false,'AddMarkers',false,'overwriteFigure',true,'exportFIG',true,'exportPDF',false,'figurePath','images')
 
 
 %% Propagation of the other uncertainties
 
-sizeMC = 5;
+close all
+
+sizeMC = 30;
 
 
 for i = 1:launcher(1)
@@ -285,37 +325,41 @@ end
 [mer,staging,configuration] = initialMassEstimation(mission,configuration,settings,launcher);
 
 meanStructMass1 = staging{1}.mStruct;
-meanStructMass2 = staging{2}.mStruct;
+%meanStructMass2 = staging{2}.mStruct;
 meanPropMass1 = staging{1}.mProp;
-meanPropMass2 = staging{2}.mProp;
+%meanPropMass2 = staging{2}.mProp;
 meanIsp1 = configuration.stage{1}.engine.ispZero;
-meanIsp2 = configuration.stage{2}.engine.ispVac;
+%meanIsp2 = configuration.stage{2}.engine.ispVac;
 
 structMass1Distrib = meanStructMass1.*(1 + 0.01*randn(sizeMC,1));
-structMass2Distrib = meanStructMass2.*(1 + 0.01*randn(sizeMC,1));
+%structMass2Distrib = meanStructMass2.*(1 + 0.01*randn(sizeMC,1));
 propMass1Distrib = meanPropMass1.*(1 + 0.01*randn(sizeMC,1));
-propMass2Distrib = meanPropMass2.*(1 + 0.01*randn(sizeMC,1));
+%propMass2Distrib = meanPropMass2.*(1 + 0.01*randn(sizeMC,1));
 isp1Distrib = meanIsp1.*(1 + 0.001*randn(sizeMC,1));
-isp2Distrib = meanIsp2.*(1 + 0.001*randn(sizeMC,1));
+%isp2Distrib = meanIsp2.*(1 + 0.001*randn(sizeMC,1));
 
 mStage1Distrib = structMass1Distrib + propMass1Distrib;
-mStage2Distrib = structMass2Distrib + propMass2Distrib;
+%mStage2Distrib = structMass2Distrib + propMass2Distrib;
 
-[A,B,C,D,E,F] = ndgrid(structMass1Distrib, structMass2Distrib,propMass1Distrib,propMass2Distrib,isp1Distrib,isp2Distrib);
-Matr =[A(:),B(:),C(:),D(:),E(:),F(:)];
+[A,B,C] = ndgrid(structMass1Distrib,propMass1Distrib,isp1Distrib);
+Matr =[A(:),B(:),C(:)];
 
 % Shuffle of the Matrix elements
+
+shuffledMatrix = zeros(size(Matr));
+
 for i=1:size(Matr,2)
     shuffledMatrix(:,i) = Matr(randperm(size(Matr,1)),i);
 end
 
-distanceFromTargetControlled = zeros(size(shuffledMatrix,1),1);
+positionError = zeros(size(shuffledMatrix,1),1);
+velocityError = zeros(size(shuffledMatrix,1),1);
 
 % Initialization of the variables
 sizeMC = 1;
 hVec = 0:100;
 
-% Computation of the Wind Profiles
+%% Computation of the Wind Profiles
 
 [meanWind, varWind] = GRAM07_HWM07_annual(hVec);
 WindVelocityMag = meanWind ;
@@ -348,42 +392,207 @@ hold on
 plot3(mission.target.initialPointECI(1),mission.target.initialPointECI(2),mission.target.initialPointECI(3),'bo')
 [timeCollocationRef, stateCollocationRef] = totalTrajectoryGlobalGA(launcher,configuration,mission,settings,thrustDataVecFMC);
 
+for i=1:size(shuffledMatrix,1)
 
+    configuration.stage{1}.mProp = shuffledMatrix(i,2);
+    %configuration.stage{2}.mProp = shuffledMatrix(i,4);
+    configuration.stage{1}.mStage = shuffledMatrix(i,1) + shuffledMatrix(i,2);
+    %configuration.stage{2}.mStage = shuffledMatrix(i,2) + shuffledMatrix(i,4);
+    configuration.stage{1}.engine.ispZero = shuffledMatrix(i,3);
+    %configuration.stage{2}.engine.ispVac = shuffledMatrix(i,6);
+
+    
+
+    % %Tuning the gains
+    % 
+    % if i==1
+    %     % set the GA
+    % nVarsGA = launcher(1) * 6;
+    % fun = @(gainGA) objGAGainsMonte(gainGA,launcher,configuration,mission,settings,windVelXFun,windVelYFun,stateCollocationRef,timeCollocationRef,10,thrustData);
+    % lb = zeros(nVarsGA,1);
+    % ub = inf * ones(nVarsGA,1);
+    % 
+    % % Run GA
+    % [xga,fval,exitFlag,output,population,scores] = ga(fun,nVarsGA,[],[],[],[],lb,ub,[],[],settings.gaControl);
+    % 
+    % % extrapolate gains
+    % gainGA = xga;
+    % end
+
+    % Integration of the trajectory
+    [timeCollocation, stateCollocation] = totalTrajectoryGlobalGA(launcher,configuration,mission,settings,thrustDataVecFMC);
+
+    % Error
+    positionError(i) = norm(stateCollocation(1:3,end,end-1)-stateCollocationRef(1:3,end,end-1));
+    velocityError(i) = norm(stateCollocation(4:6,end,end-1)-stateCollocationRef(4:6,end,end-1));
+end
+
+%% Computation of the cumulative mean
+
+k = 0;
+
+cumulativeMeanPosition = zeros(length(positionError),1);
+cumulativeMeanVelocity = zeros(length(velocityError),1);
+
+for j = 1:1:length(positionError)
+    k = k+1;
+    cumulativeMeanPosition(j) = mean(positionError(1:j));
+    cumulativeMeanVelocity(j) = mean(velocityError(1:j));
+end
+positionErrorPlotStage1 = figure(1);
+plot(cumulativeMeanPosition,'Color',settings.color.blu)
+setPlotSettings(title('Cumulative Mean for the position error'))
+exportStandardizedFigure(positionErrorPlotStage1,'positionErrorPlotStage1',0.55,1.5,'ChangeColors',false,'AddMarkers',false,'overwriteFigure',true,'exportFIG',true,'exportPDF',false,'figurePath','images')
+
+velocityErrorPlotStage1 = figure(2);
+plot(cumulativeMeanVelocity,'Color',settings.color.blu)
+setPlotSettings(title('Cumulative Mean for the velocity error'))
+exportStandardizedFigure(velocityErrorPlotStage1,'velocityErrorPlotStage1',0.55,1.5,'ChangeColors',false,'AddMarkers',false,'overwriteFigure',true,'exportFIG',true,'exportPDF',false,'figurePath','images')
+
+meanErrPosStage1 = mean(positionError);
+stdErrPosStage1 = std(positionError);
+
+meanErrVelStage1 = mean(velocityError);
+stdErrVelStage1 = std(velocityError);
+%% Propagation of the other uncertainties
+close all
+sizeMC = 30;
+
+
+for i = 1:launcher(1)
+    configuration.stage{i}.engine = mission.engines{launcher(1+i)};
+end
+
+[mer,staging,configuration] = initialMassEstimation(mission,configuration,settings,launcher);
+
+%meanStructMass1 = staging{1}.mStruct;
+meanStructMass2 = staging{2}.mStruct;
+%meanPropMass1 = staging{1}.mProp;
+meanPropMass2 = staging{2}.mProp;
+%meanIsp1 = configuration.stage{1}.engine.ispZero;
+meanIsp2 = configuration.stage{2}.engine.ispVac;
+
+%structMass1Distrib = meanStructMass1.*(1 + 0.01*randn(sizeMC,1));
+structMass2Distrib = meanStructMass2.*(1 + 0.01*randn(sizeMC,1));
+%propMass1Distrib = meanPropMass1.*(1 + 0.01*randn(sizeMC,1));
+propMass2Distrib = meanPropMass2.*(1 + 0.01*randn(sizeMC,1));
+%isp1Distrib = meanIsp1.*(1 + 0.001*randn(sizeMC,1));
+isp2Distrib = meanIsp2.*(1 + 0.001*randn(sizeMC,1));
+
+%mStage1Distrib = structMass1Distrib + propMass1Distrib;
+mStage2Distrib = structMass2Distrib + propMass2Distrib;
+
+[A,B,C] = ndgrid(structMass2Distrib,propMass2Distrib,isp2Distrib);
+Matr =[A(:),B(:),C(:)];
+
+% Shuffle of the Matrix elements
+
+shuffledMatrix = zeros(size(Matr));
+
+for i=1:size(Matr,2)
+    shuffledMatrix(:,i) = Matr(randperm(size(Matr,1)),i);
+end
+
+positionError = zeros(size(shuffledMatrix,1),1);
+velocityError = zeros(size(shuffledMatrix,1),1);
+
+% Initialization of the variables
+sizeMC = 1;
+hVec = 0:100;
+
+% Computation of the Wind Profiles
+
+[meanWind, varWind] = GRAM07_HWM07_annual(hVec);
+WindVelocityMag = meanWind ;
+windAngVel = WindVelocityMag ./ (mission.environment.rEarth + hVec);
+lonInitial = mission.launchBase.lonInitial;
+montecarlo.vxWind = - windAngVel .* (mission.environment.rEarth + hVec) .* sin(lonInitial) ;
+montecarlo.vyWind = windAngVel .* (mission.environment.rEarth + hVec) .* cos(lonInitial) ;
+
+% Functions for wind profile on ECI (rotated inside the dynamics)
+windVelXFun = griddedInterpolant(hVec,montecarlo.vxWind(1,:),'linear','linear');
+windVelYFun = griddedInterpolant(hVec,montecarlo.vyWind(1,:),'linear','linear');
+settings.gaControl = optimoptions("ga", ...
+                        "Display","iter", ...
+                        "MaxGenerations",20, ...
+                        "PopulationSize",100,...
+                        "UseParallel",true,...
+                        "FunctionTolerance", 1e-4,...
+                        "PlotFcn",{'gaplotbestf','gaplotbestindiv'}...
+                        );
+
+% set the GA
+nVarsGA = launcher(1) * 6;
+fun = @(gainGA) objGAGainsMonte(gainGA,launcher,configuration,mission,settings,windVelXFun,windVelYFun,stateCollocationRef,timeCollocationRef,10,thrustData);
+lb = zeros(nVarsGA,1);
+ub = inf * ones(nVarsGA,1);
+
+[timeCollocationRef, stateCollocationRef] = totalTrajectoryGlobalGA(launcher,configuration,mission,settings,thrustDataVecFMC);
 
 for i=1:size(shuffledMatrix,1)
 
-    configuration.stage{1}.mProp = shuffledMatrix(i,3);
-    configuration.stage{2}.mProp = shuffledMatrix(i,4);
-    configuration.stage{1}.mStage = shuffledMatrix(i,1) + shuffledMatrix(i,3);
-    configuration.stage{2}.mStage = shuffledMatrix(i,2) + shuffledMatrix(i,4);
-    configuration.stage{1}.engine.ispZero = shuffledMatrix(i,5);
-    configuration.stage{2}.engine.ispVac = shuffledMatrix(i,6);
+    %configuration.stage{1}.mProp = shuffledMatrix(i,2);
+    configuration.stage{2}.mProp = shuffledMatrix(i,2);
+    %configuration.stage{1}.mStage = shuffledMatrix(i,1) + shuffledMatrix(i,2);
+    configuration.stage{2}.mStage = shuffledMatrix(i,1) + shuffledMatrix(i,2);
+    %configuration.stage{1}.engine.ispZero = shuffledMatrix(i,3);
+    configuration.stage{2}.engine.ispVac = shuffledMatrix(i,3);
 
-    [timeCollocationRef, stateCollocationRef] = totalTrajectoryGlobalGA(launcher,configuration,mission,settings,thrustDataVecFMC);
+    
 
-    %Tuning the gains
-
-    if i==1
-        % set the GA
-    nVarsGA = launcher(1) * 6;
-    fun = @(gainGA) objGAGainsMonte(gainGA,launcher,configuration,mission,settings,windVelXFun,windVelYFun,stateCollocationRef,timeCollocationRef,10,thrustData);
-    lb = zeros(nVarsGA,1);
-    ub = inf * ones(nVarsGA,1);
-
-    % Run GA
-    [xga,fval,exitFlag,output,population,scores] = ga(fun,nVarsGA,[],[],[],[],lb,ub,[],[],settings.gaControl);
-
-    % extrapolate gains
-    gainGA = xga;
-    end
+    % %Tuning the gains
+    % 
+    % if i==1
+    %     % set the GA
+    % nVarsGA = launcher(1) * 6;
+    % fun = @(gainGA) objGAGainsMonte(gainGA,launcher,configuration,mission,settings,windVelXFun,windVelYFun,stateCollocationRef,timeCollocationRef,10,thrustData);
+    % lb = zeros(nVarsGA,1);
+    % ub = inf * ones(nVarsGA,1);
+    % 
+    % % Run GA
+    % [xga,fval,exitFlag,output,population,scores] = ga(fun,nVarsGA,[],[],[],[],lb,ub,[],[],settings.gaControl);
+    % 
+    % % extrapolate gains
+    % gainGA = xga;
+    % end
 
     % Integration of the trajectory
-    [timeCollocation, stateCollocation] = totalTrajectoryControlled(launcher,configuration,mission,settings,windVelXFun,windVelYFun,stateCollocationRef,timeCollocationRef,10,thrustData,gainGA);
+    [timeCollocation, stateCollocation] = totalTrajectoryGlobalGA(launcher,configuration,mission,settings,thrustDataVecFMC);
 
     % Error
-    distanceFromTargetControlled(i) = norm(stateCollocation(1:3,end,end)-mission.target.initialPointECI);
-    
+    positionError(i) = norm(stateCollocation(1:3,end,end-1)-stateCollocationRef(1:3,end,end-1));
+    velocityError(i) = norm(stateCollocation(4:6,end,end-1)-stateCollocationRef(4:6,end,end-1));
 end
+
+%% Computation of the cumulative mean
+
+k = 0;
+
+cumulativeMeanPosition = zeros(length(positionError),1);
+cumulativeMeanVelocity = zeros(length(velocityError),1);
+
+for j = 1:1:length(positionError)
+    k = k+1;
+    cumulativeMeanPosition(j) = mean(positionError(1:j));
+    cumulativeMeanVelocity(j) = mean(velocityError(1:j));
+end
+positionErrorPlotStage2 = figure(1);
+plot(cumulativeMeanPosition,'Color',settings.color.blu)
+setPlotSettings(title('Cumulative Mean for the position error'))
+exportStandardizedFigure(positionErrorPlotStage2,'positionErrorPlotStage2',0.55,1.5,'ChangeColors',false,'AddMarkers',false,'overwriteFigure',true,'exportFIG',true,'exportPDF',false,'figurePath','images')
+
+velocityErrorPlotStage2 = figure(2);
+plot(cumulativeMeanVelocity,'Color',settings.color.blu)
+setPlotSettings(title('Cumulative Mean for the velocity error'))
+exportStandardizedFigure(velocityErrorPlotStage2,'velocityErrorPlotStage2',0.55,1.5,'ChangeColors',false,'AddMarkers',false,'overwriteFigure',true,'exportFIG',true,'exportPDF',false,'figurePath','images')
+
+meanErrPosStage2 = mean(positionError);
+stdErrPosStage2 = std(positionError);
+
+meanErrVelStage2 = mean(velocityError);
+stdErrVelStage2 = std(velocityError);
+
+
 
 %% Influence of the errors in position and velocity wrt trajectory height
 clear all
