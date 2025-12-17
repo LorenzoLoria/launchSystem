@@ -70,6 +70,9 @@ q = 0.5*rhoVec.*(absVel).^2;
 timeStage = timeCollocation(:,1:end-1);
 timeStage = timeStage(:);
 
+soundSpeed = mission.aerodynamics.soundspeedFun(absH);
+
+machNumber = absVel ./ soundSpeed;
 %% =========================== PLOTS =======================================
 q = q * 1e-3; % kPa
 qAlpha = q .* alpha * 180 / pi; % kPa * deg
@@ -106,3 +109,4 @@ exportStandardizedFigure(qPlots,'qPlots',0.55,1.5,'ChangeColors',false,'AddMarke
 ax = gca;
 ax.YAxis(1).Color = settings.color.blu;       
 ax.YAxis(2).Color = settings.color.orange; 
+

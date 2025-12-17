@@ -1,5 +1,5 @@
 
-function [soundspeed] = soundSpeedFun(h)
+function [soundspeed, Temperature] = soundSpeedFun(h)
 
 [Temperature,Dens] =  atmosnrlmsise00(h,0,0,2025,1,1);
 

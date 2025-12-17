@@ -1,0 +1,133 @@
+%% ========================= HEAT FLUX ====================================
+clear;
+clc;
+close all;
+
+% ==========================  DATI ========================================
+
+addpath(genpath('..\..\'))
+
+[mission, settings] = dataStructGlobal;
+
+% launcher = [nStages, nMotore1, nMotore2, nMotore3, %massa1, %massa2,
+% %massa3];
+launcher = [2,2,3,4,0.459952176990556, 0.753370531158904, 0.634795741885559];
+
+for i = 1:launcher(1)
+    configuration.stage{i}.engine = mission.engines{launcher(1+i)};
+end
+
+[mer,staging,configuration] = initialMassEstimation(mission,configuration,settings,launcher);
+thrustDataGA = load('thrustdataVecTraj.mat','xGATraj');
+
+thrustDataVecFMC(:,:,1) = [0.902082365568723	1.480898931628005
+                            0.999984156345040	23.253294859564580
+                            0.900002678098914	52.979241033086943
+                            0.900000000000007	59.571815331701984
+                            0.903941814015555	55.058714159781090];
+
+
+thrustDataVecFMC(:,:,2 ) = [0.400917809388214	65.122710138507202
+                            0.964494359624014	79.658359202140389
+                            0.975968800776448	91.801043507018605
+                            0.992714640706230	89.085172454227390
+                            0.993244065056187	99.345740209598944];
+
+
+
+[timeCollocation, stateCollocation] = totalTrajectoryGlobalGA(launcher,configuration,mission,settings,thrustDataVecFMC);
+
+vel = stateCollocation(4:6,:,1:end-1)-stateCollocation(4:6,1,1);
+vel = mission.target.Rfinal* vel(1:3,:);
+absVel = sqrt ( vel(1,:).^2+ vel(2,:).^2 + vel(3,:).^2 );
+
+pos = stateCollocation(1:3,:,1:end-1);
+pos = pos(1:3,:);
+absH = sqrt ( pos(1,:).^2+ pos(2,:).^2 + pos(3,:).^2 )-mission.environment.rEarth;
+
+rhoVec = mission.environment.rhoFun(absH);
+
+q = 0.5*rhoVec.*(absVel).^2;
+
+timeStage = timeCollocation(:,1:end-1);
+timeStage = timeStage(:);
+
+% Other data required:
+
+% Raggio di curvatura del naso
+radiusN = mission.capsule.radius/2;
+cp = 1004;
+kcpRatio = 6e-5;
+Twall = 1111;
+Tenvironment = temperatureProfileQuick(absH);
+%%
+
+j = 1;
+eps = 1;
+
+% ===================== HEAT FLUX COMPUTATION =============================
+qdot = (1.34.^j / eps.^0.25) .* sqrt((rhoVec .* absVel) ./ radiusN .* (kcpRatio))...
+    .* (cp .* (Twall - Tenvironment) + absVel.^2 ./ 2);
+
+qPlot = figure(1);
+plot(timeStage, qdot*1e-3, 'LineWidth', 1.5)
+xlabel('t [s]')
+ylabel('$\dot{q}$ [kW]')
+xlim([0, timeStage(end)])
+setPlotSettings(title(''))
+grid on
+
+exportStandardizedFigure(qPlot,'qPlot',0.55,1.5,'ChangeColors',false,'AddMarkers',false,'overwriteFigure',true,'exportFIG',true,'exportPDF',false,'figurePath','..\..\figures\structures')
+%%
+function T = temperatureProfileQuick(h)
+% temperatureProfileQuick  Temperature vs altitude up to ~200 km.
+% - ISA (0–86 km)
+% - Simple extended thermosphere approximation (86–200 km)
+%
+% h [m] scalar or vector
+% T [K]
+
+h_in = h;
+h = double(h(:));
+T = nan(size(h));
+
+% --- ISA base (0–86 km) ---
+hb = [0, 11000, 20000, 32000, 47000, 51000, 71000, 86000]';
+Lb = [-0.0065, 0, 0.0010, 0.0028, 0, -0.0028, -0.0020]';
+
+Tb = zeros(size(hb));
+Tb(1) = 288.15;
+for i = 1:numel(Lb)
+    Tb(i+1) = Tb(i) + Lb(i) * (hb(i+1) - hb(i));
+end
+
+% ISA layers assignment
+for i = 1:numel(Lb)
+    idx = (h >= hb(i)) & (h < hb(i+1));
+    T(idx) = Tb(i) + Lb(i) .* (h(idx) - hb(i));
+end
+T86 = Tb(end);
+
+% Clamp below sea level
+T(h < 0) = Tb(1);
+
+% --- Simple extension (86–200 km) ---
+% Very rough "engineering" thermosphere profile:
+% 86–120 km: increase from T86 (~186.9 K) up to ~400 K
+% 120–200 km: increase slowly up to ~700 K (can be tuned)
+h1 = 86e3;  T1 = T86;
+h2 = 120e3; T2 = 400;   % K (quick plausible)
+h3 = 200e3; T3 = 700;   % K (quick plausible)
+
+idx1 = (h >= h1) & (h < h2);
+T(idx1) = T1 + (T2 - T1) .* (h(idx1) - h1) / (h2 - h1);
+
+idx2 = (h >= h2) & (h <= h3);
+T(idx2) = T2 + (T3 - T2) .* (h(idx2) - h2) / (h3 - h2);
+
+% Above 200 km: hold constant (or continue trend if you prefer)
+T(h > h3) = T3;
+
+% Return in original shape
+T = reshape(T, size(h_in));
+end

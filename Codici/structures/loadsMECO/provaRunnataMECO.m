@@ -42,6 +42,7 @@ thrustDataVecFMC(:,:,2 ) = [0.400917809388214	65.122710138507202
 
 [mecoData] = externalLoadsMECO(timeCollocation, stateCollocation, mission, configuration, launcher, mer, 0, staging) ;
 [internalActions] = loadsFinderMECO(mission, launcher, configuration, mecoData) ; 
+[updatedStructuralMass, mStruct, tVec, idx] = thicknessFunctionMECO(mission, launcher, configuration, mecoData, internalActions) ; 
 
 N = internalActions.N;
 T = internalActions.T;

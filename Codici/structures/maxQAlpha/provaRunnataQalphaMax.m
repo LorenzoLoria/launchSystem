@@ -44,7 +44,7 @@ thrustDataVecFMC(:,:,2 ) = [0.400917809388214	65.122710138507202
 alpha = 3 * pi / 180;
 [maxQAlphaData] = externalLoadsQAlphaMax(timeCollocation, stateCollocation, mission,configuration,launcher,mer,alpha,staging);
 [internalActions] = loadsFinder(mission, launcher, configuration, maxQAlphaData);
-
+[updatedStructuralMass, mStruct, tVec, idx] = thicknessFunction(mission, launcher, configuration, maxQAlphaData, internalActions) ; 
 
 N = internalActions.N;
 T = internalActions.T;

@@ -202,10 +202,10 @@ mission.structure.ultimate = 572e6;
 %}
 
 
-mission.structure.rho = [2840, 2710, 2780, 2810];
-mission.structure.E   = [72e9, 75e9, 73e9, 72e9];
-mission.structure.ultimate = [480e6, 560e6, 483e6, 572e6];
-mission.structure.yield = [390e6, 500e6, 345e6, 503e6];
+% mission.structure.rho = [2840, 2710, 2780, 2810];
+% mission.structure.E   = [72e9, 75e9, 73e9, 72e9];
+% mission.structure.ultimate = [480e6, 560e6, 483e6, 572e6];
+% mission.structure.yield = [390e6, 500e6, 345e6, 503e6];
 mission.structure.minThickness = 1e-3 ;
 
 mission.structure.tankPressure       = 3.4e5;

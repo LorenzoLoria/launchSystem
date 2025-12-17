@@ -43,6 +43,7 @@ thrustDataVecFMC(:,:,2 ) = [0.400917809388214	65.122710138507202
 %% ============================ SOLUTION ==================================
 
 [landLoads] = camionLoads(mission, configuration, mer, launcher, staging);
+[updatedStructuralMass, mStruct, tVec, idx] = thicknessFunctionCamion(mission, launcher, configuration, landLoads);
 
 N = landLoads.N;
 T = landLoads.T;
