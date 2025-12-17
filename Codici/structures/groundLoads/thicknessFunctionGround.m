@@ -1,4 +1,4 @@
-function [updatedStructuralMass, mStruct, tVec, idx] = thicknessFunctionGround(mission, launcher, configuration, landLoads)
+function [updatedStructuralMass, mStruct, tVec] = thicknessFunctionGround(mission, launcher, configuration, landLoads)
 
 % Function required to size the launcher thickess of all the different 
 % components of the LV. Evaluation must be done in the most
@@ -49,9 +49,9 @@ M              = landLoads.M; % Bending Moment [Nm] (from loadFinder) (VECTOR)
 
 % --- Re-Definition of the loads
 
-Nnew = N([2:2:18]);
-Tnew = T([2:2:18]);
-Mnew = M([2:2:16]);
+Nnew = N([4:2:18]);
+Tnew = T([4:2:18]);
+Mnew = M([4:2:16]);
 
 Mtail = M([16:1:19]);
 [~, idx] = max(abs(Mtail));
@@ -106,11 +106,7 @@ for i = 1 : partsNumber
     stressMatrix(i, :) = [longitudinalStress, bendingStress, shearStress, 0, 0, sigmaBuckling];
 
     % Exctraction of the most critical result
-    if i == 3 && i == 4 && i == 7 && i == 8
-        volume = pi .* h(i) .* (r(i)^2 - (r(i) - tVec(i)).^2) + 2*pi*(r(i)^3 - (r(i)-tVec(i))^3);
-    else
-        volume = pi .* h(i) * (r(i)^2 - (r(i) - tVec(i)).^2);
-    end
+    volume = pi .* h(i) * (r(i)^2 - (r(i) - tVec(i)).^2);
     mStruct(i) = volume .* rhoMaterial(idx(i));
 end
 
