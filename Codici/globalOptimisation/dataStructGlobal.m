@@ -171,20 +171,41 @@ mission.aerodynamics.bodyInfo.Cdn = 1.2;
 % mission.materials.Al2219.yield    = 390e6;
 % mission.materials.Al2219.ultimate = 480e6;
 
+% {
+% ----------------------------------------------------------------------
+% Al-Li 2195 - lightweight cryogenic tanks for high-performance stages 
+% ----------------------------------------------------------------------
+mission.structure.rho      = 2710; %https://www.matweb.com/search/datasheet_print.aspx?matguid=4363dafc7f5545688506d8b4af1e9468&utm_source
+mission.structure.E        = 75e9; %https://it.scribd.com/document/922715788/Al-Li-2195-Mechanical-Properties-Research?utm_source
+mission.structure.yield    = 500e6; %https://it.scribd.com/document/922715788/Al-Li-2195-Mechanical-Properties-Research?utm_source
+mission.structure.ultimate = 560e6; %https://it.scribd.com/document/922715788/Al-Li-2195-Mechanical-Properties-Research?utm_source
+% }
+
 %{
 %----------------------------------------------------------------------
-% Al-Li 2195 - lightweight cryogenic tanks for high-performance stages 
+% Al 2024-T3 - structural panels, frames, non-cryogenic structures
 %----------------------------------------------------------------------
-mission.structure.rho      = 2720;
-mission.structure.E        = 75e9;
-mission.structure.yield    = 500e6;
-mission.structure.ultimate = 560e6;
+mission.structure.rho      = 2780;
+mission.structure.E        = 73e9;
+mission.structure.yield    = 345e6;
+mission.structure.ultimate = 483e6;
 %}
 
-mission.structure.rho = [2840, 3000, 2780, 2810];
-mission.structure.E   = [72e9, 69e9, 73e9, 72e9];
-mission.structure.ultimate = [480e6, 590e6, 483e6, 572e6];
-mission.structure.yield = [390e6, 560e6, 345e6, 503e6];
+%{
+%----------------------------------------------------------------------
+% Al 7075-T6 - highly loaded fittings, secondary structures
+%----------------------------------------------------------------------
+mission.structure.rho      = 2810;
+mission.structure.E        = 72e9;
+mission.structure.yield    = 503e6;
+mission.structure.ultimate = 572e6;
+%}
+
+
+mission.structure.rho = [2840, 2710, 2780, 2810];
+mission.structure.E   = [72e9, 75e9, 73e9, 72e9];
+mission.structure.ultimate = [480e6, 560e6, 483e6, 572e6];
+mission.structure.yield = [390e6, 500e6, 345e6, 503e6];
 mission.structure.minThickness = 1e-3 ;
 
 mission.structure.tankPressure       = 3.4e5;
