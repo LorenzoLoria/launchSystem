@@ -1,41 +1,42 @@
-
-% Initialization
-
 clear all
 clc
 close all
 
+% Path Directory
+
 addpath(genpath("..\..\"))
 
+% Upload Mission Struct
 [mission,settings] = dataStructGlobal;
+% Initialization
 
-launcher = [2.0	2.0	3.0	3.0	0.5718839104841471	0.8679383834568386	0.6027644098891288];
+launcher = [2	2	3	3	0.459952176990556	0.753370531158904	0.634795741885559];
 for i = 1:launcher(1)
     configuration.stage{i}.engine = mission.engines{launcher(1+i)};
 end
 
 [mer,staging,configuration] = initialMassEstimation(mission,configuration,settings,launcher);
 
- thrustDataVecFMC = [0.997027764065679
-   0.942654752527805
-   0.951101595174460
-   0.955848071611001
-   0.958803211573321
-   0.266317283506581
-  18.826711728279765
-  32.515170831440209
-  33.514016831344129
-  46.141997578498405
-   0.999087083722307
-   0.853687176825034
-   0.697414992914764
-   0.646557363727949
-   0.912180915015670
-  55.283673653565842
-  86.115064742122868
-  81.590553439030884
-  89.388813826003727
-  98.329715236102246];
+ thrustDataVecFMC = [0.901784296794966
+0.999967458028643
+0.900002561600819
+0.900000000000007
+0.900000000000006
+1.32376427751106
+22.4721810110826
+51.9025769669441
+58.3043070770380
+54.0837349292332
+0.400884818399135
+0.966674994308654
+0.974049905676140
+0.992054604106613
+0.992888695383693
+64.8416016397151
+78.7571907487398
+90.6394069314900
+87.6489451551192
+98.5947513930343];
 
 thrustData = reshape(thrustDataVecFMC,settings.nOptPointsTraj,2,2);
 
@@ -72,7 +73,7 @@ windVelYFun = griddedInterpolant(hVec,montecarlo.vyWind(1,:),'linear','linear');
 settings.gaControl = optimoptions("ga", ...
                         "Display","iter", ...
                         "MaxGenerations",20, ...
-                        "PopulationSize",50,...
+                        "PopulationSize",100,...
                         "UseParallel",true,...
                         "FunctionTolerance", 1e-4,...
                         "PlotFcn",{'gaplotbestf','gaplotbestindiv'}...
@@ -124,10 +125,6 @@ parfor parforiter = 1:sizeMC
     % Error
     distanceFromTargetControlled(parforiter) = norm(stateCollocation(1:3,end,end)-mission.target.initialPointECI);
 
-    EarthPlot(mission.environment.rEarth)
-hold on
-plot3(stateCollocation(1,end,3),stateCollocation(2,end,3),stateCollocation(3,end,3),'bx')
-plot3(mission.target.initialPointECI(1),mission.target.initialPointECI(2),mission.target.initialPointECI(3),'ro')
 end
 
 % Computation of the cumulative mean
@@ -167,60 +164,69 @@ end
 %% ============================== PLOTS ===================================
 
 
-figure
+NominalTrajectory = figure(1);
 EarthPlot(mission.environment.rEarth)
 hold on
 plot3(stateCollocationRef(1,:,1),stateCollocationRef(2,:,1),stateCollocationRef(3,:,1))
 plot3(stateCollocationRef(1,:,2),stateCollocationRef(2,:,2),stateCollocationRef(3,:,2))
 plot3(stateCollocationRef(1,:,3),stateCollocationRef(2,:,3),stateCollocationRef(3,:,3))
 plot3(mission.target.initialPointECI(1),mission.target.initialPointECI(2),mission.target.initialPointECI(3),'ro')
-title('Reference Trajectory')
 xlabel('X_{ECI}')
 ylabel('Y_{ECI}')
 zlabel('Z_{ECI}')
+setPlotSettings(title('Reference Trajectory'))
+
+exportStandardizedFigure(NominalTrajectory,'NominalTrajectory',0.55,1.5,'ChangeColors',false,'AddMarkers',false,'overwriteFigure',true,'exportFIG',true,'exportPDF',false,'figurePath','images')
+
 
 % plot of the cumulative mean
 
-figure
+ComparisonMean=figure(2);
 subplot(2,1,1)
 plot(cumulativeMeanControlled)
-title('Cumulative Mean for Controlled Trajectory')
+setPlotSettings(title('Cumulative Mean for Controlled Trajectory'))
 subplot(2,1,2)
 plot(cumulativeMeanUncontrolled)
-title('Cumulative Mean for Uncontrolled Trajectory')
+setPlotSettings(title('Cumulative Mean for Uncontrolled Trajectory'))
+
+exportStandardizedFigure(ComparisonMean,'ComparisonMean',0.55,1.5,'ChangeColors',false,'AddMarkers',false,'overwriteFigure',true,'exportFIG',true,'exportPDF',false,'figurePath','images')
 
 % Distribution of the 'distance' population
 
-figure
-distMeanControlled  = mean(distanceFromTargetControlled);
-distStdControlled   = std(distanceFromTargetControlled);
-distGaussControlled = linspace(min(distanceFromTargetControlled),max(distanceFromTargetControlled));
-distPdfControlled   = normpdf(distGaussControlled, distMeanControlled, distStdControlled);
-histogram(distanceFromTargetControlled,'Normalization','pdf','NumBins',2*ceil(log(length(distanceFromTargetControlled))/log(2)+1))
-hold on
-plot(distGaussControlled, distPdfControlled, 'r', 'LineWidth', 2)
-hold off
-title('Distribution of the d_{taget} for controlled trajectory')
-legend('Real distribution', 'Estimated Gaussian Curve')
+% figure
+% distMeanControlled  = mean(distanceFromTargetControlled);
+% distStdControlled   = std(distanceFromTargetControlled);
+% distGaussControlled = linspace(min(distanceFromTargetControlled),max(distanceFromTargetControlled));
+% distPdfControlled   = normpdf(distGaussControlled, distMeanControlled, distStdControlled);
+% histogram(distanceFromTargetControlled,'Normalization','pdf','NumBins',2*ceil(log(length(distanceFromTargetControlled))/log(2)+1))
+% hold on
+% plot(distGaussControlled, distPdfControlled, 'r', 'LineWidth', 2)
+% hold off
+% title('Distribution of the d_{taget} for controlled trajectory')
+% legend('Real distribution', 'Estimated Gaussian Curve')
+% 
+% figure
+% distMeanUncontrolled  = mean(distanceFromTargetUncontrolled);
+% distStdUncontrolled   = std(distanceFromTargetUncontrolled);
+% distGaussUncontrolled = linspace(min(distanceFromTargetUncontrolled),max(distanceFromTargetUncontrolled));
+% distPdfUncontrolled   = normpdf(distGaussUncontrolled, distMeanUncontrolled, distStdUncontrolled);
+% histogram(distanceFromTargetUncontrolled,'Normalization','pdf','NumBins',2*ceil(log(length(distanceFromTargetUncontrolled))/log(2)+1))
+% hold on
+% plot(distGaussUncontrolled, distPdfUncontrolled, 'r', 'LineWidth', 2)
+% hold off
+% title('Distribution of the d_{taget} for uncontrolled trajectory')
+% legend('Real distribution', 'Estimated Gaussian Curve')
 
-figure
-distMeanUncontrolled  = mean(distanceFromTargetUncontrolled);
-distStdUncontrolled   = std(distanceFromTargetUncontrolled);
-distGaussUncontrolled = linspace(min(distanceFromTargetUncontrolled),max(distanceFromTargetUncontrolled));
-distPdfUncontrolled   = normpdf(distGaussUncontrolled, distMeanUncontrolled, distStdUncontrolled);
-histogram(distanceFromTargetUncontrolled,'Normalization','pdf','NumBins',2*ceil(log(length(distanceFromTargetUncontrolled))/log(2)+1))
-hold on
-plot(distGaussUncontrolled, distPdfUncontrolled, 'r', 'LineWidth', 2)
-hold off
-title('Distribution of the d_{taget} for uncontrolled trajectory')
-legend('Real distribution', 'Estimated Gaussian Curve')
-
-figure
+Points = figure(3);
 distancePoints = distanceFromTargetControlled ;
 plot(distancePoints,'k*')
 yline(20e3,'r','LineWidth',2)
 ylabel('Distance')
 xlabel('iteration')
+setPlotSettings(title('Dinstance Error distribution'))
+
+exportStandardizedFigure(Points,'Points',0.55,1.5,'ChangeColors',false,'AddMarkers',false,'overwriteFigure',true,'exportFIG',true,'exportPDF',false,'figurePath','images')
+
 
 distPointGood =[]; %NaN * ones(length(distancePoints));
 distPointNotGood =[]; % NaN * ones(length(distancePoints));
@@ -250,7 +256,7 @@ percOut = numel(distPointNotGood)/numel(distancePoints) * 100;
 % ylabel('[%]');
 % title('Values inside/outside the range');
 
-figure; clf
+succesvFail=figure(4); clf
 y = [percIn; percOut];              % 2 valori separati
 
 x = categorical({'success','failure'});
@@ -261,8 +267,10 @@ b.FaceColor = 'flat';          % abilita colori per-segmento
 b.CData(1,:) = [0 0.8 0];      % primo pezzo (percIn)  -> verde
 b.CData(2,:) = [0.8 0 0];      % secondo pezzo (percOut) -> rosso
 ylabel('[%]');
-title('Success vs Failure');
 
+setPlotSettings(title('Success vs Failure'))
+
+exportStandardizedFigure(succesvFail,'succesvFail',0.55,1.5,'ChangeColors',false,'AddMarkers',false,'overwriteFigure',true,'exportFIG',true,'exportPDF',false,'figurePath','images')
 
 
 %% Propagation of the other uncertainties
@@ -351,23 +359,23 @@ for i=1:size(shuffledMatrix,1)
     configuration.stage{1}.engine.ispZero = shuffledMatrix(i,5);
     configuration.stage{2}.engine.ispVac = shuffledMatrix(i,6);
 
-    % [timeCollocationRef, stateCollocationRef] = totalTrajectoryGlobalGA(launcher,configuration,mission,settings,thrustDataVecFMC);
+    [timeCollocationRef, stateCollocationRef] = totalTrajectoryGlobalGA(launcher,configuration,mission,settings,thrustDataVecFMC);
 
-    % Tuning the gains
+    %Tuning the gains
 
-    % if i==1
-    %     % set the GA
-    % nVarsGA = launcher(1) * 6;
-    % fun = @(gainGA) objGAGainsMonte(gainGA,launcher,configuration,mission,settings,windVelXFun,windVelYFun,stateCollocationRef,timeCollocationRef,10,thrustData);
-    % lb = zeros(nVarsGA,1);
-    % ub = inf * ones(nVarsGA,1);
-    % 
-    % % Run GA
-    % [xga,fval,exitFlag,output,population,scores] = ga(fun,nVarsGA,[],[],[],[],lb,ub,[],[],settings.gaControl);
-    % 
-    % % extrapolate gains
-    % gainGA = xga;
-    % end
+    if i==1
+        % set the GA
+    nVarsGA = launcher(1) * 6;
+    fun = @(gainGA) objGAGainsMonte(gainGA,launcher,configuration,mission,settings,windVelXFun,windVelYFun,stateCollocationRef,timeCollocationRef,10,thrustData);
+    lb = zeros(nVarsGA,1);
+    ub = inf * ones(nVarsGA,1);
+
+    % Run GA
+    [xga,fval,exitFlag,output,population,scores] = ga(fun,nVarsGA,[],[],[],[],lb,ub,[],[],settings.gaControl);
+
+    % extrapolate gains
+    gainGA = xga;
+    end
 
     % Integration of the trajectory
     [timeCollocation, stateCollocation] = totalTrajectoryControlled(launcher,configuration,mission,settings,windVelXFun,windVelYFun,stateCollocationRef,timeCollocationRef,10,thrustData,gainGA);
@@ -375,8 +383,6 @@ for i=1:size(shuffledMatrix,1)
     % Error
     distanceFromTargetControlled(i) = norm(stateCollocation(1:3,end,end)-mission.target.initialPointECI);
     
-    plot3(stateCollocation(1,end,end),stateCollocation(2,end,end),stateCollocation(3,end,end),'ro')
-    drawnow
 end
 
 %% Influence of the errors in position and velocity wrt trajectory height
@@ -515,15 +521,20 @@ for i = 1:size(launcher,1)
     
 end
 %%
-hVec = linspace(0.1e5,1e7,1000);
-p = polyval(polyfit(hMax,1./errorMean,2),hVec);
+hVec = linspace(2e5,1e7,1000);
+coeff = polyfit(hMax,1./errorMean,2);
+
+p = polyval(coeff,hVec);
 
 regression = figure(1);
 plot(hMax,errorMean,'Color',settings.color.orange,'Marker','x','LineStyle','none');
 hold on
 plot(hVec,1./p,'Color',settings.color.blu);
+coeff(1)=0;
+p = polyval(coeff,hVec);
+plot(hVec,1./p,'Color',settings.color.terracotta)
 xlabel('h_{max}')
 ylabel('Mean Error')
-legend('points','regression','Location','northeast')
+legend('points','quadratic regression','linear regression','Location','northeast','Orientation','vertical')
 setPlotSettings(title('Mean error vs Max altitude'))
 exportStandardizedFigure(regression,'regression',0.55,1.5,'ChangeColors',false,'AddMarkers',false,'overwriteFigure',true,'exportFIG',true,'exportPDF',false,'figurePath','images')
