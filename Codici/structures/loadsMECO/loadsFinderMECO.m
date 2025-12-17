@@ -1,4 +1,4 @@
-function [internalActions] = loadsFinder(mission, launcher, configuration, maxQData)
+function [internalActions] = loadsFinderMECO(mission, launcher, configuration, mecoData)
 
 % Builds matrix A required to solve the linear system Ax = b where:
 % A = matrix that encodes the equilibrium equations
@@ -11,25 +11,20 @@ function [internalActions] = loadsFinder(mission, launcher, configuration, maxQD
 % ======================== DATA CONVERSION ================================
 
 if launcher(1) == 1
-    nElements = 16;
+    nElements = 17;
 elseif launcher(1) == 2
-    nElements = 20;
+    nElements = 21;
 elseif launcher(1) == 3
-    nElements = 24;
+    nElements = 25;
 end
 
-nNodes = nElements + 1;
-
-% Nodes
-
-% 2stages: [xcgpay, xcp, xgcintII, xcgfuII, xcgOxII, xcgintI, xcgfuI, xcgOxI, xcpFins] 
-loadNodes = [2,3:2:nNodes-1,nNodes-1];
-loadNodes([1,2]) = loadNodes([2,1]);
+loadNodes = [2 3 5 7 9 11 12 14 16 18 20 21];
 
 xcp = computeXcp(mission, configuration,launcher);
-xcp_a = mission.aerodynamics.finsGeom.rootChord - computeFinXcp(mission, maxQData);
+xcp_a = mission.aerodynamics.finsGeom.rootChord - computeFinXcp(mission, mecoData);
 
 % Length of the element used for structural analysis
+
 h = [mission.capsule.height/2, xcp - mission.capsule.height/2, mission.capsule.height - xcp];
 
 for ii = launcher(1):-1:1
@@ -37,41 +32,39 @@ for ii = launcher(1):-1:1
             configuration.geometry.stage{ii}.interstage.length/2, ...
             configuration.stage{ii}.fuelTankH/2, configuration.stage{ii}.fuelTankH/2, ...
             configuration.stage{ii}.oxTankH/2, configuration.stage{ii}.oxTankH/2, ...
-            configuration.geometry.stage{ii}.thrustFrame/2,configuration.geometry.stage{ii}.thrustFrame/2];
+            configuration.geometry.stage{ii}.thrustFrame-xcp_a,xcp_a-configuration.geometry.stage{ii}.thrustFrame/2,...
+            configuration.geometry.stage{ii}.thrustFrame/2];
 end
 
-h(end) = configuration.geometry.stage{ii}.thrustFrame/2 - xcp_a;
-h(end+1) = xcp_a;
-
-m  = maxQData.massMaxQVec;   
+m  = mecoData.massMECOVec;   
 
 % Drag
-drag    = maxQData.dMaxQ;
+drag    = mecoData.dMECO;
 dragN = drag(1);
 dragT = drag(2);
 
 % Lift
-lift    = maxQData.lMaxQ;   
+lift    = mecoData.lMECO;   
 liftN   = lift(1);
 liftT   = lift(2);
 
 % Gravity
-g0      = maxQData.gMaxQ;
+g0      = mecoData.gMECO;
 gN      = g0(1);
 gT      = g0(2);
 
 % Acceleration
-a       = maxQData.aMaxQ;
+a       = mecoData.aMECO;
 aN      = a(1); 
 aT      = a(2);    
 
 % Fins' Lift
-liftFins  = maxQData.liftFinsMaxQ;
+liftFins  = mecoData.liftFinsMECO;
 liftFinsN = liftFins(1);
 liftFinsT = liftFins(2);
 
 % Fins' Drag
-dragFins  = maxQData.dragFinsMaxQ;
+dragFins  = mecoData.dragFinsMECO;
 dragFinsN = dragFins(1);
 dragFinsT = dragFins(2);
 
@@ -127,18 +120,16 @@ end
 
 % ==================== CREATION OF LOAD VECTOR b ==========================
 b = zeros(3, nNodes);
-b(:,2) = [dragN+liftN; dragT+liftT; 0];
+b(:,3) = [dragN+liftN; dragT+liftT; 0];
 
 k = 1;
-for i = loadNodes(2:end-1)
+for i = [2 5 7 9 12 14 16 18 21]
     b(:,i) = m(k) * [gN-aN; gT-aT; 0];
     k = k + 1;
 end
 
-% b(:, [2 3]) = b(:, [3 2]); % inversione richiesta siccome il CG del payload è prima del CP del corpo
-
-b(:,end-1) = [dragFinsN+liftFinsN; dragFinsT+liftFinsT; 0];
-
+b(:, 11) = [0.1*(dragFinsN+liftFinsN); 0.1*(dragFinsT+liftFinsT); 0];
+b(:, 20) = [0.9*(dragFinsN+liftFinsN); 0.9*(dragFinsT+liftFinsT); 0];
 b = b(:);
 
 % =========================== SOLUTION ====================================

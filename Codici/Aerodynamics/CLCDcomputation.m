@@ -192,7 +192,7 @@ else
     
     A = (bfin*2)^2/(Sfin*2);
     M_ale = Mach * cosd(lambdaLE);
-    alphafins = 10 * pi / 180;
+    alphafins = 0.5 * pi / 180;
     
     % --- Normal force coefficient
     mRef = sqrt(1 + (8/(pi*A))^2);

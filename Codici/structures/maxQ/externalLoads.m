@@ -11,6 +11,25 @@ pos = stateCollocation(1:3,:,1:end-1);
 pos = pos(1:3,:);
 absH = sqrt ( pos(1,:).^2+ pos(2,:).^2 + pos(3,:).^2 )-mission.environment.rEarth;
 
+
+
+    
+vxWind = mission.environment.windXFun(absH/1000);
+vyWind = mission.environment.windYFun(absH/1000);
+ 
+wind = [vxWind;vyWind;zeros(1,length(vxWind))];
+
+totalVel = vel - wind;
+
+for i = 1:length(totalVel)
+    alpha(i) = acos (dot(totalVel(:,i) , vel(:,i)) / norm(vel(:,i))/norm(totalVel(:,i) ));
+end
+
+
+
+
+
+
 mass = stateCollocation(7, :, 1:end-1);
 mass = mass(:);
 
@@ -29,7 +48,7 @@ acc = [acc, acc(:,end)] ;
 
 vMaxQ = vel(:,idx);
 aMaxQ = acc(:,idx);
-
+alphaMaxQ = alpha(idx);
 v1 = vMaxQ/norm(vMaxQ);
 
 v3 = [0;0;1];
@@ -38,7 +57,7 @@ v2 = cross(v3,v1)/norm(cross(v3,v1));
 
 rot = [v1,v2,v3];
 
-rot2 = [cos(alpha),-sin(alpha),0; sin(alpha),cos(alpha),0;0,0,1];
+rot2 = [cos(alphaMaxQ),-sin(alphaMaxQ),0; sin(alphaMaxQ),cos(alphaMaxQ),0;0,0,1];
 
 rot3 = rot2*rot;
 
@@ -106,12 +125,12 @@ finsVec   = [mission.aerodynamics.finsGeom.rootChord, mission.aerodynamics.finsG
     mission.aerodynamics.finsGeom.Lambda_le, mission.aerodynamics.finsGeom.tmac];
 engineVec = [nEngines,aTotZero,aTotVacum];
 
-[~,~,~,~, mainbodyCL, mainbodyCD, finsCL, finsCD] = CLCDcomputation(machNumber,alpha,maxq,1,mission,1,dimensions,engineVec, finsVec);
+[~,~,~,~, mainbodyCL, mainbodyCD, finsCL, finsCD] = CLCDcomputation(machNumber,alphaMaxQ,maxq,1,mission,1,dimensions,engineVec, finsVec);
 
 dMaxQ = -rot2*maxq * mainbodyCD * Aref * [1;0;0];
 lMaxQ = -rot2*maxq * mainbodyCL * Aref * [0;-1;0];
 gMaxQ = -rot3'*mission.target.Rfinal* mission.environment.GM * posMaxQ /norm(posMaxQ)^3;
-alphaFin = 10 * pi / 180;
+alphaFin = 0.5 * pi / 180;
 dFinsMaxQ = -rot2*maxq * finsCD * Aref * [cos(alphaFin);sin(alphaFin);0];
 lFinsMaxQ = -rot2*maxq * finsCL * Aref * [-sin(alphaFin);cos(alphaFin);0];
 
@@ -124,7 +143,7 @@ maxQData.massMaxQ = massMaxQ;
 
 xcp = computeXcp(mission, configuration,launcher);
 xcp_a = mission.aerodynamics.finsGeom.rootChord - computeFinXcp(mission, maxQData);
-
+xcp_topfins = mission.capsule.height + configuration.geometry.stage{2}.interstage.length + configuration.stage{2}.oxTankH + configuration.stage{2}.fuelTankH + configuration.geometry.stage{2}.thrustFrame - xcp_a;
 % Length of the element used for structural analysis
 h = [mission.capsule.height/2, xcp - mission.capsule.height/2, mission.capsule.height - xcp];
 
@@ -144,8 +163,7 @@ xcg = centerOfGravity(maxQData.massMaxQVec, maxQData.h4cgFinal );
 
 
 % Deflection angle
-delta = asin((-(lFinsMaxQ(2) + dFinsMaxQ(2)) * (configuration.geometry.totalLength - xcp_a - xcg) + (dMaxQ(2) + lMaxQ(2)) * (xcg - xcp))/(norm(tMaxQ)*(configuration.geometry.totalLength - xcg)));
-
+delta = asin((-(lFinsMaxQ(2) + dFinsMaxQ(2))*0.9 * (configuration.geometry.totalLength - xcp_a - xcg) + (dMaxQ(2) + lMaxQ(2)) * (xcg - xcp)+(lFinsMaxQ(2) + dFinsMaxQ(2)) * 0.1 * (xcg - xcp_topfins))/(norm(tMaxQ)*(configuration.geometry.totalLength - xcg)));
 % Rotation of thrust
 tMaxQ = sqrt(tMaxQ'* tMaxQ) * [cos(delta); sin(delta); 0];
 

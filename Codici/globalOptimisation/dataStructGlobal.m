@@ -146,12 +146,12 @@ mission.aerodynamics.finsGeom.rootChord   = 1.81;                      % root ch
 mission.aerodynamics.finsGeom.tipChord   = 0.45;                       % tip chord [m] (triangolo puro)
 mission.aerodynamics.finsGeom.bfin    = 1.81;                      % semispan [m]
 
-mission.aerodynamics.finsGeom.Nfins = 2;              
+mission.aerodynamics.finsGeom.Nfins = 2;     
 mission.aerodynamics.finsGeom.Sfin = 0.5 * (mission.aerodynamics.finsGeom.rootChord+mission.aerodynamics.finsGeom.tipChord) * mission.aerodynamics.finsGeom.bfin;       % area della fin [m^2]
 mission.aerodynamics.finsGeom.lambda = mission.aerodynamics.finsGeom.tipChord / mission.aerodynamics.finsGeom.rootChord;
 mission.aerodynamics.finsGeom.cmac = (2/3) * mission.aerodynamics.finsGeom.rootChord * (1 + mission.aerodynamics.finsGeom.lambda + mission.aerodynamics.finsGeom.lambda^2) / (1 + mission.aerodynamics.finsGeom.lambda);       % mean aerodynamic chord [m]
 
-mission.aerodynamics.finsGeom.delta_le = 10; % [deg]
+mission.aerodynamics.finsGeom.delta_le = 30; % [deg]
 mission.aerodynamics.finsGeom.Lambda_le = 36.9; % [deg]
 
 mission.aerodynamics.finsGeom.tmac = 0.1;    
@@ -171,22 +171,24 @@ mission.aerodynamics.bodyInfo.Cdn = 1.2;
 % mission.materials.Al2219.yield    = 390e6;
 % mission.materials.Al2219.ultimate = 480e6;
 
+%{
 %----------------------------------------------------------------------
-% Al 7075-T6 - highly loaded fittings, secondary structures
+% Al-Li 2195 - lightweight cryogenic tanks for high-performance stages 
 %----------------------------------------------------------------------
-% mission.materials.Al7075.rho      = 2720;
-% mission.materials.Al7075.E        = 75e9;
-% mission.materials.Al7075.yield    = 500e6;
-% mission.materials.Al7075.ultimate = 560e6;
+mission.structure.rho      = 2720;
+mission.structure.E        = 75e9;
+mission.structure.yield    = 500e6;
+mission.structure.ultimate = 560e6;
+%}
 
-mission.structure.rho = [2840, 2720, 2780, 2810];
-mission.structure.E   = [72e9, 75e9, 73e9, 72e9];
-mission.structure.ultimate = [480e6, 560e6, 483e6, 572e6];
-mission.structure.yield = [390e6, 500e6, 345e6, 503e6];
+mission.structure.rho = [2840, 3000, 2780, 2810];
+mission.structure.E   = [72e9, 69e9, 73e9, 72e9];
+mission.structure.ultimate = [480e6, 590e6, 483e6, 572e6];
+mission.structure.yield = [390e6, 560e6, 345e6, 503e6];
 mission.structure.minThickness = 1e-3 ;
 
 mission.structure.tankPressure       = 3.4e5;
-mission.structure.safetyFactor       = 1.5;
+mission.structure.safetyFactor       = 1.4;
 
 
 
@@ -239,7 +241,7 @@ settings.lowerBoundsGA = settings.lowerBoundsFMC(:);
 settings.upperBoundsGA = settings.upperBoundsFMC(:);
 
 
-settings.lowerBoundsGlobalGA = [1,1,3,3,0.35,0.3,0.3];
+settings.lowerBoundsGlobalGA = [2,1,3,3,0.35,0.3,0.3];
 settings.upperBoundsGlobalGA = [3,4,3,3,0.65,0.9,0.9];
 
 
@@ -248,16 +250,16 @@ settings.upperBoundsGlobalGA = [3,4,3,3,0.65,0.9,0.9];
 settings.gaTrajOptions = optimoptions("ga", ...
                         "Display","iter", ...
                         "MaxGenerations",20, ...
-                        "PopulationSize",50,...
+                        "PopulationSize",500,...
                         "UseParallel",false,...
                         "FunctionTolerance", 1e-4);
 
 
 settings.fminconTrajOptions = optimoptions("fmincon",...
                                 "Display","iter",...
-                                "MaxIterations",200,...
+                                "MaxIterations",100,...
                                 'MaxFunctionEvaluations',10000,...
-                                'StepTolerance',1e-19,...
+                                'StepTolerance',1e-15,...
                                 'OptimalityTolerance',1e-6,...
                                 'FunctionTolerance',1e-15,...
                                 'ConstraintTolerance',1e-10, ...
@@ -268,7 +270,7 @@ settings.fminconTrajOptions = optimoptions("fmincon",...
 settings.globalGAOptions = optimoptions("ga", ...
                                 "Display","iter", ...
                                 "MaxGenerations",20, ...
-                                "PopulationSize",24,...
+                                "PopulationSize",48,...
                                 "EliteCount", 1,...
                                 "UseParallel",true,...
                                 "FunctionTolerance", 1e-4, ...
@@ -288,8 +290,12 @@ settings.intconGlobalGA = [1 2 3 4];
 settings.trajectoryOption2D = 1;
 
 
+%============================ Plots ======================================
 
-
-
+settings.color.green = '#777754';
+settings.color.orange = '#cf9143';
+settings.color.blu = '#2f5d62';
+settings.color.gray = '#3a3a3a';
+settings.color.terracotta = '#8f4e3a';
 
 end

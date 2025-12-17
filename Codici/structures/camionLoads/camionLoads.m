@@ -1,4 +1,4 @@
-function [landLoads] = landLoads(mission, configuration, mer, launcher)
+function [camionLoads] = camionLoads(mission, configuration, mer, launcher, staging)
 
 % Function required to compute the loads to which the launcher is subject
 % to when on the launchpad
@@ -8,67 +8,66 @@ function [landLoads] = landLoads(mission, configuration, mer, launcher)
 % OUTPUTS
 % landload : structure containing N, T, M
 
-% ======================== DATA CONVERSION ================================
-
-
-
-
 % =========================== SOLUTION ====================================
 
 if launcher(1) == 1
-    nElements = 6;
-elseif launcher(1) == 2
-    nElements = 10;
-elseif launcher(1) == 3
     nElements = 14;
+elseif launcher(1) == 2
+    nElements = 18;
+elseif launcher(1) == 3
+    nElements = 22;
 end
 
 nNodes = nElements + 1;
 
 % Nodes
-loadNodes = [2,3:2:nNodes-1,nNodes-1];
+loadNodes = [2:2:nNodes];
 
 % Length of the element used for structural analysis
-h = [mission.capsule.height / 2]; % centroid of payload
+h = [2 / 3 * mission.capsule.height, 1 /3 * mission.capsule.height]; % centroid of cone
 
 for ii = launcher(1):-1:1
-    if ii == 1
-        h = [ h, configuration.geometry.stage{ii}.interstage.length/2, configuration.geometry.stage{ii}.interstage.length/2, (configuration.geometry.stage{ii}.tanksLength-configuration.stage{1}.engine.length)/2,(configuration.geometry.stage{ii}.tanksLength-configuration.stage{1}.engine.length)/2];
-    else
-        h = [ h, configuration.geometry.stage{ii}.interstage.length/2, configuration.geometry.stage{ii}.interstage.length/2, configuration.geometry.stage{ii}.tanksLength/2,configuration.geometry.stage{ii}.tanksLength/2];
-    end
+    h = [ h, configuration.geometry.stage{ii}.interstage.length/2, ...
+    configuration.geometry.stage{ii}.interstage.length/2, configuration.stage{ii}.fuelTankH/2, ...
+    configuration.stage{ii}.fuelTankH/2, configuration.stage{ii}.oxTankH/2, ...
+    configuration.stage{ii}.oxTankH/2, configuration.geometry.stage{ii}.thrustFrame/2,...
+    configuration.geometry.stage{ii}.thrustFrame/2];
 end
 
-h(end) = (configuration.geometry.stage{1}.tanksLength-configuration.stage{1}.engine.length)/2;
-
-% Computation of side area
-sideArea = [mission.capsule.radius*mission.capsule.height];
-
-for ii = launcher(1):-1:1
-    if ii == 1
-        sideArea = [sideArea, 2*configuration.geometry.stage{ii}.interstage.length*configuration.geometry.stage{ii}.interstage.length, 2*(configuration.geometry.stage{ii}.tanksLength-configuration.geometry.stage{ii}.engine.lenght)*configuration.geometry.stage{ii}.radius];
-    else
-        sideArea = [sideArea, 2*configuration.geometry.stage{ii}.interstage.length*configuration.geometry.stage{ii}.interstage.length, 2*configuration.geometry.stage{ii}.tanksLength*configuration.geometry.stage{ii}.radius];
-    end
-end
-
+% Mass computation
 m = [mission.capsule.weight];
 
 for ii = launcher(1):-1:1
-    m = [m, mer.stage{ii}.interstage, configuration.geometry.stage{ii}.mStage-mer.stage{ii}.interstage];
+    m = [m, mer.stage{ii}.interStage, ...
+        mer.stage{ii}.tankMassFuel+mer.stage{ii}.cryoInsuFuel, ...
+        mer.stage{ii}.tankMassOx+mer.stage{ii}.cryoInsuOx, ...
+        mer.stage{ii}.thrustFrame + mer.stage{ii}.engineWeight + ...
+        mer.stage{ii}.avionics + mer.stage{ii}.wiring + mer.stage{ii}.tvc +  ...
+        mer.stage{ii}.battery + mer.stage{ii}.pressurant];
 end
 
-
 % Gravity
-gN      = 9.81;
-
-% Ground Wind Model
-vss = 9.5 * h.^0.2; % [m/s]
-effectiveWindSpeed = sqrt((1.25 * vss)^2 + (2.56 * vss)^2);
-effWindDynPressure = 0.5 * 1.29 * (2.85 * vss)^2;
+gT      = 9.81;
 
 % Number of nodes
 nNodes    = nElements + 1;
+
+% Posizione del centro di forza 
+
+hCUMSUM = cumsum(h);
+hCentroids = hCUMSUM(loadNodes - 1);
+
+xcg = centerOfGravity(m, hCentroids);
+
+% Posizioni bracci meccanici rispetto al naso
+xc1 = hCUMSUM(2); % scelta a caso
+xc1 = xcg - xc1;
+xc2 = hCUMSUM(17); % scelta a caso
+xc2 = xc2 - xcg;
+
+% Bilancio forze
+T1 = sum(m)*gT / (1 + xc1 / xc2);
+T2 = T1 * xc1 / xc2;
 
 % ===================== Creation of A Matrix ==============================
 A = zeros(3 * nNodes, 3 * nNodes);
@@ -121,20 +120,21 @@ end
 b = zeros(3, nNodes);
 
 k = 1;
-for i = loadNodes(2:end-1)
-    b(:,i) = m(k) * [gN; 0; 0];
+for i = loadNodes
+    b(:,i) = [0; -m(k)*gT; 0];
     k = k + 1;
 end
 
-b(:, [2 3]) = b(:, [3 2]); % inversione richiesta siccome il CG del payload è prima del CP del corpo
+b(:,3) = b(:, 3) + [0;T1;0];
+b(:,18) = b(:, 18) + [0;T2;0];
 
 b = b(:);
 
 % =========================== SOLUTION ====================================
 loads = A \ b;
 
-landLoads.N = loads(1:3:end);
-landLoads.T = loads(2:3:end);
-landLoads.M = loads(3:3:end);
+camionLoads.N = loads(1:3:end);
+camionLoads.T = loads(2:3:end);
+camionLoads.M = loads(3:3:end);
 
 end

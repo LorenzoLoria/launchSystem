@@ -71,7 +71,7 @@ end
     localUpperBoundsFMC = settings.upperBoundsFMC(:,:,1:launcher(1)) ;
 
     count = 1 ;
-    maxIter = 3 ;
+    maxIter = 1 ;
     while error > maxMassErr && count <= maxIter
         
         count = count + 1 ;
@@ -91,14 +91,14 @@ end
             return
          end
 
-        [timeCollocation,stateCollocation] = totalTrajectoryGlobalGA(launcher,configuration,mission,settings,thrustDataVecFMC);
-        [maxQData] = externalLoads(timeCollocation, stateCollocation, mission, configuration, launcher, mer, 0) ;
-        [internalActions] = loadsFinder(mission, launcher, configuration, maxQData) ; 
-        [updatedStructuralMass] = thicknessFunction(mission, launcher, configuration, maxQData, internalActions) ; 
-
-        configuration.totalMass = configuration.totalMass - currentStructuralMass + updatedStructuralMass ;
-        error = abs(updatedStructuralMass - currentStructuralMass) / currentStructuralMass ;
-        currentStructuralMass = updatedStructuralMass ;   
+        % [timeCollocation,stateCollocation] = totalTrajectoryGlobalGA(launcher,configuration,mission,settings,thrustDataVecFMC);
+        % [maxQData] = externalLoads(timeCollocation, stateCollocation, mission, configuration, launcher, mer, 0) ;
+        % [internalActions] = loadsFinder(mission, launcher, configuration, maxQData) ; 
+        % [updatedStructuralMass] = thicknessFunction(mission, launcher, configuration, maxQData, internalActions) ; 
+        % 
+        % configuration.totalMass = configuration.totalMass - currentStructuralMass + updatedStructuralMass ;
+        % error = abs(updatedStructuralMass - currentStructuralMass) / currentStructuralMass ;
+        % currentStructuralMass = updatedStructuralMass ;   
         
     end
 
@@ -106,7 +106,7 @@ end
     tof = checkViolation.bestfeasible.fval ;
     xConfig = checkViolation.bestfeasible.x;
     
-    xConfigSave = zeros(30,1);
+        xConfigSave = zeros(30,1);
     xConfigSave(1:numel(xConfig)) = xConfig(:);
     filename = 'configMAT.mat';
     if isfile(filename)
@@ -115,9 +115,10 @@ end
     end
         save(filename, 'xConfigSave');
   
+    launcherSave = launcher;    
     filenameLauncher = 'LauncherMAT.mat';
     if isfile(filenameLauncher)
-        result = load(filenameLauncher,"launcher");
+        result = load(filenameLauncher,"launcherSave");
         launcherSave = [result.launcherSave;launcher];
     end
     save(filenameLauncher, 'launcherSave');

@@ -177,8 +177,10 @@ lOverD = 5;
     opt.stage{i}.mStage = mStage;
     opt.stage{i}.fuelTankH = 2 * sol1(1) + sol1(2);
     opt.stage{i}.oxTankH =  sol1(3);
+    opt.stage{i}.fuelTankR = sol1(1);
+    opt.stage{i}.oxTankR = sol1(1);
 
-    lengthThrustFrame = abs(sol1(1) - opt.stage{i}.engine.chamberRadius*nEngine/pi)*tan(pi/4);
+    lengthThrustFrame = abs(sol1(1) - opt.stage{i}.engine.chamberRadius*nEngine/pi)*tan(pi/4)+0.5;
     
     opt.geometry.stage{i}.length = 2*sol1(1)+sol1(2)+sol1(3) + lengthThrustFrame + opt.stage{i}.engine.length;
     opt.geometry.stage{i}.radius = sol1(1);

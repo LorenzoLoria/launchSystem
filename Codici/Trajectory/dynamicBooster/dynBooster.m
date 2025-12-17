@@ -1,4 +1,4 @@
-function dxdt = dynBooster(~, x, mission, windDirection)
+function dxdt = dynBooster(~, x, mission,configuration,mer,staging,stageNumber)
     % -------------------------------------------------
     %  State convention:
     %  x(1:3)   = r_I  (position in the inertial frame)
@@ -24,8 +24,8 @@ function dxdt = dynBooster(~, x, mission, windDirection)
     rho = mission.environment.rhoFun(h);
 
     % ------------ Wind------------------
-    windIntensity = 0;
-    windVelocityI = vI - windIntensity * windDirection;
+    
+    windVelocityI = vI;
     
     % cd and area informations (to note that this might change wrt attitude)
     Cd   = mission.capsule.supersonicCD;
@@ -37,9 +37,10 @@ function dxdt = dynBooster(~, x, mission, windDirection)
     else
         aeroForceI = [0;0;0];
     end
-    %aeroForceI = [0; 0; 0];
+    
     % ------------ First cardinal equation ------------
-    m = mission.capsule.weigth;  
+    [Isym,Iy,m,xCgTop] = instantaneusInertiacgPosition(mission,configuration,mer,staging,stageNumber);
+  
 
     % gravity acceleration
     rNorm = norm(rI);
@@ -68,12 +69,17 @@ function dxdt = dynBooster(~, x, mission, windDirection)
     % Rib: inerziale -> body
     Rib = Rbi';
     aeroForceB = Rib * aeroForceI;
+    targetVec =windVelocityI/norm(windVelocityI);
+    ySystem = Rib(2,:);
+    zSystem = Rib(3,:);
 
+    alphaY = zSystem*targetVec;
+    alphaZ = -ySystem*targetVec;
     % ------------ aerodynamic torque wrt center of mass (2ª cardinale) ------------
     % cp e cg defined in body frame (euler equations)
     vBody = Rib * windVelocityI;
     alpha = acos(dot([1;0;0], vBody)/norm(vBody) );
-    xCgTop = 20; 
+    
     cpB = [( 0.5* 25 *sin(alpha)^2 ).*(alpha<=pi/2) + (25-25/2*sin(alpha)^2).*(alpha>pi/2) - xCgTop;0; 0];   
     %scatter(t,alpha)
     %hold on
@@ -83,12 +89,13 @@ function dxdt = dynBooster(~, x, mission, windDirection)
     % scatter(cpB,0)
 
     rCpCgB = cpB-cgB;   % torque arm
-    torque = cross(rCpCgB, aeroForceB);   % M = r x F  (nel body)
+    torque = cross(rCpCgB, aeroForceB) -3000*[wx;wy;wz] - 1000*[0; alphaY; alphaZ];   % M = r x F  (nel body)
 
     % Matrice di inerzia nel body (3x3)
-    Ix = 1000;
-    Iy = 5000;
-    Iz = 5000;
+
+   
+    Ix = Isym;
+    Iz = Iy;
     J = diag([Ix,Iy Iz]);
 
     % 2ª cardinal: J * wdot + w x (J*w) = M

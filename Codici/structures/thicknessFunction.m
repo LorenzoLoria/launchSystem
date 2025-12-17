@@ -1,29 +1,14 @@
-function [updatedStructuralMass] = thicknessFunction(mission, launcher, configuration, maxQData, internalActions)
+function [updatedStructuralMass, mStruct, tVec, idx] = thicknessFunction(mission, launcher, configuration, maxQData, internalActions)
 
 % Function required to size the launcher thickess of all the different 
 % components of the LV. Evaluation must be done in the most
-% critical conditions: q, q-alpha, MECO 
-
-% --- INPUTS
-% mission                         = struct containing LV data
-% engineUsed                      = parameter indicating which engine is
-%                                   used
-
-% --- OUTPUTS
-% mission.structure.mStruct       = vector containing mass of each structure [kg]
-% mission.structure.t             = vector containing thickness of each component [m]
-% mission.structure.tMax          = maximum thickness of the launcher [m]
-% mission.structure.stressMatrix  = (nComponents x 6) matrix. Each column represents a
-%                                   component of the LV (e.g. Thrust structure, 1st stage etc.), 
-%                                   each row represents a different kind of stress [MPa]
-
+% critical conditions: q, q-alpha, MECO
 
 % ============================== DATA =====================================
 
 r = [mission.capsule.radius];                  % radius of cylindrical section of each body [m] (VECTOR)
 h = [mission.capsule.height];                         % length of each body [m] (VECTOR)
-rhoOx = 0;                                      % density of the oxidizer [kg/m^3]
-rhoFu = 0;                                      % density of the fuel [kg/m^3]
+rhoProps = 0;                                      % density [kg/m^3]  
 
 nStages = launcher(1) ;
 
@@ -32,11 +17,12 @@ for ii = 1:nStages
 end
 
 for ii = launcher(1):-1:1
-    r = [r , configuration.geometry.stage{ii}.interstage.meanRadius, configuration.geometry.stage{ii}.radius ] ;
-    h = [ h, configuration.geometry.stage{ii}.interstage.length, configuration.geometry.stage{ii}.tanksLength] ;
+    r = [r , configuration.geometry.stage{ii}.interstage.meanRadius, configuration.stage{ii}.fuelTankR,  ...
+        configuration.stage{ii}.oxTankR, configuration.geometry.stage{ii}.radius] ;
+    h = [ h, configuration.geometry.stage{ii}.interstage.length, configuration.stage{ii}.fuelTankH, configuration.stage{ii}.oxTankH,...
+        configuration.geometry.stage{ii}.thrustFrame] ;
     
-    rhoOx = [rhoOx, 0, enginesUsed{ii}.oxDens] ;
-    rhoFu = [rhoFu, 0, enginesUsed{ii}.fuelDens] ;
+    rhoProps = [rhoProps, 0, enginesUsed{ii}.fuelDens, enginesUsed{ii}.oxDens, 0] ;
 
 end
 
@@ -65,37 +51,26 @@ M              = internalActions.M; % Bending Moment [Nm] (from loadFinder) (VEC
 % interstage (II and I stage) and I stage (pressurized).
 
 % --- Re-Definition of the loads
-payloadN = N(4);
-payloadT = T(4);
-payloadM = M(4);
 
-interN = [];
-interT = [];
-interM = [];
+Nnew = N([4:2:10,13:2:19,22]);
+Tnew = T([4:2:10,13:2:19,22]);
+Mnew = M([4:2:10,13:2:19]);
 
-for ii=6:2:length(N)-3
-    interN = [interN, N(ii)];
-    interT = [interT, T(ii)];
-    interM = [interM, M(ii)];
-end
-
-firstStageN = N(end);
-firstStageT = T(end);
-Mtail = M(end-2:end);
+Mtail = M([20:1:22]);
 [~, idx] = max(abs(Mtail));
 firstStageM = Mtail(idx);
+Mnew(end+1) = firstStageM;
 
-
-N = [payloadN, interN, firstStageN];
-T = [payloadT, interT, firstStageT];
-M = [payloadM, interM, firstStageM];
+N = Nnew;
+T = Tnew;
+M = Mnew;
 
 partsNumber = length(N);
 
 
 pressurization = zeros(partsNumber, 1);
 
-for ii = 3:2:partsNumber
+for ii = [3, 4, 7, 8]
     pressurization(ii) = mission.structure.tankPressure;
 end
 
@@ -111,28 +86,32 @@ for i = 1 : partsNumber
     if pressurization(i) ~= 0
         for j = 1 : materialNumber
         % Minimum Allowable Thicknesses
-        tAxial = abs((- N(i) / (2 * pi * r(i)) - M(i) / (pi * r(i)^2)) * SF + pressurization(i) * r(i) / 2 + max(rhoFu(i), rhoOx(i)) * nx * g0 * r(i) * h(i) / 2) / ultimateStress(j);
+        tAxial = abs((- N(i) / (2 * pi * r(i)) - M(i) / (pi * r(i)^2)) * SF + pressurization(i) * r(i) / 2 + rhoProps(i) * nx * g0 * r(i) * h(i) / 2) / ultimateStress(j);
         tShear = T(i) / (2 * pi * r(i) * shearAllowable(j)) * SF;
 
         t(i, j) = max(tAxial, tShear);
 
         % Consider buckling
-        bucklingEq = @(t_var) abs( ...
-                    - abs(N(i) / (pi*(r(i)^2-(r(i)-t_var)^2))) * SF ...
-                    - abs(M(i) / (pi/4*(r(i)^4-(r(i)-t_var)^4)) * r(i)) * SF ...
-                    + abs((pressurization(i) * r(i)) / (2 * t_var)) ...
-                    + abs((max(rhoFu(i), rhoOx(i)) * nx * g0 * h(i) * r(i)) / (2 * t_var)) ...
-                    ) - (((9 * (t_var/r(i))^0.6 + 0.16 * (r(i)/h(i))^1.3 * (t_var/r(i))^0.3) + min(0.191 * (pressurization(i)/E(j)) * (r(i)/t_var)^2, 0.229)) * E(j) * t_var / r(i));
-
+        bucklingEq = @(t_var) ( ...
+                    + abs(N(i) / (pi*(r(i)^2-(r(i)-t_var)^2))) * SF ...
+                    + abs(M(i) / (pi/4*(r(i)^4-(r(i)-t_var)^4)) * r(i)) * SF ...
+                    - abs((pressurization(i) * r(i)) / (2 * t_var)) )...
+                    - ( ((9 * (t_var/r(i))^0.6 + 0.16 * (r(i)/h(i))^1.3 * (t_var/r(i))^0.3) ...
+                    + min(0.191 * (pressurization(i)/E(j)) * (r(i)/t_var)^2, 0.229) ) * E(j) * t_var / r(i));
+                    % - abs((rhoProps(i)) * nx * g0 * h(i) * r(i)) / (2 * t_var)) ...
         options = optimoptions('fsolve', 'Display', 'off', 'TolFun', 1e-6);
         tBuckling = fsolve(bucklingEq, t(i,j), options);
         t(i, j) = max(t(i, j), tBuckling);
         end
         
         [tVec(i), idx(i)] = min( t(i, :) .* (t(i,:)>=mission.structure.minThickness) + mission.structure.minThickness .* (t(i,:)<mission.structure.minThickness) );
-
+        % [tVec(i), idx(i)] = min( t(i, :) + inf * (t(i, :) < mission.structure.minThickness) );
+        % if isinf(tVec(i))
+        %     tVec(i) = mission.structure.minThickness;
+        %     idx(i)= 1;
+        % end
         % Hydrostatic pressure
-        pHydro = max(rhoFu(i), rhoOx(i)) .* nx .* g0 .* h(i);
+        pHydro = rhoProps(i) .* nx .* g0 .* h(i);
 
         % Area of the cylinder
         A = pi * (r(i)^2 - (r(i)-tVec(i)).^2);
@@ -164,20 +143,9 @@ for i = 1 : partsNumber
         stressMatrix(i, :) = [longitudinalStress, bendingStress, shearStress, hoopStress, axialStress, sigmaBuckling];
         
     else 
-
-        % Loads
-        % longitudinalLoad = nx .* M * g0; % longitudinal load vector
-        % lateralLoad = nz .* M .* g0; % lateral force vector
-        % bendingMoment = lateralLoad .* hCM; % bending moment vector
-        
-        % Area A and Inertia I are initially computed using the following
-        % approximation:
-        % A = 2 * pi * r * t;
-        % I = pi * r^3 * t;
-        
         for j = 1 : materialNumber
         % Minimum Allowable Thicknesses
-        tAxial = ( abs(- N(i) / (2 * pi * r(i))) - abs(M(i) / (pi * r(i)^2)) ) / ultimateStress(j) * SF;
+        tAxial = ( abs(N(i) / (2 * pi * r(i))) + abs(M(i) / (pi * r(i)^2)) ) / ultimateStress(j) * SF;
         tShear = T(i) / (2 * pi * r(i) * shearAllowable(j)) * SF;
     
         t(i, j) = max(tAxial, tShear);
@@ -191,7 +159,11 @@ for i = 1 : partsNumber
         
 
         [tVec(i), idx(i)] = min( t(i, :) .* (t(i,:)>=mission.structure.minThickness) + mission.structure.minThickness .* (t(i,:)<mission.structure.minThickness) );
-
+        % [tVec(i), idx(i)] = min( t(i, :) + inf * (t(i, :) < mission.structure.minThickness) );
+        % if isinf(tVec(i))
+        %     tVec(i) = mission.structure.minThickness;
+        %     idx(i)= 1;
+        % end
         % Area 
         A = pi * (r(i)^2 - (r(i)-tVec(i)).^2);
         
@@ -217,8 +189,10 @@ end
 
 % =========================== ESTRAZIONE ==================================
 updatedStructuralMass = sum(mStruct) ;
-% mission.structure.thickness = tVec;
-% mission.structure.stressMatrix = stressMatrix;
-% mission.structure.materials = idx;
 
+% Extract the results associated to interstage2, fuel2, ox2, interstage1,
+% fuel1, ox1
+mStruct = mStruct([2, 3, 4, 6, 7, 8]);
+tVec = tVec([2, 3, 4, 6, 7, 8]);
+idx = idx([2, 3, 4, 6, 7, 8]);
 end
