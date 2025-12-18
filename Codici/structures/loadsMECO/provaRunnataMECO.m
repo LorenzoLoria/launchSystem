@@ -1,7 +1,7 @@
 %% ===================== Prova Runnata MECO =============================== 
 
 clear all;
-clc;
+
 close all
 
 % ==========================  DATI ========================================
@@ -122,7 +122,7 @@ xlim([0, x_all(end)])
 % xline([0, cumsum(h)], 'LineStyle','--')
 setPlotSettings(title(''))
 
-exportStandardizedFigure(axialLoad,'axialLoadMECO',0.55,1.5,'ChangeColors',false,'AddMarkers',false,'overwriteFigure',true,'exportFIG',true,'exportPDF',false,'figurePath','..\..\..\figures\structures')
+exportStandardizedFigure(axialLoad,'axialLoadMECO',0.55,1.5,'ChangeColors',false,'AddMarkers',false,'overwriteFigure',true,'exportFIG',true,'exportPDF',false,'figurePath','..\..\figures\structures')
 
 %% --- Figura 2: Shear Load ---
 shearLoadMECO = figure(2); 
@@ -141,7 +141,7 @@ xlim([0, x_all(end)])
 % xline([0, cumsum(h)], 'LineStyle','--')
 setPlotSettings(title(''))
 
-exportStandardizedFigure(shearLoadMECO,'shearLoadMECO',0.55,1.5,'ChangeColors',false,'AddMarkers',false,'overwriteFigure',true,'exportFIG',true,'exportPDF',false,'figurePath','..\..\..\figures\structures')
+exportStandardizedFigure(shearLoadMECO,'shearLoadMECO',0.55,1.5,'ChangeColors',false,'AddMarkers',false,'overwriteFigure',true,'exportFIG',true,'exportPDF',false,'figurePath','..\..\figures\structures')
 
 %% --- Figura 3: Bending Moment ---
 bendingMomentMECO = figure(3); 
@@ -161,4 +161,4 @@ xlim([0, x_all(end)])
 xline(xcg, 'k',  'LineWidth',1.5)
 setPlotSettings(title(''))
 
-exportStandardizedFigure(bendingMomentMECO,'bendingMomentMECO',0.55,1.5,'ChangeColors',false,'AddMarkers',false,'overwriteFigure',true,'exportFIG',true,'exportPDF',false,'figurePath','..\..\..\figures\structures')
+exportStandardizedFigure(bendingMomentMECO,'bendingMomentMECO',0.55,1.5,'ChangeColors',false,'AddMarkers',false,'overwriteFigure',true,'exportFIG',true,'exportPDF',false,'figurePath','..\..\figures\structures')

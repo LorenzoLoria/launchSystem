@@ -106,7 +106,7 @@ for i = 1 : partsNumber
     stressMatrix(i, :) = [longitudinalStress, bendingStress, shearStress, 0, 0, sigmaBuckling];
 
     % Exctraction of the most critical result
-    if i == 3 && i == 4 && i == 7 && i == 8
+    if i == 3 || i == 4 || i == 7 || i == 8
         volume = pi .* h(i) .* (r(i)^2 - (r(i) - tVec(i)).^2) + 2*pi*(r(i)^3 - (r(i)-tVec(i))^3);
     else
         volume = pi .* h(i) * (r(i)^2 - (r(i) - tVec(i)).^2);

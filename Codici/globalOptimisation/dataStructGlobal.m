@@ -165,20 +165,26 @@ mission.aerodynamics.bodyInfo.Cdn = 1.2;
 
 % ============================ Materials and structures ===============================
 
+% Ti-6Al-4V (Grade 5) - thrust rings, engine mounts, highly loaded nodes
+% mission.structure.rho      = 4430;
+% mission.structure.E        = 112e9;
+% mission.structure.yield    = 880e6;
+% mission.structure.ultimate = 950e6;
+
 % Al2219 - cryogenic tanks and primary structures for 1st/2nd stage
-% mission.materials.Al2219.rho      = 2840;
-% mission.materials.Al2219.E        = 72e9;
-% mission.materials.Al2219.yield    = 390e6;
-% mission.materials.Al2219.ultimate = 480e6;
+% mission.structure.rho      = 2840;
+% mission.structure.E        = 72e9;
+% mission.structure.yield    = 390e6;
+% mission.structure.ultimate = 480e6;
 
 % {
 % ----------------------------------------------------------------------
 % Al-Li 2195 - lightweight cryogenic tanks for high-performance stages 
 % ----------------------------------------------------------------------
 mission.structure.rho      = 2710; %https://www.matweb.com/search/datasheet_print.aspx?matguid=4363dafc7f5545688506d8b4af1e9468&utm_source
-mission.structure.E        = 75e9; %https://it.scribd.com/document/922715788/Al-Li-2195-Mechanical-Properties-Research?utm_source
+mission.structure.E        = 79e9; %https://it.scribd.com/document/922715788/Al-Li-2195-Mechanical-Properties-Research?utm_source
 mission.structure.yield    = 500e6; %https://it.scribd.com/document/922715788/Al-Li-2195-Mechanical-Properties-Research?utm_source
-mission.structure.ultimate = 560e6; %https://it.scribd.com/document/922715788/Al-Li-2195-Mechanical-Properties-Research?utm_source
+mission.structure.ultimate = 590e6; %https://it.scribd.com/document/922715788/Al-Li-2195-Mechanical-Properties-Research?utm_source
 % }
 
 %{
@@ -191,15 +197,15 @@ mission.structure.yield    = 345e6;
 mission.structure.ultimate = 483e6;
 %}
 
-%{
-%----------------------------------------------------------------------
+% {
+% ----------------------------------------------------------------------
 % Al 7075-T6 - highly loaded fittings, secondary structures
-%----------------------------------------------------------------------
-mission.structure.rho      = 2810;
-mission.structure.E        = 72e9;
-mission.structure.yield    = 503e6;
-mission.structure.ultimate = 572e6;
-%}
+% ----------------------------------------------------------------------
+% mission.structure.rho      = 2810;
+% mission.structure.E        = 72e9;
+% mission.structure.yield    = 503e6;
+% mission.structure.ultimate = 572e6;
+% }
 
 
 % mission.structure.rho = [2840, 2710, 2780, 2810];
