@@ -738,11 +738,11 @@ p = polyval(coeff,hVec);
 regression = figure(1);
 plot(hMax,errorMean,'Color',settings.color.orange,'Marker','x','LineStyle','none');
 hold on
-plot(hVec,1./p,'Color',settings.color.blu);
+plot(hVec,1./p,'Color',settings.color.green);
 coeff(1)=0;
 p = polyval(coeff,hVec);
 plot(hVec,1./p,'Color',settings.color.terracotta)
-xlabel('$h_{max}$ [m]')
+xlabel('h_${max}$ [m]')
 ylabel('Mean Error')
 legend('points','quadratic regression','linear regression','Location','northeast','Orientation','vertical')
 setPlotSettings(title('Mean error vs Max altitude'))
