@@ -94,22 +94,18 @@ for i = 1 : partsNumber
         % Consider buckling
         bucklingEq = @(t_var) ( ...
                     + abs(N(i) / (pi*(r(i)^2-(r(i)-t_var)^2))) * SF ...
-                    + abs(M(i) / (pi/4*(r(i)^4-(r(i)-t_var)^4)) * r(i)) * SF ...
-                    - abs((pressurization(i) * r(i)) / (2 * t_var)) )...
+                    + abs(M(i) / (pi/4*(r(i)^4-(r(i)-t_var)^4)) * r(i)) * SF ) ...
                     - ( ((9 * (t_var/r(i))^0.6 + 0.16 * (r(i)/h(i))^1.3 * (t_var/r(i))^0.3) ...
-                    + min(0.191 * (pressurization(i)/E(j)) * (r(i)/t_var)^2, 0.229) ) * E(j) * t_var / r(i));
+                    + min(0.191 * (pressurization(i)/E(j)) * (r(i)/t_var)^2, 0.229) ) * E(j) * t_var / r(i) );
                     % - abs((rhoProps(i)) * nx * g0 * h(i) * r(i)) / (2 * t_var)) ...
+                    % - abs((pressurization(i) * r(i)) / (2 * t_var)) )...
         options = optimoptions('fsolve', 'Display', 'off', 'TolFun', 1e-6);
         tBuckling = fsolve(bucklingEq, t(i,j), options);
         t(i, j) = max(t(i, j), tBuckling);
         end
         
         [tVec(i), idx(i)] = min( t(i, :) .* (t(i,:)>=mission.structure.minThickness) + mission.structure.minThickness .* (t(i,:)<mission.structure.minThickness) );
-        % [tVec(i), idx(i)] = min( t(i, :) + inf * (t(i, :) < mission.structure.minThickness) );
-        % if isinf(tVec(i))
-        %     tVec(i) = mission.structure.minThickness;
-        %     idx(i)= 1;
-        % end
+        
         % Hydrostatic pressure
         pHydro = rhoProps(i) .* nx .* g0 .* h(i);
 
@@ -150,7 +146,7 @@ for i = 1 : partsNumber
     
         t(i, j) = max(tAxial, tShear);
     
-        bucklingEq = @(t_var) ((abs(N(i)) / (pi*(r(i)^2-(r(i)-t_var)^2)) + abs(M(i)) / (pi/4*(r(i)^4-(r(i)-t_var)^4)) * r(i))) - 0.6 * (1 - 0.901 * (1 - exp(-1 / 16 * sqrt(r(i)/t_var)))) * E(j) * t_var / r(i);
+        bucklingEq = @(t_var) ((abs(N(i)) / (pi*(r(i)^2-(r(i)-t_var)^2)) + abs(M(i)) / (pi/4*(r(i)^4-(r(i)-t_var)^4)) * r(i))) - E(j) * ( 9 * (t_var / r(i))^1.6 + 0.16 * (t_var / h(i))^1.3 ) ;
             options = optimoptions('fsolve', 'Display', 'off', 'TolFun', 1e-6);
             tBuckling = fsolve(bucklingEq, t(i, j), options);
             

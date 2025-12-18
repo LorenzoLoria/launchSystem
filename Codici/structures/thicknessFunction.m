@@ -87,20 +87,21 @@ for i = 1 : partsNumber
         for j = 1 : materialNumber
         % Minimum Allowable Thicknesses
         tAxial = abs((- N(i) / (2 * pi * r(i)) - M(i) / (pi * r(i)^2)) * SF + pressurization(i) * r(i) / 2 + rhoProps(i) * nx * g0 * r(i) * h(i) / 2) / ultimateStress(j);
-        tShear = T(i) / (2 * pi * r(i) * shearAllowable(j)) * SF;
+        tShear = abs(T(i)) / (2 * pi * r(i) * shearAllowable(j)) * SF;
 
         t(i, j) = max(tAxial, tShear);
 
         % Consider buckling
         bucklingEq = @(t_var) ( ...
-                    + abs(N(i) / (pi*(r(i)^2-(r(i)-t_var)^2))) * SF ...
-                    + abs(M(i) / (pi/4*(r(i)^4-(r(i)-t_var)^4)) * r(i)) * SF ...
-                    - abs((pressurization(i) * r(i)) / (2 * t_var)) )...
+                    + abs(N(i) / (2 * pi * r(i) * t_var)) * SF ...
+                    + abs(M(i) / (pi * r(i)^2 * t_var) ) * SF ...
+                     )...
                     - ( ((9 * (t_var/r(i))^0.6 + 0.16 * (r(i)/h(i))^1.3 * (t_var/r(i))^0.3) ...
                     + min(0.191 * (pressurization(i)/E(j)) * (r(i)/t_var)^2, 0.229) ) * E(j) * t_var / r(i));
                     % - abs((rhoProps(i)) * nx * g0 * h(i) * r(i)) / (2 * t_var)) ...
-        options = optimoptions('fsolve', 'Display', 'off', 'TolFun', 1e-6);
-        tBuckling = fsolve(bucklingEq, t(i,j), options);
+                    % - abs((pressurization(i) * r(i)) / (2 * t_var))
+        options = optimoptions('fsolve', 'Display', 'off', 'TolFun', 1e-39);
+        tBuckling = fsolve(bucklingEq, 0.001,options);
         t(i, j) = max(t(i, j), tBuckling);
         end
         
@@ -150,7 +151,8 @@ for i = 1 : partsNumber
     
         t(i, j) = max(tAxial, tShear);
     
-        bucklingEq = @(t_var) ((abs(N(i)) / (pi*(r(i)^2-(r(i)-t_var)^2)) + abs(M(i)) / (pi/4*(r(i)^4-(r(i)-t_var)^4)) * r(i))) - 0.6 * (1 - 0.901 * (1 - exp(-1 / 16 * sqrt(r(i)/t_var)))) * E(j) * t_var / r(i);
+        bucklingEq = @(t_var) ((abs(N(i)) / (pi*(r(i)^2-(r(i)-t_var)^2)) + abs(M(i)) / (pi/4*(r(i)^4-(r(i)-t_var)^4)) * r(i))) - E(j) * ( 9 * (t_var / r(i))^1.6 + 0.16 * (t_var / h(i))^1.3 ) ;
+        %- 0.6 * (1 - 0.901 * (1 - exp(-1 / 16 * sqrt(r(i)/t_var)))) * E(j) * t_var / r(i);
             options = optimoptions('fsolve', 'Display', 'off', 'TolFun', 1e-6);
             tBuckling = fsolve(bucklingEq, t(i, j), options);
             
