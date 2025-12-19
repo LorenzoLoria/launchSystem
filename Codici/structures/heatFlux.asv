@@ -56,11 +56,10 @@ timeStage = timeStage(:);
 
 % Raggio di curvatura del naso
 radiusN = mission.capsule.radius/2;
-%cp = 1004;
+cp = 1004;
 kcpRatio = 6e-5;
 Twall = 1111;
-TEnvironment = temperatureProfileQuick(absH);
-cpEnvironment = cpAirQuick(absH);
+Tenvironment = temperatureProfileQuick(absH);
 %%
 
 j = 1;
@@ -68,17 +67,12 @@ eps = 1;
 
 % ===================== HEAT FLUX COMPUTATION =============================
 qdot = (1.34.^j / eps.^0.25) .* sqrt((rhoVec .* absVel) ./ radiusN .* (kcpRatio))...
-    .* (cpEnvironment.* (Twall - TEnvironment) + absVel.^2 ./ 2);
-
-
-[max_qdot, idx_max_qdot] = max(qdot);
-time_at_max_qdot = timeStage(idx_max_qdot);
-
+    .* (cp .* (Twall - Tenvironment) + absVel.^2 ./ 2);
 
 qPlot = figure(1);
-plot(timeStage, qdot*1e-3, 'Color', settings.color.terracotta, 'LineWidth', 1.5)
+plot(timeStage, qdot*1e-3, 'LineWidth', 1.5)
 xlabel('t [s]')
-ylabel('$\dot{q}$ [kW/m$^2$]')
+ylabel('$\dot{q}$ [kW]')
 xlim([0, timeStage(end)])
 setPlotSettings(title(''))
 grid on
@@ -86,7 +80,7 @@ grid on
 exportStandardizedFigure(qPlot,'qPlot',0.55,1.5,'ChangeColors',false,'AddMarkers',false,'overwriteFigure',true,'exportFIG',true,'exportPDF',false,'figurePath','..\..\figures\structures')
 
 
-%% ============================ FUNCTIONS =================================
+%% ============================ FUNCTION
 function T = temperatureProfileQuick(h)
 % temperatureProfileQuick  Temperature vs altitude up to ~200 km.
 % - ISA (0–86 km)
@@ -139,37 +133,3 @@ T(h > h3) = T3;
 % Return in original shape
 T = reshape(T, size(h_in));
 end
-
-% =========================================================================
-function cp = cpAirFromT_Quick(T)
-% cpAirFromT_Quick  Quick piecewise-linear cp(T) for dry air.
-% T  [K]
-% cp [J/(kg*K)]
-
-T_in = T;
-T = double(T(:));
-
-% Anchor points (T [K], cp [J/kgK]) - quick engineering values
-Ttab  = [200, 300, 900, 1100, 2000]';
-cptab = [1005,1006,1121,1159,1250]';  % last point is a rough high-T extension
-
-% Interpolate (linear) + clamp outside range
-cp = interp1(Ttab, cptab, T, 'linear', 'extrap');
-
-% Clamp to avoid crazy extrapolation if T goes out of bounds
-cp(cp < min(cptab)) = min(cptab);
-cp(cp > max(cptab)) = max(cptab);
-
-cp = reshape(cp, size(T_in));
-end
-
-% =========================================================================
-function cp = cpAirQuick(h)
-% cpAirQuick  Quick estimate of air cp as a function of altitude (via T(h)).
-% h  [m] scalar or vector
-% cp [J/(kg*K)]
-
-T = temperatureProfileQuick(h);   % <-- usa la funzione che già hai (0–200 km)
-cp = cpAirFromT_Quick(T);         % <-- cp(T) semplice e stabile
-end
-

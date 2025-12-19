@@ -10,33 +10,33 @@ addpath(genpath("..\..\"))
 [mission,settings] = dataStructGlobal;
 % Initialization
 
-launcher = [2	2	3	3	0.459952176990556	0.753370531158904	0.634795741885559];
+launcher = [2.0	2.0	3.0	3.0	0.5718839104841471	0.8679383834568386	0.6027644098891288];
 for i = 1:launcher(1)
     configuration.stage{i}.engine = mission.engines{launcher(1+i)};
 end
 
 [mer,staging,configuration] = initialMassEstimation(mission,configuration,settings,launcher);
 
- thrustDataVecFMC = [0.901784296794966
-0.999967458028643
-0.900002561600819
-0.900000000000007
-0.900000000000006
-1.32376427751106
-22.4721810110826
-51.9025769669441
-58.3043070770380
-54.0837349292332
-0.400884818399135
-0.966674994308654
-0.974049905676140
-0.992054604106613
-0.992888695383693
-64.8416016397151
-78.7571907487398
-90.6394069314900
-87.6489451551192
-98.5947513930343];
+ thrustDataVecFMC = [   0.997027764065679
+   0.942654752527805
+   0.951101595174460
+   0.955848071611001
+   0.958803211573321
+   0.266317283506581
+  18.826711728279765
+  32.515170831440209
+  33.514016831344129
+  46.141997578498405
+   0.999087083722307
+   0.853687176825034
+   0.697414992914764
+   0.646557363727949
+   0.912180915015670
+  55.283673653565842
+  86.115064742122868
+  81.590553439030884
+  89.388813826003727
+  98.329715236102246];
 
 thrustData = reshape(thrustDataVecFMC,settings.nOptPointsTraj,2,2);
 
@@ -73,7 +73,7 @@ windVelYFun = griddedInterpolant(hVec,montecarlo.vyWind(1,:),'linear','linear');
 settings.gaControl = optimoptions("ga", ...
                         "Display","iter", ...
                         "MaxGenerations",20, ...
-                        "PopulationSize",100,...
+                        "PopulationSize",50,...
                         "UseParallel",true,...
                         "FunctionTolerance", 1e-4,...
                         "PlotFcn",{'gaplotbestf','gaplotbestindiv'}...
@@ -95,7 +95,7 @@ gainGA = xga;
 
 % Number of elements
 
-sizeMC = 1000;
+sizeMC = 100;
 
 % Initialization of the variables
 
@@ -161,6 +161,11 @@ for j = 1:1:length(distanceFromTargetUncontrolled)
     cumulativeMeanUncontrolled(k) = mean(distanceFromTargetUncontrolled(1:j));
 end
 
+distMeanCon = mean(distanceFromTargetControlled);
+distStdCon = std(distanceFromTargetControlled);
+
+distMeanUnc = mean(distanceFromTargetUncontrolled);
+distStdUnc = std(distanceFromTargetUncontrolled);
 
 
 %% ============================== PLOTS ===================================
@@ -185,10 +190,10 @@ exportStandardizedFigure(NominalTrajectory,'NominalTrajectory',0.55,1.5,'ChangeC
 
 ComparisonMean=figure(2);
 subplot(2,1,1)
-plot(cumulativeMeanControlled)
+plot(cumulativeMeanControlled,'Color',settings.color.blu)
 setPlotSettings(title('Cumulative Mean for Controlled Trajectory'))
 subplot(2,1,2)
-plot(cumulativeMeanUncontrolled)
+plot(cumulativeMeanUncontrolled,'Color',settings.color.blu)
 setPlotSettings(title('Cumulative Mean for Uncontrolled Trajectory'))
 
 exportStandardizedFigure(ComparisonMean,'ComparisonMean',0.55,1.5,'ChangeColors',false,'AddMarkers',false,'overwriteFigure',true,'exportFIG',true,'exportPDF',false,'figurePath','images')
@@ -225,9 +230,6 @@ plot(distancePointsControlled,'k*')
 yline(20e3,'r','LineWidth',2)
 ylabel('Distance')
 xlabel('iteration')
-setPlotSettings(title('Dinstance Error distribution'))
-
-exportStandardizedFigure(Points,'Points',0.55,1.5,'ChangeColors',false,'AddMarkers',false,'overwriteFigure',true,'exportFIG',true,'exportPDF',false,'figurePath','images')
 
 
 distPointGood =[]; %NaN * ones(length(distancePoints));
@@ -311,7 +313,58 @@ setPlotSettings(title('Success vs Failure'))
 exportStandardizedFigure(succesvFailUncontrol,'succesvFailUncontrol',0.55,1.5,'ChangeColors',false,'AddMarkers',false,'overwriteFigure',true,'exportFIG',true,'exportPDF',false,'figurePath','images')
 
 
-%% Propagation of the other uncertainties
+%% Propagation of the other uncertainties (stage 1)
+clear all
+clc
+close all
+
+% Path Directory
+
+addpath(genpath("..\..\"))
+
+% Upload Mission Struct
+[mission,settings] = dataStructGlobal;
+% Initialization
+
+launcher = [2	2	3	3	0.459952176990556	0.753370531158904	0.634795741885559];
+for i = 1:launcher(1)
+    configuration.stage{i}.engine = mission.engines{launcher(1+i)};
+end
+
+[mer,staging,configuration] = initialMassEstimation(mission,configuration,settings,launcher);
+
+ thrustDataVecFMC = [0.901784296794966
+0.999967458028643
+0.900002561600819
+0.900000000000007
+0.900000000000006
+1.32376427751106
+22.4721810110826
+51.9025769669441
+58.3043070770380
+54.0837349292332
+0.400884818399135
+0.966674994308654
+0.974049905676140
+0.992054604106613
+0.992888695383693
+64.8416016397151
+78.7571907487398
+90.6394069314900
+87.6489451551192
+98.5947513930343];
+
+thrustData = reshape(thrustDataVecFMC,settings.nOptPointsTraj,2,2);
+
+    localLowerBoundsFMC = settings.lowerBoundsFMC(:,:,1:launcher(1)) ;
+    localUpperBoundsFMC = settings.upperBoundsFMC(:,:,1:launcher(1)) ;
+[thrustDataVecFMC,fvalFMCTraj,~,checkViolation] = fmincon ( @(x)objFunFMCTraj(x,launcher,configuration,mission,settings),...
+            thrustData,[],[],[],[],...
+            localLowerBoundsFMC-eps,localUpperBoundsFMC+eps,...
+            @(x) nlconFMCTraj(x,launcher,configuration,mission,settings),...
+            settings.fminconTrajOptions);
+
+[timeCollocationRef, stateCollocationRef] = totalTrajectoryGlobalGA(launcher,configuration,mission,settings,thrustDataVecFMC);
 
 close all
 
@@ -352,14 +405,13 @@ for i=1:size(Matr,2)
     shuffledMatrix(:,i) = Matr(randperm(size(Matr,1)),i);
 end
 
-positionError = zeros(size(shuffledMatrix,1),1);
-velocityError = zeros(size(shuffledMatrix,1),1);
+positionError = zeros(3,size(shuffledMatrix,1));
+velocityError = zeros(3,size(shuffledMatrix,1));
 
 % Initialization of the variables
 sizeMC = 1;
 hVec = 0:100;
 
-%% Computation of the Wind Profiles
 
 [meanWind, varWind] = GRAM07_HWM07_annual(hVec);
 WindVelocityMag = meanWind ;
@@ -385,12 +437,6 @@ nVarsGA = launcher(1) * 6;
 fun = @(gainGA) objGAGainsMonte(gainGA,launcher,configuration,mission,settings,windVelXFun,windVelYFun,stateCollocationRef,timeCollocationRef,10,thrustData);
 lb = zeros(nVarsGA,1);
 ub = inf * ones(nVarsGA,1);
-
-figure
-EarthPlot(mission.environment.rEarth)
-hold on
-plot3(mission.target.initialPointECI(1),mission.target.initialPointECI(2),mission.target.initialPointECI(3),'bo')
-[timeCollocationRef, stateCollocationRef] = totalTrajectoryGlobalGA(launcher,configuration,mission,settings,thrustDataVecFMC);
 
 for i=1:size(shuffledMatrix,1)
 
@@ -423,38 +469,77 @@ for i=1:size(shuffledMatrix,1)
     [timeCollocation, stateCollocation] = totalTrajectoryGlobalGA(launcher,configuration,mission,settings,thrustDataVecFMC);
 
     % Error
-    positionError(i) = norm(stateCollocation(1:3,end,end-1)-stateCollocationRef(1:3,end,end-1));
-    velocityError(i) = norm(stateCollocation(4:6,end,end-1)-stateCollocationRef(4:6,end,end-1));
+    positionError(:,i) = stateCollocation(1:3,end,end-1)-stateCollocationRef(1:3,end,end-1);
+    velocityError(:,i) = stateCollocation(4:6,end,end-1)-stateCollocationRef(4:6,end,end-1);
 end
 
-%% Computation of the cumulative mean
-
-k = 0;
-
-cumulativeMeanPosition = zeros(length(positionError),1);
-cumulativeMeanVelocity = zeros(length(velocityError),1);
-
-for j = 1:1:length(positionError)
-    k = k+1;
-    cumulativeMeanPosition(j) = mean(positionError(1:j));
-    cumulativeMeanVelocity(j) = mean(velocityError(1:j));
-end
-positionErrorPlotStage1 = figure(1);
-plot(cumulativeMeanPosition,'Color',settings.color.blu)
-setPlotSettings(title('Cumulative Mean for the position error'))
-exportStandardizedFigure(positionErrorPlotStage1,'positionErrorPlotStage1',0.55,1.5,'ChangeColors',false,'AddMarkers',false,'overwriteFigure',true,'exportFIG',true,'exportPDF',false,'figurePath','images')
-
-velocityErrorPlotStage1 = figure(2);
-plot(cumulativeMeanVelocity,'Color',settings.color.blu)
-setPlotSettings(title('Cumulative Mean for the velocity error'))
-exportStandardizedFigure(velocityErrorPlotStage1,'velocityErrorPlotStage1',0.55,1.5,'ChangeColors',false,'AddMarkers',false,'overwriteFigure',true,'exportFIG',true,'exportPDF',false,'figurePath','images')
 
 meanErrPosStage1 = mean(positionError);
 stdErrPosStage1 = std(positionError);
 
 meanErrVelStage1 = mean(velocityError);
 stdErrVelStage1 = std(velocityError);
-%% Propagation of the other uncertainties
+
+histPosx1 = figure(1);
+histogram(positionError(1,:),'FaceColor',settings.color.blu,'EdgeColor','k','NumBins',30)
+%xlim([-45000,45000])
+setPlotSettings(title('Position error along $x_{ECI}$ [m]'))
+exportStandardizedFigure(histPosx1,'histPosx1',0.55,1.5,'ChangeColors',false,'AddMarkers',false,'overwriteFigure',true,'exportFIG',true,'exportPDF',false,'figurePath','images')
+
+histPosy1 = figure(2);
+histogram(positionError(2,:),'FaceColor',settings.color.blu,'EdgeColor','k','NumBins',30)
+%xlim([-45000,45000])
+setPlotSettings(title('Position error along $y_{ECI}$ [m]'))
+exportStandardizedFigure(histPosy1,'histPosy1',0.55,1.5,'ChangeColors',false,'AddMarkers',false,'overwriteFigure',true,'exportFIG',true,'exportPDF',false,'figurePath','images')
+
+histPosz1 = figure(3);
+histogram(positionError(3,:),'FaceColor',settings.color.blu,'EdgeColor','k','NumBins',30)
+%xlim([-45000,45000])
+setPlotSettings(title('Position error along $z_{ECI}$ [m]'))
+exportStandardizedFigure(histPosz1,'histPosz1',0.55,1.5,'ChangeColors',false,'AddMarkers',false,'overwriteFigure',true,'exportFIG',true,'exportPDF',false,'figurePath','images')
+
+histVelx1 = figure(4);
+histogram(velocityError(1,:),'FaceColor',settings.color.blu,'EdgeColor','k','NumBins',30)
+%xlim([-250,250])
+setPlotSettings(title('Velocity error along $x_{ECI}$ [m/s]'))
+exportStandardizedFigure(histVelx1,'histVelx1',0.55,1.5,'ChangeColors',false,'AddMarkers',false,'overwriteFigure',true,'exportFIG',true,'exportPDF',false,'figurePath','images')
+
+histVely1 = figure(5);
+histogram(velocityError(2,:),'FaceColor',settings.color.blu,'EdgeColor','k','NumBins',30)
+%xlim([-250,250])
+setPlotSettings(title('Velocity error along $y_{ECI}$ [m/s]'))
+exportStandardizedFigure(histVely1,'histVely1',0.55,1.5,'ChangeColors',false,'AddMarkers',false,'overwriteFigure',true,'exportFIG',true,'exportPDF',false,'figurePath','images')
+
+histVelz1 = figure(6);
+histogram(velocityError(3,:),'FaceColor',settings.color.blu,'EdgeColor','k','NumBins',30)
+%xlim([-250,250])
+setPlotSettings(title('Velocity error along $z_{ECI}$ [m/s]'))
+exportStandardizedFigure(histVelz1,'histVelz1',0.55,1.5,'ChangeColors',false,'AddMarkers',false,'overwriteFigure',true,'exportFIG',true,'exportPDF',false,'figurePath','images')
+
+% %% Computation of the cumulative mean
+% 
+% k = 0;
+% 
+% cumulativeMeanPosition = zeros(length(positionError),1);
+% cumulativeMeanVelocity = zeros(length(velocityError),1);
+% 
+% for j = 1:1:length(positionError)
+%     k = k+1;
+%     cumulativeMeanPosition(j) = mean(positionError(1:j));
+%     cumulativeMeanVelocity(j) = mean(velocityError(1:j));
+% end
+% positionErrorPlotStage1 = figure(1);
+% plot(cumulativeMeanPosition,'Color',settings.color.blu)
+% setPlotSettings(title('Cumulative Mean for the position error'))
+% exportStandardizedFigure(positionErrorPlotStage1,'positionErrorPlotStage1',0.55,1.5,'ChangeColors',false,'AddMarkers',false,'overwriteFigure',true,'exportFIG',true,'exportPDF',false,'figurePath','images')
+% 
+% velocityErrorPlotStage1 = figure(2);
+% plot(cumulativeMeanVelocity,'Color',settings.color.blu)
+% setPlotSettings(title('Cumulative Mean for the velocity error'))
+% exportStandardizedFigure(velocityErrorPlotStage1,'velocityErrorPlotStage1',0.55,1.5,'ChangeColors',false,'AddMarkers',false,'overwriteFigure',true,'exportFIG',true,'exportPDF',false,'figurePath','images')
+% 
+
+% Propagation of the other uncertainties (stage 2)
 close all
 sizeMC = 30;
 
@@ -493,8 +578,8 @@ for i=1:size(Matr,2)
     shuffledMatrix(:,i) = Matr(randperm(size(Matr,1)),i);
 end
 
-positionError = zeros(size(shuffledMatrix,1),1);
-velocityError = zeros(size(shuffledMatrix,1),1);
+positionError = zeros(3,size(shuffledMatrix,1),1);
+velocityError = zeros(3,size(shuffledMatrix,1),1);
 
 % Initialization of the variables
 sizeMC = 1;
@@ -560,9 +645,54 @@ for i=1:size(shuffledMatrix,1)
     [timeCollocation, stateCollocation] = totalTrajectoryGlobalGA(launcher,configuration,mission,settings,thrustDataVecFMC);
 
     % Error
-    positionError(i) = norm(stateCollocation(1:3,end,end-1)-stateCollocationRef(1:3,end,end-1));
-    velocityError(i) = norm(stateCollocation(4:6,end,end-1)-stateCollocationRef(4:6,end,end-1));
+    positionError(:,i) = stateCollocation(1:3,end,end-1)-stateCollocationRef(1:3,end,end-1);
+    velocityError(:,i) = stateCollocation(4:6,end,end-1)-stateCollocationRef(4:6,end,end-1);
+
+
 end
+
+meanErrPosStage2 = mean(positionError);
+stdErrPosStage2 = std(positionError);
+
+meanErrVelStage2 = mean(velocityError);
+stdErrVelStage2 = std(velocityError);
+
+
+histPosx2 = figure(1);
+histogram(positionError(1,:),'FaceColor',settings.color.blu,'EdgeColor','k','NumBins',30)
+%xlim([-1.5e4,1.5e4])
+setPlotSettings(title('Position error along $x_{ECI} $[m]'))
+exportStandardizedFigure(histPosx2,'histPosx2',0.55,1.5,'ChangeColors',false,'AddMarkers',false,'overwriteFigure',true,'exportFIG',true,'exportPDF',false,'figurePath','images')
+
+histPosy2 = figure(2);
+histogram(positionError(2,:),'FaceColor',settings.color.blu,'EdgeColor','k','NumBins',30)
+%xlim([-6e4,6e4])
+setPlotSettings(title('Position error along $y_{ECI} $[m]'))
+exportStandardizedFigure(histPosy2,'histPosy2',0.55,1.5,'ChangeColors',false,'AddMarkers',false,'overwriteFigure',true,'exportFIG',true,'exportPDF',false,'figurePath','images')
+
+histPosz2 = figure(3);
+histogram(positionError(3,:),'FaceColor',settings.color.blu,'EdgeColor','k','NumBins',30)
+%xlim([-1.5e4,1.5e4])
+setPlotSettings(title('Position error along $z_{ECI} $ [m]'))
+exportStandardizedFigure(histPosz2,'histPosz2',0.55,1.5,'ChangeColors',false,'AddMarkers',false,'overwriteFigure',true,'exportFIG',true,'exportPDF',false,'figurePath','images')
+
+histVelx2 = figure(4);
+histogram(velocityError(1,:),'FaceColor',settings.color.blu,'EdgeColor','k','NumBins',30)
+%xlim([-60,60])
+setPlotSettings(title('Velocity error along $x_{ECI} $[m/s]'))
+exportStandardizedFigure(histVelx2,'histVelx2',0.55,1.5,'ChangeColors',false,'AddMarkers',false,'overwriteFigure',true,'exportFIG',true,'exportPDF',false,'figurePath','images')
+
+histVely2 = figure(5);
+histogram(velocityError(2,:),'FaceColor',settings.color.blu,'EdgeColor','k','NumBins',30)
+%xlim([-200,200])
+setPlotSettings(title('Velocity error along $y_{ECI}$ [m/s]'))
+exportStandardizedFigure(histVely2,'histVely2',0.55,1.5,'ChangeColors',false,'AddMarkers',false,'overwriteFigure',true,'exportFIG',true,'exportPDF',false,'figurePath','images')
+
+histVelz2 = figure(6);
+histogram(velocityError(3,:),'FaceColor',settings.color.blu,'EdgeColor','k','NumBins',30)
+%xlim([-60,60])
+setPlotSettings(title('Velocity error along $z_{ECI}$ [m/s]'))
+exportStandardizedFigure(histVelz2,'histVelz2',0.55,1.5,'ChangeColors',false,'AddMarkers',false,'overwriteFigure',true,'exportFIG',true,'exportPDF',false,'figurePath','images')
 
 %% Computation of the cumulative mean
 
@@ -585,13 +715,6 @@ velocityErrorPlotStage2 = figure(2);
 plot(cumulativeMeanVelocity,'Color',settings.color.blu)
 setPlotSettings(title('Cumulative Mean for the velocity error'))
 exportStandardizedFigure(velocityErrorPlotStage2,'velocityErrorPlotStage2',0.55,1.5,'ChangeColors',false,'AddMarkers',false,'overwriteFigure',true,'exportFIG',true,'exportPDF',false,'figurePath','images')
-
-meanErrPosStage2 = mean(positionError);
-stdErrPosStage2 = std(positionError);
-
-meanErrVelStage2 = mean(velocityError);
-stdErrVelStage2 = std(velocityError);
-
 
 
 %% Influence of the errors in position and velocity wrt trajectory height
@@ -694,8 +817,7 @@ thrustData = [0.901784296794966	0.9557332507188437	0.959077988241489	0.985489763
 hMax = [];
 x0Caps = [];
 errorMean = [];
-% EarthPlot(mission.environment.rEarth);
-% hold on
+
 for i = 1:size(launcher,1)
     for j = 1:launcher(i,1)
         configuration.stage{j}.engine = mission.engines{launcher(i,1+j)};
@@ -742,7 +864,7 @@ plot(hVec,1./p,'Color',settings.color.blu);
 coeff(1)=0;
 p = polyval(coeff,hVec);
 plot(hVec,1./p,'Color',settings.color.terracotta)
-xlabel('h_{max}')
+xlabel('$h_{max}$ [m]')
 ylabel('Mean Error')
 legend('points','quadratic regression','linear regression','Location','northeast','Orientation','vertical')
 setPlotSettings(title('Mean error vs Max altitude'))

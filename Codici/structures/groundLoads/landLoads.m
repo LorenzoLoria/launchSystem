@@ -97,6 +97,10 @@ xc2 = xc2 - xcf;
 T1 = windDragTOT / (1 + xc1 / xc2);
 T2 = T1 * xc1 / xc2;
 
+% Posizione centro di gravità 
+
+xcg = centerOfGravity(m, hCentroids);
+
 % ===================== Creation of A Matrix ==============================
 A = zeros(3 * nNodes, 3 * nNodes);
 

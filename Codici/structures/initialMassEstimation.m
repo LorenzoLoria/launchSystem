@@ -175,8 +175,8 @@ lOverD = 5;
     opt.stage{i}.stucturalMass = mStructure;
     opt.stage{i}.mProp = mProp;
     opt.stage{i}.mStage = mStage;
-    opt.stage{i}.fuelTankH = 2 * sol1(1) + sol1(2);
-    opt.stage{i}.oxTankH =  sol1(3);
+    opt.stage{i}.fuelTankH = sol1(2);
+    opt.stage{i}.oxTankH =  2 * sol1(1) + sol1(3);
     opt.stage{i}.fuelTankR = sol1(1);
     opt.stage{i}.oxTankR = sol1(1);
 
