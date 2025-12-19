@@ -324,5 +324,5 @@ settings.color.orange = '#cf9143';
 settings.color.blu = '#2f5d62';
 settings.color.gray = '#3a3a3a';
 settings.color.terracotta = '#8f4e3a';
-
+settings.color.red = '#d94f44';
 end
